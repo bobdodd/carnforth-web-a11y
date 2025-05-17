@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const exportBar = document.querySelector('.export-bar');
   const exportJsonButton = document.getElementById('export-json');
   const exportExcelButton = document.getElementById('export-excel');
+  const exportHtmlButton = document.getElementById('export-html');
   const resultsContainer = document.getElementById('results-container');
   const failCount = document.getElementById('fail-count');
   const warningCount = document.getElementById('warning-count');
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     exportBar.classList.add('hidden');
     exportJsonButton.disabled = true;
     exportExcelButton.disabled = true;
+    exportHtmlButton.disabled = true;
     
     // Clear current results and test status
     currentTestResults = null;
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
       exportBar.classList.remove('hidden');
       exportJsonButton.disabled = false;
       exportExcelButton.disabled = false;
+      exportHtmlButton.disabled = false;
       
       // The updateSummary function will handle the status announcement
     } catch (error) {
@@ -97,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
       exportBar.classList.add('hidden');
       exportJsonButton.disabled = true;
       exportExcelButton.disabled = true;
+      exportHtmlButton.disabled = true;
       
       // Update status for screen reader to announce test error
       testStatus.textContent = `Error running tests: ${error.message}. Please try again.`;
@@ -757,7 +761,669 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  /**
+   * Export results as an accessible HTML file with everything embedded
+   */
+  function exportAsHtml() {
+    if (!currentTestResults) {
+      console.error('No test results to export');
+      return;
+    }
+    
+    // Get the actual URL from the inspected window
+    chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+      if (isException) {
+        console.error('Error getting page URL:', isException);
+        performHtmlExport("Unknown");
+      } else {
+        performHtmlExport(result);
+      }
+    });
+  }
+  
+  /**
+   * Perform the HTML export after getting the URL
+   * @param {string} pageUrl - The URL of the inspected page
+   */
+  function performHtmlExport(pageUrl) {
+    try {
+      // Get current date and time
+      const now = new Date();
+      const date = now.toLocaleDateString();
+      const time = now.toLocaleTimeString();
+      
+      // Create the HTML template with embedded CSS
+      let htmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Audit - ${pageUrl}</title>
+  <style>
+    /* Reset and base styles */
+    :root {
+      --background-color: #ffffff;
+      --fail-color: #9a0000;
+      --warning-color: #6d4c00;
+      --info-color: #0d47a1;
+      --text-color: #222222;
+      --border-color: #757575;
+      --focus-outline-color: #0d47a1;
+      --fail-bg-color: #e53935;
+      --warning-bg-color: #ffb300;
+      --info-bg-color: #1e88e5;
+      --padding-small: 0.5rem;
+      --padding-medium: 0.75rem;
+      --padding-large: 1rem;
+      --margin-small: 0.25rem;
+      --margin-medium: 0.5rem;
+      --margin-large: 1rem;
+      --border-radius-small: 0.25rem;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text-color);
+      background-color: var(--background-color);
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1, h2, h3, h4 {
+      margin-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: 1.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    
+    h4 {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
+    
+    p {
+      margin-bottom: 1rem;
+    }
+    
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    
+    .meta-info {
+      background-color: #f5f5f5;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      margin-bottom: 2rem;
+    }
+    
+    .meta-info dt {
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    
+    .meta-info dd {
+      margin-left: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .summary {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .summary div {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid;
+    }
+    
+    .summary h2 {
+      margin-top: 0;
+      margin-bottom: 0.25rem;
+    }
+    
+    .summary .count {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .fail {
+      color: var(--fail-color);
+      border-color: var(--fail-color);
+      background-color: rgba(229, 57, 53, 0.1);
+    }
+    
+    .warning {
+      color: var(--warning-color);
+      border-color: var(--warning-color);
+      background-color: rgba(255, 179, 0, 0.1);
+    }
+    
+    .info {
+      color: var(--info-color);
+      border-color: var(--info-color);
+      background-color: rgba(30, 136, 229, 0.1);
+    }
+    
+    .touchpoint {
+      margin-bottom: 3rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.25rem;
+    }
+    
+    .touchpoint-header {
+      background-color: #f5f5f5;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .touchpoint-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .touchpoint-counts {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .count-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: bold;
+      border: 1px solid;
+    }
+    
+    .touchpoint-body {
+      padding: 1rem;
+    }
+    
+    .touchpoint-description {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: #f9f9f9;
+      border-radius: 0.25rem;
+    }
+    
+    .issue {
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.25rem;
+    }
+    
+    .issue-header {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .issue-bullet {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      flex-shrink: 0;
+    }
+    
+    .issue-bullet.fail {
+      background-color: var(--fail-bg-color);
+    }
+    
+    .issue-bullet.warning {
+      background-color: var(--warning-bg-color);
+      color: black;
+    }
+    
+    .issue-bullet.info {
+      background-color: var(--info-bg-color);
+    }
+    
+    .issue-title {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    
+    .issue-body {
+      padding: 1rem;
+    }
+    
+    .issue-description {
+      margin-bottom: 1.5rem;
+    }
+    
+    .issue-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: #f8f8f8;
+      border-radius: 0.25rem;
+    }
+    
+    .issue-section h4 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.25rem;
+    }
+    
+    .impact-who, 
+    .impact-severity, 
+    .impact-why {
+      margin-bottom: 0.5rem;
+    }
+    
+    .technical-label {
+      font-weight: bold;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    pre {
+      background-color: #f1f1f1;
+      padding: 0.75rem;
+      border-radius: 0.25rem;
+      border: 1px solid #e0e0e0;
+      font-family: monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin-bottom: 0.75rem;
+    }
+    
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    li {
+      margin-bottom: 0.25rem;
+    }
+    
+    a {
+      color: var(--info-color);
+      text-decoration: none;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    a:focus {
+      outline: 2px solid var(--focus-outline-color);
+      outline-offset: 2px;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+      
+      .touchpoint {
+        break-inside: avoid;
+      }
+      
+      .issue {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Accessibility Audit Report</h1>
+  
+  <div class="meta-info">
+    <dl>
+      <dt>Page URL:</dt>
+      <dd>${pageUrl}</dd>
+      <dt>Audit Date:</dt>
+      <dd>${date}</dd>
+      <dt>Audit Time:</dt>
+      <dd>${time}</dd>
+    </dl>
+  </div>`;
+      
+      // Add summary section
+      let fails = 0;
+      let warnings = 0;
+      let infos = 0;
+      
+      // Count all issues by type
+      Object.values(currentTestResults).forEach(touchpoint => {
+        (touchpoint.issues || []).forEach(issue => {
+          if (issue.type === 'fail') fails++;
+          else if (issue.type === 'warning') warnings++;
+          else if (issue.type === 'info') infos++;
+        });
+      });
+      
+      htmlTemplate += `
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading">Summary</h2>
+    <div class="summary">
+      <div class="fail">
+        <h3>Failures</h3>
+        <span class="count">${fails}</span>
+      </div>
+      <div class="warning">
+        <h3>Warnings</h3>
+        <span class="count">${warnings}</span>
+      </div>
+      <div class="info">
+        <h3>Info</h3>
+        <span class="count">${infos}</span>
+      </div>
+    </div>
+  </section>
+  
+  <section aria-labelledby="details-heading">
+    <h2 id="details-heading">Detailed Results</h2>`;
+      
+      // Sort touchpoints alphabetically
+      const sortedTouchpoints = Object.keys(currentTestResults).sort();
+      
+      // Add each touchpoint section
+      sortedTouchpoints.forEach(touchpoint => {
+        const touchpointData = currentTestResults[touchpoint];
+        const issues = touchpointData.issues || [];
+        
+        if (issues.length === 0) {
+          return; // Skip touchpoints with no issues
+        }
+        
+        // Format touchpoint name for display
+        const displayName = touchpoint
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, l => l.toUpperCase());
+        
+        // Count issues by type
+        const counts = {
+          fail: issues.filter(issue => issue.type === 'fail').length,
+          warning: issues.filter(issue => issue.type === 'warning').length,
+          info: issues.filter(issue => issue.type === 'info').length
+        };
+        
+        htmlTemplate += `
+    <div class="touchpoint">
+      <div class="touchpoint-header">
+        <h3 class="touchpoint-title" id="${touchpoint}-heading">${displayName}</h3>
+        <div class="touchpoint-counts">`;
+        
+        if (counts.fail > 0) {
+          htmlTemplate += `
+          <span class="count-badge fail">${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}</span>`;
+        }
+        
+        if (counts.warning > 0) {
+          htmlTemplate += `
+          <span class="count-badge warning">${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}</span>`;
+        }
+        
+        if (counts.info > 0) {
+          htmlTemplate += `
+          <span class="count-badge info">${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}</span>`;
+        }
+        
+        htmlTemplate += `
+        </div>
+      </div>
+      <div class="touchpoint-body">
+        <div class="touchpoint-description">${touchpointData.description}</div>`;
+        
+        // First, group issues by type
+        const issuesByType = {
+          fail: issues.filter(issue => issue.type === 'fail'),
+          warning: issues.filter(issue => issue.type === 'warning'),
+          info: issues.filter(issue => issue.type === 'info')
+        };
+        
+        // Sort each group alphabetically by title
+        Object.keys(issuesByType).forEach(type => {
+          issuesByType[type].sort((a, b) => a.title.localeCompare(b.title));
+        });
+        
+        // Combine the groups in priority order: fails, warnings, info
+        const sortedIssues = [
+          ...issuesByType.fail,
+          ...issuesByType.warning,
+          ...issuesByType.info
+        ];
+        
+        // Add each issue
+        sortedIssues.forEach((issue, index) => {
+          htmlTemplate += `
+        <div class="issue">
+          <div class="issue-header">
+            <span class="issue-bullet ${issue.type}" aria-hidden="true">${issue.type === 'fail' ? 'F' : issue.type === 'warning' ? 'W' : 'I'}</span>
+            <span class="issue-type-label sr-only">${issue.type === 'fail' ? 'Fail: ' : issue.type === 'warning' ? 'Warning: ' : 'Info: '}</span>
+            <h4 class="issue-title">${issue.title}</h4>
+          </div>
+          <div class="issue-body">
+            <p class="issue-description">${issue.description}</p>`;
+          
+          // Add impact information (required for fail and warning)
+          if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact) {
+            htmlTemplate += `
+            <div class="issue-section impact">
+              <h5>Impact</h5>`;
+            
+            if (issue.impact.who) {
+              htmlTemplate += `
+              <div class="impact-who">
+                <strong>Affects: </strong>${issue.impact.who}
+              </div>`;
+            }
+            
+            if (issue.impact.severity) {
+              htmlTemplate += `
+              <div class="impact-severity">
+                <strong>Severity: </strong>${issue.impact.severity}
+              </div>`;
+            }
+            
+            if (issue.impact.why) {
+              htmlTemplate += `
+              <div class="impact-why">
+                <strong>Why it matters: </strong>${issue.impact.why}
+              </div>`;
+            }
+            
+            htmlTemplate += `
+            </div>`;
+          }
+          
+          // Add WCAG information if present
+          if (issue.wcag) {
+            htmlTemplate += `
+            <div class="issue-section wcag">
+              <h5>WCAG Reference</h5>
+              <div>`;
+            
+            if (issue.wcag.principle) {
+              htmlTemplate += `
+                <div>Principle: ${issue.wcag.principle}</div>`;
+            }
+            
+            if (issue.wcag.guideline) {
+              htmlTemplate += `
+                <div>Guideline: ${issue.wcag.guideline}</div>`;
+            }
+            
+            if (issue.wcag.successCriterion) {
+              htmlTemplate += `
+                <div>Success Criterion: ${issue.wcag.successCriterion}`;
+              
+              if (issue.wcag.level) {
+                htmlTemplate += ` (Level ${issue.wcag.level})`;
+              }
+              
+              htmlTemplate += `</div>`;
+            }
+            
+            htmlTemplate += `
+              </div>
+            </div>`;
+          }
+          
+          // Add remediation steps if present
+          if ((issue.type === 'fail' || issue.type === 'warning') && issue.remediation && issue.remediation.length > 0) {
+            htmlTemplate += `
+            <div class="issue-section remediation">
+              <h5>How to Fix</h5>
+              <ol class="remediation-steps">`;
+            
+            issue.remediation.forEach(step => {
+              htmlTemplate += `
+                <li>${step}</li>`;
+            });
+            
+            htmlTemplate += `
+              </ol>
+            </div>`;
+          }
+          
+          // Add technical details
+          if (issue.selector || issue.xpath || issue.html) {
+            htmlTemplate += `
+            <div class="issue-section technical">
+              <h5>Technical Details</h5>`;
+            
+            if (issue.selector) {
+              htmlTemplate += `
+              <div class="technical-label">CSS Selector:</div>
+              <pre>${issue.selector}</pre>`;
+            }
+            
+            if (issue.xpath) {
+              htmlTemplate += `
+              <div class="technical-label">XPath:</div>
+              <pre>${issue.xpath}</pre>`;
+            }
+            
+            if (issue.html) {
+              htmlTemplate += `
+              <div class="technical-label">Current HTML:</div>
+              <pre>${issue.html.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+            }
+            
+            if (issue.fixedHtml) {
+              htmlTemplate += `
+              <div class="technical-label">Example Fix:</div>
+              <pre>${issue.fixedHtml.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+            }
+            
+            htmlTemplate += `
+            </div>`;
+          }
+          
+          // Add resources if present
+          if (issue.resources && issue.resources.length > 0) {
+            htmlTemplate += `
+            <div class="issue-section resources">
+              <h5>Resources</h5>
+              <ul class="resources-list">`;
+            
+            issue.resources.forEach(resource => {
+              if (resource.url) {
+                htmlTemplate += `
+                <li><a href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.title || resource.url}</a></li>`;
+              } else {
+                htmlTemplate += `
+                <li>${resource.title}</li>`;
+              }
+            });
+            
+            htmlTemplate += `
+              </ul>
+            </div>`;
+          }
+          
+          htmlTemplate += `
+          </div>
+        </div>`;
+        });
+        
+        htmlTemplate += `
+      </div>
+    </div>`;
+      });
+      
+      // Close the main sections and document
+      htmlTemplate += `
+  </section>
+  
+  <footer>
+    <p>Generated with Carnforth Web A11y - ${date} at ${time}</p>
+  </footer>
+</body>
+</html>`;
+      
+      // Create download link
+      const blob = new Blob([htmlTemplate], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `a11y-report-${new Date().toISOString().split('T')[0]}.html`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('Error exporting HTML:', error);
+      alert('Failed to export HTML: ' + error.message);
+    }
+  }
+  
   // Add event listeners for export buttons
   exportJsonButton.addEventListener('click', exportAsJson);
   exportExcelButton.addEventListener('click', exportAsExcel);
+  exportHtmlButton.addEventListener('click', exportAsHtml);
 });
