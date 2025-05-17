@@ -113,6 +113,11 @@ h1 {
   padding: 0 var(--padding-medium);
 }
 
+/* Hide export bar by default */
+.export-bar.hidden {
+  display: none;
+}
+
 .primary-button {
   background-color: var(--info-bg-color);
   color: white;

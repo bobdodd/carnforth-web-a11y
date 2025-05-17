@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startTestButton.textContent = 'Start Test';
     
     // Hide export bar and disable export buttons
-    exportBar.hidden = true;
+    exportBar.classList.add('hidden');
     exportJsonButton.disabled = true;
     exportExcelButton.disabled = true;
     
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       startTestButton.textContent = 'Start Test';
       
       // Show export bar and enable export buttons
-      exportBar.hidden = false;
+      exportBar.classList.remove('hidden');
       exportJsonButton.disabled = false;
       exportExcelButton.disabled = false;
     } catch (error) {
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
       startTestButton.textContent = 'Start Test';
       
       // Hide export bar and disable export buttons
-      exportBar.hidden = true;
+      exportBar.classList.add('hidden');
       exportJsonButton.disabled = true;
       exportExcelButton.disabled = true;
     }
