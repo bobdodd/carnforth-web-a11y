@@ -7,6 +7,7 @@ let currentTestResults = null;
 
 document.addEventListener('DOMContentLoaded', function() {
   const startTestButton = document.getElementById('start-test');
+  const exportBar = document.querySelector('.export-bar');
   const exportJsonButton = document.getElementById('export-json');
   const exportExcelButton = document.getElementById('export-excel');
   const resultsContainer = document.getElementById('results-container');
@@ -28,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     startTestButton.disabled = false;
     startTestButton.textContent = 'Start Test';
     
-    // Disable export buttons
+    // Hide export bar and disable export buttons
+    exportBar.hidden = true;
     exportJsonButton.disabled = true;
     exportExcelButton.disabled = true;
     
@@ -74,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
       
-      // Enable export buttons
+      // Show export bar and enable export buttons
+      exportBar.hidden = false;
       exportJsonButton.disabled = false;
       exportExcelButton.disabled = false;
     } catch (error) {
@@ -83,7 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
       
-      // Disable export buttons
+      // Hide export bar and disable export buttons
+      exportBar.hidden = true;
       exportJsonButton.disabled = true;
       exportExcelButton.disabled = true;
     }
