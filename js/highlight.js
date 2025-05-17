@@ -3,20 +3,9 @@
  */
 
 /**
- * Initialize highlight buttons
+ * The initializeHighlightButtons function is no longer needed
+ * as highlighting now happens automatically when expanding issue details
  */
-function initializeHighlightButtons() {
-  const highlightButtons = document.querySelectorAll('.highlight-button');
-  
-  highlightButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const selector = this.getAttribute('data-selector');
-      if (selector) {
-        highlightElement(selector);
-      }
-    });
-  });
-}
 
 /**
  * Highlight an element on the page

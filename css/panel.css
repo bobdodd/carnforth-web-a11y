@@ -535,25 +535,12 @@ main {
   outline-offset: 2px;
 }
 
-/* Highlight button */
-.highlight-button {
-  background-color: transparent;
-  border: 1px solid var(--info-color);
+/* Auto highlight note */
+.auto-highlight-note {
   color: var(--info-color);
-  border-radius: var(--border-radius-small);
-  padding: var(--padding-small) var(--padding-medium);
-  cursor: pointer;
-  font-size: var(--base-font-size);
-  transition: background-color 0.2s ease;
-}
-
-.highlight-button:hover {
-  background-color: rgba(13, 71, 161, 0.1);
-}
-
-.highlight-button:focus {
-  outline: 2px solid var(--focus-outline-color);
-  outline-offset: 2px;
+  font-size: 0.9rem;
+  margin-top: var(--margin-small);
+  margin-bottom: var(--margin-small);
 }
 
 /* Accessibility improvements */

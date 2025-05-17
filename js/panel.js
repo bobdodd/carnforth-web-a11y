@@ -155,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize accordion functionality
     initializeAccordions();
     initializeIssueDisclosures();
-    initializeHighlightButtons();
   }
 
   /**
@@ -561,18 +560,23 @@ document.addEventListener('DOMContentLoaded', function() {
       details.appendChild(resourcesSection);
     }
     
-    // 7. Add highlight button if selector is present
+    // 7. Create a hidden element to store the selector for auto-highlighting
     if (issue.selector) {
-      const actionSection = document.createElement('div');
-      actionSection.className = 'issue-actions';
+      // Create a hidden highlight button with the selector data
+      // This is used by the toggleIssueDetails function
+      const highlightDataElement = document.createElement('button');
+      highlightDataElement.className = 'highlight-button sr-only';
+      highlightDataElement.textContent = 'Highlight Element';
+      highlightDataElement.setAttribute('data-selector', issue.selector);
+      highlightDataElement.setAttribute('aria-hidden', 'true');
+      highlightDataElement.setAttribute('tabindex', '-1');
+      details.appendChild(highlightDataElement);
       
-      const highlightButton = document.createElement('button');
-      highlightButton.className = 'highlight-button';
-      highlightButton.textContent = 'Highlight Element';
-      highlightButton.setAttribute('data-selector', issue.selector);
-      actionSection.appendChild(highlightButton);
-      
-      details.appendChild(actionSection);
+      // Add a note about automatic highlighting
+      const autoHighlightNote = document.createElement('p');
+      autoHighlightNote.className = 'auto-highlight-note';
+      autoHighlightNote.innerHTML = `<em>Element is automatically highlighted in the page.</em>`;
+      details.appendChild(autoHighlightNote);
     }
 
     issueItem.appendChild(details);

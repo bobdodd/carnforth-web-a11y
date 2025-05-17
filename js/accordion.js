@@ -163,6 +163,16 @@ function toggleIssueDetails() {
       // Move focus to the details region after expanding
       // This helps screen readers navigate into the content
       details.focus();
+      
+      // Automatically highlight the element if there's a selector
+      const highlightButton = details.querySelector('.highlight-button');
+      if (highlightButton) {
+        const selector = highlightButton.getAttribute('data-selector');
+        if (selector) {
+          // Use the highlight function to highlight the element
+          highlightElement(selector);
+        }
+      }
     } else {
       // Remove tabindex when collapsing to avoid extra tab stops
       details.removeAttribute('tabindex');
