@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carnforth Web A11y</title>
+  <link rel="stylesheet" href="../css/panel.css">
+</head>
+<body>
+  <header>
+    <h1>Carnforth Web A11y</h1>
+  </header>
+  
+  <div class="message-bar">
+    <p class="initial-message">Click "Start Test" to analyze accessibility issues on this page.</p>
+  </div>
+
+  <div class="control-bar">
+    <button id="start-test" class="primary-button">Start Test</button>
+    <div id="summary-container" class="summary-container">
+      <div class="summary-label">Summary:</div>
+      <span id="fail-count" class="count fail">0 Fails</span>
+      <span id="warning-count" class="count warning">0 Warnings</span>
+      <span id="info-count" class="count info">0 Info</span>
+    </div>
+  </div>
+
+  <main>
+    <div id="results-container">
+      <!-- Results will be populated here -->
+    </div>
+  </main>
+
+  <script src="../js/panel.js"></script>
+  <script src="../js/accordion.js"></script>
+  <script src="../js/highlight.js"></script>
+  <script src="../js/test-runner.js"></script>
+</body>
+</html>

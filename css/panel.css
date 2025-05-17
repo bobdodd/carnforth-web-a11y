@@ -1,0 +1,376 @@
+/* Base styles */
+:root {
+  /* Base colors */
+  --background-color: #ffffff;
+  
+  /* WCAG AAA compliant colors (7:1 contrast ratio on white) */
+  --fail-color: #9a0000; /* Darker red for 7:1+ contrast ratio on light backgrounds */
+  --warning-color: #6d4c00; /* Dark amber */
+  --info-color: #0d47a1; /* Dark blue */
+  --text-color: #222222; /* Almost black text on white - over 10:1 ratio */
+  --border-color: #757575; /* Medium gray - at least 3:1 for subtle borders */
+  --focus-outline-color: #0d47a1; /* Dark blue for focus - AAA compliant */
+  
+  /* For UI components requiring brighter colors (buttons with white text) */
+  --fail-bg-color: #e53935; /* Bright red for backgrounds with white text */
+  --warning-bg-color: #ffb300; /* Bright amber for icons/backgrounds */
+  --info-bg-color: #1e88e5; /* Bright blue for buttons/backgrounds with white text */
+  
+  /* Define base font sizes */
+  --base-font-size: 1rem; /* 16px in most browsers */
+  --large-font-size: 1.5rem; /* 24px */
+  --medium-font-size: 1.125rem; /* 18px */
+  --small-font-size: 1rem; /* 16px */
+  --padding-small: 0.5rem; /* 8px */
+  --padding-medium: 0.75rem; /* 12px */
+  --padding-large: 1rem; /* 16px */
+  --margin-small: 0.25rem; /* 4px */
+  --margin-medium: 0.5rem; /* 8px */
+  --margin-large: 1rem; /* 16px */
+  --margin-xlarge: 1.5rem; /* 24px */
+  --border-radius-small: 0.25rem; /* 4px */
+  --border-radius-medium: 0.75rem; /* 12px */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 100%; /* Ensure 1rem = 16px */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-size: var(--base-font-size);
+  line-height: 1.5;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  padding: var(--padding-large);
+}
+
+/* Typography */
+h1 {
+  font-size: var(--large-font-size);
+  margin-bottom: var(--margin-large);
+}
+
+h2 {
+  font-size: var(--medium-font-size);
+  margin-bottom: var(--margin-medium);
+}
+
+h3 {
+  font-size: var(--small-font-size);
+  margin-bottom: var(--margin-small);
+}
+
+/* Header section */
+header {
+  margin-bottom: var(--margin-medium);
+  padding-bottom: var(--padding-medium);
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+h1 {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 0;
+  padding: 0 var(--padding-medium);
+}
+
+/* Message bar */
+.message-bar {
+  text-align: left;
+  margin-bottom: var(--margin-medium);
+  padding: 0 var(--padding-medium);
+}
+
+.initial-message {
+  text-align: left;
+  color: var(--text-color);
+  margin: 0;
+  padding: var(--padding-small) 0;
+}
+
+/* Control bar */
+.control-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--margin-xlarge);
+  padding: var(--padding-medium) 0;
+}
+
+.primary-button {
+  background-color: var(--info-bg-color);
+  color: white;
+  border: 2px solid var(--info-bg-color);
+  border-radius: var(--border-radius-small);
+  padding: var(--padding-small) var(--padding-large);
+  font-size: var(--base-font-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.primary-button:hover {
+  background-color: #1565c0; /* Slightly darker blue for hover */
+  border-color: #1565c0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.primary-button:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+.summary-container {
+  display: flex;
+  align-items: center;
+  gap: var(--padding-small);
+  background-color: #f8f8f8;
+  padding: var(--padding-small) var(--padding-medium);
+  border-radius: var(--border-radius-small);
+  border: 1px solid var(--border-color);
+  margin-left: var(--margin-large);
+}
+
+.summary-label {
+  font-weight: 600;
+  margin-right: var(--margin-small);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-small);
+  font-size: var(--base-font-size);
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.count.fail {
+  background-color: rgba(229, 57, 53, 0.1);
+  color: var(--fail-color); /* Using the darker red for 7:1+ contrast ratio */
+  border-color: var(--fail-color);
+}
+
+.count.warning {
+  background-color: rgba(255, 179, 0, 0.1);
+  color: #6d4c00; /* Darker amber for 7:1 contrast ratio */
+  border-color: var(--warning-color);
+}
+
+.count.info {
+  background-color: rgba(30, 136, 229, 0.1);
+  color: #0d47a1; /* Darker blue for 7:1 contrast ratio */
+  border-color: var(--info-color);
+}
+
+/* Main content */
+main {
+  padding: var(--padding-medium);
+}
+
+/* Results message (different from the initial instruction message) */
+.results-message {
+  text-align: center;
+  color: #757575;
+  margin: var(--margin-xlarge) 0;
+}
+
+/* Accordion styles */
+.accordion {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  margin-bottom: var(--margin-large);
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  padding: var(--padding-medium) var(--padding-large);
+  background-color: #f5f5f5;
+  cursor: pointer;
+  border-radius: var(--border-radius-small) var(--border-radius-small) 0 0;
+}
+
+.accordion-icon {
+  margin-right: var(--margin-medium);
+  transition: transform 0.2s ease;
+  font-size: var(--base-font-size);
+}
+
+.accordion-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.accordion-title {
+  margin: 0;
+  margin-right: var(--margin-medium);
+}
+
+.accordion-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--margin-medium);
+}
+
+/* Add spacer to push everything after title and summary to the right if needed */
+.accordion-spacer {
+  flex-grow: 1;
+}
+
+.dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--base-font-size);
+  font-weight: bold;
+  color: white;
+}
+
+.dot.fail {
+  background-color: var(--fail-bg-color);
+}
+
+.dot.warning {
+  background-color: var(--warning-bg-color);
+  color: black;
+}
+
+.dot.info {
+  background-color: var(--info-bg-color);
+}
+
+.accordion-content {
+  padding: var(--padding-large);
+  display: none;
+  border-top: 1px solid var(--border-color);
+}
+
+.accordion-content.expanded {
+  display: block;
+}
+
+.touchpoint-description {
+  margin-bottom: var(--margin-large);
+  padding: var(--padding-medium);
+  background-color: #f5f5f5;
+  border-radius: var(--border-radius-small);
+}
+
+/* Issue list */
+.issue-list {
+  list-style-type: none;
+}
+
+.issue-item {
+  margin-bottom: var(--padding-medium);
+  padding-bottom: var(--padding-medium);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.issue-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: var(--margin-medium);
+}
+
+.issue-bullet {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--margin-medium);
+  font-size: var(--base-font-size);
+  font-weight: bold;
+  color: white;
+}
+
+.issue-bullet.fail {
+  background-color: var(--fail-bg-color);
+}
+
+.issue-bullet.warning {
+  background-color: var(--warning-bg-color);
+  color: black;
+}
+
+.issue-bullet.info {
+  background-color: var(--info-bg-color);
+}
+
+.issue-title {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.issue-details {
+  padding-left: 2.25rem; /* 36px */
+  display: none;
+}
+
+.issue-details.expanded {
+  display: block;
+}
+
+.issue-description {
+  margin-bottom: var(--margin-medium);
+}
+
+.issue-selector, .issue-html {
+  margin-top: var(--margin-medium);
+  padding: var(--padding-medium);
+  background-color: #f5f5f5;
+  border-radius: var(--border-radius-small);
+  font-family: monospace;
+  font-size: var(--base-font-size);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.highlight-button {
+  background-color: transparent;
+  border: 1px solid var(--info-color);
+  color: var(--info-color);
+  border-radius: var(--border-radius-small);
+  padding: var(--padding-small) var(--padding-medium);
+  margin-top: var(--margin-medium);
+  cursor: pointer;
+  font-size: var(--base-font-size);
+  transition: background-color 0.2s ease;
+}
+
+.highlight-button:hover {
+  background-color: rgba(13, 71, 161, 0.1);
+}
+
+.highlight-button:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+/* Accessibility improvements */
+:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+/* For better keyboard navigation */
+[tabindex]:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
