@@ -588,12 +588,28 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // Get the actual URL from the inspected window
+    chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+      if (isException) {
+        console.error('Error getting page URL:', isException);
+        performJsonExport("Unknown");
+      } else {
+        performJsonExport(result);
+      }
+    });
+  }
+  
+  /**
+   * Perform the JSON export after getting the URL
+   * @param {string} pageUrl - The URL of the inspected page
+   */
+  function performJsonExport(pageUrl) {
     try {
       // Add page URL and timestamp to the export
       const exportData = {
-        url: chrome.devtools.inspectedWindow.tabId ? 
-          "Current Tab" : "Unknown", // In production this would get the actual URL
+        url: pageUrl,
         timestamp: new Date().toISOString(),
+        title: document.title || "Unknown Page Title",
         results: currentTestResults
       };
       
@@ -629,9 +645,35 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
+    // Get the actual URL from the inspected window
+    chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+      if (isException) {
+        console.error('Error getting page URL:', isException);
+        performExcelExport("Unknown");
+      } else {
+        performExcelExport(result);
+      }
+    });
+  }
+  
+  /**
+   * Perform the Excel (CSV) export after getting the URL
+   * @param {string} pageUrl - The URL of the inspected page
+   */
+  function performExcelExport(pageUrl) {
     try {
-      // CSV header
-      let csv = 'Touchpoint,Issue Type,Title,Description,Who it Affects,Severity,Why it Matters,Selector,XPath\n';
+      // Create formatted date for CSV
+      const currentDate = new Date().toISOString().split('T')[0];
+      
+      // CSV header with metadata
+      let csv = 'Metadata\n';
+      csv += `URL,${pageUrl}\n`;
+      csv += `Date,${currentDate}\n`;
+      csv += `Time,${new Date().toISOString().split('T')[1].split('.')[0]}\n`;
+      csv += '\n'; // Empty row as separator
+      
+      // Main data header
+      csv += 'Touchpoint,Issue Type,Title,Description,Who it Affects,Severity,Why it Matters,Selector,XPath\n';
       
       // Add rows for each issue
       Object.entries(currentTestResults).forEach(([touchpoint, data]) => {
@@ -666,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `a11y-results-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `a11y-results-${currentDate}.csv`;
       document.body.appendChild(a);
       a.click();
       
