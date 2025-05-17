@@ -92,6 +92,31 @@ function toggleAccordion() {
   // Toggle content visibility
   if (content) {
     content.classList.toggle('expanded');
+    
+    // Make the content programmatically focusable when expanded
+    if (!expanded) {
+      // Only make focusable when expanding
+      content.setAttribute('tabindex', '-1');
+      
+      // Fix the aria-labelledby attribute if missing
+      const headerId = this.getAttribute('id');
+      if (headerId && !content.getAttribute('aria-labelledby')) {
+        content.setAttribute('aria-labelledby', headerId);
+      } else if (!content.getAttribute('aria-labelledby')) {
+        // If the header doesn't have an ID, find the title inside it
+        const headerTitle = this.querySelector('.accordion-title');
+        if (headerTitle && headerTitle.getAttribute('id')) {
+          content.setAttribute('aria-labelledby', headerTitle.getAttribute('id'));
+        }
+      }
+      
+      // Move focus to the content region after expanding
+      // This helps screen readers navigate into the content
+      content.focus();
+    } else {
+      // Remove tabindex when collapsing to avoid extra tab stops
+      content.removeAttribute('tabindex');
+    }
   }
   
   // Toggle icon rotation
@@ -123,6 +148,25 @@ function toggleIssueDetails() {
   // Toggle details visibility
   if (details) {
     details.classList.toggle('expanded');
+    
+    // Make the content programmatically focusable when expanded
+    if (!expanded) {
+      // Only make focusable when expanding
+      details.setAttribute('tabindex', '-1');
+      
+      // Ensure proper aria-labelledby
+      const titleId = this.getAttribute('aria-labelledby');
+      if (titleId && !details.getAttribute('aria-labelledby')) {
+        details.setAttribute('aria-labelledby', titleId);
+      }
+      
+      // Move focus to the details region after expanding
+      // This helps screen readers navigate into the content
+      details.focus();
+    } else {
+      // Remove tabindex when collapsing to avoid extra tab stops
+      details.removeAttribute('tabindex');
+    }
   }
 }
 

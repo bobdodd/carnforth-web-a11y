@@ -303,6 +303,12 @@ main {
   display: block;
 }
 
+/* When content is focused and expanded, highlight it subtly */
+.accordion-content:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus-outline-color);
+}
+
 .touchpoint-description {
   margin-bottom: var(--margin-large);
   padding: var(--padding-medium);
@@ -404,6 +410,12 @@ main {
 
 .issue-details.expanded {
   display: block;
+}
+
+/* When details are focused and expanded, highlight them subtly */
+.issue-details:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus-outline-color);
 }
 
 .issue-description {

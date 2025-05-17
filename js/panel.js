@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create accordion header
     const header = document.createElement('div');
     header.className = 'accordion-header';
+    header.setAttribute('id', `header-${touchpoint}`);
     header.setAttribute('role', 'button');
     header.setAttribute('aria-expanded', 'false');
     header.setAttribute('aria-controls', `content-${touchpoint}`);
