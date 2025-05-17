@@ -46,7 +46,22 @@ document.addEventListener('DOMContentLoaded', function() {
     warningCount.textContent = '0 Warnings';
     infoCount.textContent = '0 Info';
 
-    // Run the accessibility tests
+    // For development, use mock test results
+    try {
+      // During development, use the mock test results
+      const results = getMockTestResults();
+      displayResults(results);
+      updateSummary(results);
+      startTestButton.disabled = false;
+      startTestButton.textContent = 'Start Test';
+    } catch (error) {
+      resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
+      startTestButton.disabled = false;
+      startTestButton.textContent = 'Start Test';
+    }
+    
+    // When ready to connect to real tests, uncomment this:
+    /*
     runAllTests().then(function(results) {
       displayResults(results);
       updateSummary(results);
@@ -57,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
     });
+    */
   });
 
   /**
