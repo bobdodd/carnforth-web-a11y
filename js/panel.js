@@ -2,6 +2,32 @@
  * Main panel functionality for Carnforth Web A11y extension
  */
 
+// Fallback mock data in case test-runner.js fails to load
+function getSimpleMockData() {
+  return {
+    accessible_name: {
+      description: 'Checks that all interactive elements have accessible names.',
+      issues: [
+        {
+          type: 'fail',
+          title: 'Button missing accessible name',
+          description: 'This button element does not have an accessible name.'
+        }
+      ]
+    },
+    color_contrast: {
+      description: 'Evaluates text contrast against background.',
+      issues: [
+        {
+          type: 'warning',
+          title: 'Low contrast text',
+          description: 'This text has insufficient contrast with its background.'
+        }
+      ]
+    }
+  };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const startTestButton = document.getElementById('start-test');
   const resultsContainer = document.getElementById('results-container');
@@ -48,14 +74,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // For development, use mock test results
     try {
-      // Check if function is available in window scope
+      // First try to use the function from test-runner.js
+      let results;
       if (typeof window.getMockTestResults === 'function') {
-        const results = window.getMockTestResults();
-        displayResults(results);
-        updateSummary(results);
+        console.log('Using mock data from test-runner.js');
+        results = window.getMockTestResults();
       } else {
-        throw new Error('Mock test function not available');
+        // Fallback to our simple mock data
+        console.log('Using simple fallback mock data');
+        results = getSimpleMockData();
       }
+      
+      displayResults(results);
+      updateSummary(results);
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
     } catch (error) {

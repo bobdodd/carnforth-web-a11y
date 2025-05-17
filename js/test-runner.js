@@ -2,7 +2,9 @@
  * Test runner for executing all accessibility touchpoint tests
  */
 
-// Function declarations will be exported to global scope at the end of this file
+// Use an immediately invoked function expression (IIFE) to avoid global scope pollution
+(function() {
+  // Define all functions in local scope first
 
 /**
  * Run all accessibility tests
@@ -206,9 +208,9 @@ function getMockTestResults() {
           description: 'The page does not contain an h1 element. Each page should have exactly one main heading that describes the page content.',
           
           impact: {
-            who: 'Screen reader users, users with cognitive disabilities, and search engines',
-            severity: 'High',
-            why: 'The main heading (h1) establishes the primary topic of the page and creates a logical starting point for screen reader users navigating by headings. Without it, users may struggle to understand the page's purpose and structure.'
+            who: "Screen reader users, users with cognitive disabilities, and search engines",
+            severity: "High",
+            why: "The main heading (h1) establishes the primary topic of the page and helps screen reader users navigate. Without it, users struggle to understand the page purpose."
           },
           
           remediation: [
@@ -287,7 +289,9 @@ function getMockTestResults() {
   };
 }
 
-// Export functions to global scope for use in other scripts
-window.runAllTests = runAllTests;
-window.runTouchpointTest = runTouchpointTest;
-window.getMockTestResults = getMockTestResults;
+  // Export functions to global scope for use in other scripts
+  window.runAllTests = runAllTests;
+  window.runTouchpointTest = runTouchpointTest;
+  window.getMockTestResults = getMockTestResults;
+  
+})(); // End of IIFE
