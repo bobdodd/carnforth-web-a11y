@@ -100,8 +100,17 @@ h1 {
 .control-bar {
   display: flex;
   align-items: center;
-  margin-bottom: var(--margin-xlarge);
+  margin-bottom: var(--margin-medium);
   padding: var(--padding-medium) 0;
+}
+
+/* Export bar */
+.export-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--margin-medium);
+  margin-bottom: var(--margin-large);
+  padding: 0 var(--padding-medium);
 }
 
 .primary-button {
@@ -126,6 +135,33 @@ h1 {
 .primary-button:focus {
   outline: 2px solid var(--focus-outline-color);
   outline-offset: 2px;
+}
+
+.export-button {
+  background-color: #f8f8f8;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  padding: var(--padding-small) var(--padding-medium);
+  font-size: var(--base-font-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #e8e8e8;
+  border-color: #757575;
+}
+
+.export-button:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .summary-container {

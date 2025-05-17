@@ -2,9 +2,7 @@
  * Test runner for executing all accessibility touchpoint tests
  */
 
-// Use an immediately invoked function expression (IIFE) to avoid global scope pollution
-(function() {
-  // Define all functions in local scope first
+// Define functions in the global scope for simplicity since they need to be accessed by other scripts
 
 /**
  * Run all accessibility tests
@@ -79,9 +77,9 @@ function getMockTestResults() {
           description: 'This button element does not have an accessible name. Screen reader users will not know the purpose of this button.',
           
           impact: {
-            who: 'Screen reader users, voice recognition users, and users with cognitive disabilities',
-            severity: 'High',
-            why: 'Without an accessible name, screen reader users cannot identify the purpose of the button. Voice recognition users cannot target the button by name. This creates a significant barrier to interaction.'
+            who: "Screen reader users and voice recognition users",
+            severity: "High",
+            why: "Buttons without names are not announced properly by screen readers"
           },
           
           remediation: [
@@ -119,9 +117,9 @@ function getMockTestResults() {
           description: 'This image has generic alt text that does not describe its specific content or function.',
           
           impact: {
-            who: 'Screen reader users, users with slow connections who see alt text before images load',
-            severity: 'Medium',
-            why: 'Generic alt text like "image" provides no useful information about the image content or purpose, making it impossible for screen reader users to understand what the image conveys.'
+            who: "Screen reader users and users with slow connections",
+            severity: "Medium",
+            why: "Generic alt text provides no useful information about the image"
           },
           
           remediation: [
@@ -163,9 +161,9 @@ function getMockTestResults() {
           description: 'This text has a contrast ratio of 2.8:1, which is below the WCAG AA minimum of 4.5:1 for normal text.',
           
           impact: {
-            who: 'Users with low vision, color blindness, older adults, and users in high-glare environments',
-            severity: 'High',
-            why: 'Insufficient contrast makes text difficult or impossible to read for many users, especially those with vision impairments. This affects a large percentage of your audience.'
+            who: "Users with low vision and users in high-glare environments",
+            severity: "High",
+            why: "Low contrast text is difficult to read for users with vision impairments"
           },
           
           remediation: [
@@ -208,9 +206,9 @@ function getMockTestResults() {
           description: 'The page does not contain an h1 element. Each page should have exactly one main heading that describes the page content.',
           
           impact: {
-            who: "Screen reader users, users with cognitive disabilities, and search engines",
+            who: "Screen reader users, cognitive disability users, and search engines",
             severity: "High",
-            why: "The main heading (h1) establishes the primary topic of the page and helps screen reader users navigate. Without it, users struggle to understand the page purpose."
+            why: "The h1 element establishes the page topic and provides navigation for screen readers"
           },
           
           remediation: [
@@ -247,9 +245,9 @@ function getMockTestResults() {
           description: 'The heading structure skips from h2 to h4, missing the h3 level. This creates a confusing document outline.',
           
           impact: {
-            who: 'Screen reader users and users with cognitive disabilities',
-            severity: 'Medium',
-            why: 'Skipping heading levels creates a confusing document structure. Screen reader users navigating by headings will have difficulty understanding the relationship between content sections when the hierarchy is not sequential.'
+            who: "Screen reader users and users with cognitive disabilities",
+            severity: "Medium",
+            why: "Skipped heading levels create a confusing document structure"
           },
           
           remediation: [
@@ -289,9 +287,4 @@ function getMockTestResults() {
   };
 }
 
-  // Export functions to global scope for use in other scripts
-  window.runAllTests = runAllTests;
-  window.runTouchpointTest = runTouchpointTest;
-  window.getMockTestResults = getMockTestResults;
-  
-})(); // End of IIFE
+// Functions are already in global scope, no need for explicit export

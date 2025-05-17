@@ -2,34 +2,13 @@
  * Main panel functionality for Carnforth Web A11y extension
  */
 
-// Fallback mock data in case test-runner.js fails to load
-function getSimpleMockData() {
-  return {
-    accessible_name: {
-      description: 'Checks that all interactive elements have accessible names.',
-      issues: [
-        {
-          type: 'fail',
-          title: 'Button missing accessible name',
-          description: 'This button element does not have an accessible name.'
-        }
-      ]
-    },
-    color_contrast: {
-      description: 'Evaluates text contrast against background.',
-      issues: [
-        {
-          type: 'warning',
-          title: 'Low contrast text',
-          description: 'This text has insufficient contrast with its background.'
-        }
-      ]
-    }
-  };
-}
+// Store test results globally to be accessed by export functions
+let currentTestResults = null;
 
 document.addEventListener('DOMContentLoaded', function() {
   const startTestButton = document.getElementById('start-test');
+  const exportJsonButton = document.getElementById('export-json');
+  const exportExcelButton = document.getElementById('export-excel');
   const resultsContainer = document.getElementById('results-container');
   const failCount = document.getElementById('fail-count');
   const warningCount = document.getElementById('warning-count');
@@ -45,9 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset results container
     resultsContainer.innerHTML = '';
     
-    // Reset button state
+    // Reset button states
     startTestButton.disabled = false;
     startTestButton.textContent = 'Start Test';
+    
+    // Disable export buttons
+    exportJsonButton.disabled = true;
+    exportExcelButton.disabled = true;
+    
+    // Clear current results
+    currentTestResults = null;
   }
   
   // Reset UI on page load
@@ -74,26 +60,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // For development, use mock test results
     try {
-      // First try to use the function from test-runner.js
-      let results;
-      if (typeof window.getMockTestResults === 'function') {
-        console.log('Using mock data from test-runner.js');
-        results = window.getMockTestResults();
-      } else {
-        // Fallback to our simple mock data
-        console.log('Using simple fallback mock data');
-        results = getSimpleMockData();
-      }
+      // Get the mock test results
+      const results = getMockTestResults();
       
+      // Store results for export
+      currentTestResults = results;
+      
+      // Display results in UI
       displayResults(results);
       updateSummary(results);
+      
+      // Update button states
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
+      
+      // Enable export buttons
+      exportJsonButton.disabled = false;
+      exportExcelButton.disabled = false;
     } catch (error) {
       resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
       console.error('Error running tests:', error);
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
+      
+      // Disable export buttons
+      exportJsonButton.disabled = true;
+      exportExcelButton.disabled = true;
     }
     
     // When ready to connect to real tests, uncomment this:
@@ -586,4 +578,110 @@ document.addEventListener('DOMContentLoaded', function() {
     warningCount.textContent = `${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}`;
     infoCount.textContent = `${infos} ${infos === 1 ? 'Info' : 'Info'}`;
   }
+  
+  /**
+   * Export results as JSON file
+   */
+  function exportAsJson() {
+    if (!currentTestResults) {
+      console.error('No test results to export');
+      return;
+    }
+    
+    try {
+      // Add page URL and timestamp to the export
+      const exportData = {
+        url: chrome.devtools.inspectedWindow.tabId ? 
+          "Current Tab" : "Unknown", // In production this would get the actual URL
+        timestamp: new Date().toISOString(),
+        results: currentTestResults
+      };
+      
+      // Convert to JSON string with pretty formatting
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `a11y-results-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('Error exporting JSON:', error);
+      alert('Failed to export JSON: ' + error.message);
+    }
+  }
+  
+  /**
+   * Export results as Excel (CSV) file
+   */
+  function exportAsExcel() {
+    if (!currentTestResults) {
+      console.error('No test results to export');
+      return;
+    }
+    
+    try {
+      // CSV header
+      let csv = 'Touchpoint,Issue Type,Title,Description,Who it Affects,Severity,Why it Matters,Selector,XPath\n';
+      
+      // Add rows for each issue
+      Object.entries(currentTestResults).forEach(([touchpoint, data]) => {
+        const touchpointName = touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        (data.issues || []).forEach(issue => {
+          // Escape any commas in fields
+          const escapeField = field => {
+            if (field === null || field === undefined) return '';
+            return `"${String(field).replace(/"/g, '""')}"`;
+          };
+          
+          // Create CSV row
+          const row = [
+            escapeField(touchpointName),
+            escapeField(issue.type),
+            escapeField(issue.title),
+            escapeField(issue.description),
+            escapeField(issue.impact?.who || ''),
+            escapeField(issue.impact?.severity || ''),
+            escapeField(issue.impact?.why || ''),
+            escapeField(issue.selector || ''),
+            escapeField(issue.xpath || '')
+          ].join(',');
+          
+          csv += row + '\n';
+        });
+      });
+      
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `a11y-results-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Failed to export CSV: ' + error.message);
+    }
+  }
+  
+  // Add event listeners for export buttons
+  exportJsonButton.addEventListener('click', exportAsJson);
+  exportExcelButton.addEventListener('click', exportAsExcel);
 });
