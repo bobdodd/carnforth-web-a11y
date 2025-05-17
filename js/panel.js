@@ -48,14 +48,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // For development, use mock test results
     try {
-      // During development, use the mock test results
-      const results = getMockTestResults();
-      displayResults(results);
-      updateSummary(results);
+      // Check if function is available in window scope
+      if (typeof window.getMockTestResults === 'function') {
+        const results = window.getMockTestResults();
+        displayResults(results);
+        updateSummary(results);
+      } else {
+        throw new Error('Mock test function not available');
+      }
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
     } catch (error) {
       resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
+      console.error('Error running tests:', error);
       startTestButton.disabled = false;
       startTestButton.textContent = 'Start Test';
     }

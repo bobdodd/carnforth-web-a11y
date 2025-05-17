@@ -2,6 +2,8 @@
  * Test runner for executing all accessibility touchpoint tests
  */
 
+// Function declarations will be exported to global scope at the end of this file
+
 /**
  * Run all accessibility tests
  * @returns {Promise<Object>} - Results from all touchpoint tests
@@ -284,3 +286,8 @@ function getMockTestResults() {
     }
   };
 }
+
+// Export functions to global scope for use in other scripts
+window.runAllTests = runAllTests;
+window.runTouchpointTest = runTouchpointTest;
+window.getMockTestResults = getMockTestResults;
