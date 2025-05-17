@@ -245,13 +245,68 @@ The extension itself must be fully accessible:
    - Consistent patterns and behavior
    - Helpful error messages and guidance
 
+## Export Functionality
+
+### Current Export Options
+- **JSON Export**: Complete data export with full issue details and metadata
+- **Excel/CSV Export**: Tabular format with key fields and metadata section
+
+### DOCX Export Requirements (Planned)
+- Generate accessible Word documents that follow accessibility best practices
+- Include proper document structure:
+  - Use semantic heading levels (H1-H6)
+  - Add alternative text to screenshots
+  - Define table header rows
+  - Set document language and metadata
+  - Create bookmarks and internal navigation
+
+- Implementation options:
+  1. HTML to DOCX conversion using libraries like docx.js
+  2. Direct OOXML generation for precise control
+  3. Markdown as intermediate format with pandoc conversion
+  4. Template-based approach with placeholders
+  
+- Required document components:
+  - Cover page with URL, test date, and summary
+  - Table of contents for navigation
+  - Executive summary with counts by issue type
+  - Detailed findings organized by touchpoint
+  - Screenshots of identified issues
+  - Remediation recommendations
+  - WCAG references and resources section
+
 ## Future Enhancements
 
-- Export results to different formats (CSV, JSON, PDF)
-- Save test results for comparison
+- Save test results for comparison over time
 - Custom touchpoint configurations
 - Integration with other testing tools
 - Automated fix suggestions
+- Custom templates for exports
+
+## Current Project Status
+
+### Completed Features
+- Basic Chrome extension structure with DevTools panel integration
+- Accessible UI following WAI ARIA patterns
+- Accordion and disclosure widgets for results display
+- Element highlighting functionality
+- Reset functionality for page changes
+- JSON and Excel/CSV export functionality
+- WCAG AAA compliant UI with appropriate color contrast
+- Relative units (rem) for all sizes for better accessibility
+- Left-aligned layout for better readability
+- Summary indicators with counts
+
+### In Progress
+- Test runner implementation
+- Standardized JSON result reporting structure
+
+### Pending
+- Module structure for all 23 touchpoints
+- Implementation of individual touchpoint tests
+- DOCX export functionality
+- Testing framework for the extension
+- Review of existing prototype code for reusable components
 
 ## Development Guidelines
 
@@ -260,3 +315,6 @@ The extension itself must be fully accessible:
 - Test with various assistive technologies
 - Maintain separation of concerns between UI and testing logic
 - Use progressive enhancement
+- Ensure all UI components meet WCAG AAA requirements
+- Provide appropriate keyboard navigation
+- Add meaningful metadata to all exports
