@@ -924,7 +924,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .fail {
-      color: var(--fail-color);
+      color: #7a0000; /* Darker red to ensure 4.5:1 contrast ratio on white background */
       border-color: var(--fail-color);
       background-color: rgba(229, 57, 53, 0.1);
     }
@@ -952,20 +952,18 @@ document.addEventListener('DOMContentLoaded', function() {
       padding: 1rem;
       border-bottom: 1px solid var(--border-color);
       display: flex;
-      justify-content: space-between;
       align-items: center;
     }
     
     .touchpoint-title {
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+      margin-right: 1rem; /* Space between title and counts */
     }
     
     .touchpoint-counts {
       display: flex;
       gap: 0.5rem;
+      /* No floating needed as flexbox handles this naturally */
     }
     
     .count-badge {
@@ -973,6 +971,18 @@ document.addEventListener('DOMContentLoaded', function() {
       border-radius: 0.25rem;
       font-weight: bold;
       border: 1px solid;
+    }
+    
+    .count-badge.fail {
+      color: #7a0000; /* Darker red to ensure 4.5:1 contrast ratio */
+    }
+    
+    .count-badge.warning {
+      color: var(--warning-color);
+    }
+    
+    .count-badge.info {
+      color: var(--info-color);
     }
     
     .touchpoint-body {
@@ -1013,16 +1023,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .issue-bullet.fail {
-      background-color: var(--fail-bg-color);
+      background-color: #b71c1c; /* Darker red background to ensure better contrast with white text */
     }
     
     .issue-bullet.warning {
       background-color: var(--warning-bg-color);
-      color: black;
+      color: black; /* Already has good contrast */
     }
     
     .issue-bullet.info {
-      background-color: var(--info-bg-color);
+      background-color: #0d47a1; /* Darker blue background for better contrast with white text */
     }
     
     .issue-title {
