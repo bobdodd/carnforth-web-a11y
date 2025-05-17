@@ -328,27 +328,128 @@ main {
 }
 
 .issue-description {
-  margin-bottom: var(--margin-medium);
+  margin-bottom: var(--margin-large);
 }
 
-.issue-selector, .issue-html {
-  margin-top: var(--margin-medium);
+/* Section styles for new issue details structure */
+.issue-impact, 
+.issue-wcag, 
+.issue-remediation, 
+.issue-technical, 
+.issue-resources,
+.issue-actions {
+  margin-bottom: var(--margin-large);
   padding: var(--padding-medium);
-  background-color: #f5f5f5;
+  background-color: #f8f8f8;
   border-radius: var(--border-radius-small);
+  border-left: 3px solid var(--border-color);
+}
+
+.issue-impact {
+  border-left-color: #795548; /* Brown */
+}
+
+.issue-wcag {
+  border-left-color: #673ab7; /* Deep purple */
+}
+
+.issue-remediation {
+  border-left-color: #2e7d32; /* Green */
+}
+
+.issue-technical {
+  border-left-color: #1565c0; /* Blue */
+}
+
+.issue-resources {
+  border-left-color: #f57c00; /* Orange */
+}
+
+/* Section headers */
+.issue-impact h4, 
+.issue-wcag h4, 
+.issue-remediation h4, 
+.issue-technical h4, 
+.issue-resources h4 {
+  margin-top: 0;
+  margin-bottom: var(--margin-medium);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--padding-small);
+}
+
+/* Impact specific styles */
+.impact-who, 
+.impact-severity, 
+.impact-why {
+  margin-bottom: var(--margin-small);
+}
+
+/* Remediation list */
+.remediation-steps {
+  padding-left: var(--padding-large);
+}
+
+.remediation-steps li {
+  margin-bottom: var(--margin-small);
+}
+
+/* Technical details */
+.technical-label, 
+.fixed-label {
+  font-weight: 600;
+  margin-top: var(--margin-medium);
+  margin-bottom: var(--margin-small);
+}
+
+.issue-selector, 
+.issue-xpath, 
+.issue-html, 
+.issue-fixed-html {
+  padding: var(--padding-medium);
+  background-color: #f1f1f1;
+  border-radius: var(--border-radius-small);
+  border: 1px solid #e0e0e0;
   font-family: monospace;
   font-size: var(--base-font-size);
   overflow-x: auto;
   white-space: pre-wrap;
+  margin-bottom: var(--margin-medium);
 }
 
+/* Resources list */
+.resources-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.resources-list li {
+  margin-bottom: var(--margin-small);
+}
+
+.resources-list a {
+  color: var(--info-color);
+  text-decoration: none;
+  display: inline-block;
+  padding: var(--padding-small) 0;
+}
+
+.resources-list a:hover {
+  text-decoration: underline;
+}
+
+.resources-list a:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+/* Highlight button */
 .highlight-button {
   background-color: transparent;
   border: 1px solid var(--info-color);
   color: var(--info-color);
   border-radius: var(--border-radius-small);
   padding: var(--padding-small) var(--padding-medium);
-  margin-top: var(--margin-medium);
   cursor: pointer;
   font-size: var(--base-font-size);
   transition: background-color 0.2s ease;

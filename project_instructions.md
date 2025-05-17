@@ -124,7 +124,7 @@ All colors must meet WCAG AAA compliance (7:1 contrast ratio):
 
 ## Result Format
 
-Each touchpoint test should return results in this structure:
+Each touchpoint test should return results in this structure with enhanced fields for comprehensive reporting:
 
 ```javascript
 {
@@ -132,11 +132,45 @@ Each touchpoint test should return results in this structure:
     description: "Description text explaining the touchpoint...",
     issues: [
       {
+        // Required for all issue types (fail, warning, info)
         type: "fail", // or "warning" or "info"
         title: "Issue title",
         description: "Detailed explanation of the issue",
-        selector: "CSS selector to the problematic element (optional)",
-        html: "HTML snippet of the problematic element (optional)"
+        
+        // Required for fail and warning types
+        impact: {
+          who: "Description of affected user groups (e.g., screen reader users, keyboard-only users)", 
+          severity: "High/Medium/Low - level of impact on affected users",
+          why: "Why this issue matters for accessibility"
+        },
+        
+        // Required for fail and warning types where applicable
+        remediation: [
+          "Approach 1 to fix the issue",
+          "Alternative approach 2 if applicable"
+        ],
+        
+        // Technical details for fail and warning types
+        selector: "CSS selector to the problematic element",
+        xpath: "XPath to the problematic element (alternative to CSS selector)",
+        html: "HTML snippet of the problematic element as it exists currently",
+        
+        // Example fix (required for fail and warning types where applicable)
+        fixedHtml: "HTML snippet showing a corrected version of the code",
+        
+        // Optional fields for all types
+        wcag: {
+          principle: "WCAG principle (e.g., 'Perceivable', 'Operable')",
+          guideline: "Guideline number and name (e.g., '1.1 Text Alternatives')",
+          successCriterion: "Success criterion (e.g., '1.1.1 Non-text Content')",
+          level: "A, AA, or AAA"
+        },
+        resources: [
+          {
+            title: "Resource title",
+            url: "URL to helpful resource"
+          }
+        ]
       },
       // More issues...
     ]

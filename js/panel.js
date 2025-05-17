@@ -277,35 +277,233 @@ document.addEventListener('DOMContentLoaded', function() {
     details.className = 'issue-details';
     details.setAttribute('id', `details-${touchpoint}-${index}`);
 
-    // Add issue description
+    // 1. Add issue description (required for all types)
     const description = document.createElement('p');
     description.className = 'issue-description';
     description.textContent = issue.description;
     details.appendChild(description);
 
-    // Add selector if present
-    if (issue.selector) {
-      const selector = document.createElement('div');
-      selector.className = 'issue-selector';
-      selector.textContent = issue.selector;
-      details.appendChild(selector);
+    // 2. Add impact information (required for fail and warning)
+    if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact) {
+      const impactSection = document.createElement('div');
+      impactSection.className = 'issue-impact';
+      
+      const impactTitle = document.createElement('h4');
+      impactTitle.textContent = 'Impact';
+      impactSection.appendChild(impactTitle);
+
+      // Who is affected
+      if (issue.impact.who) {
+        const whoSection = document.createElement('div');
+        whoSection.className = 'impact-who';
+        
+        const whoLabel = document.createElement('strong');
+        whoLabel.textContent = 'Affects: ';
+        whoSection.appendChild(whoLabel);
+        
+        const whoText = document.createTextNode(issue.impact.who);
+        whoSection.appendChild(whoText);
+        
+        impactSection.appendChild(whoSection);
+      }
+
+      // Severity
+      if (issue.impact.severity) {
+        const severitySection = document.createElement('div');
+        severitySection.className = 'impact-severity';
+        
+        const severityLabel = document.createElement('strong');
+        severityLabel.textContent = 'Severity: ';
+        severitySection.appendChild(severityLabel);
+        
+        const severityText = document.createTextNode(issue.impact.severity);
+        severitySection.appendChild(severityText);
+        
+        impactSection.appendChild(severitySection);
+      }
+
+      // Why it matters
+      if (issue.impact.why) {
+        const whySection = document.createElement('div');
+        whySection.className = 'impact-why';
+        
+        const whyLabel = document.createElement('strong');
+        whyLabel.textContent = 'Why it matters: ';
+        whySection.appendChild(whyLabel);
+        
+        const whyText = document.createTextNode(issue.impact.why);
+        whySection.appendChild(whyText);
+        
+        impactSection.appendChild(whySection);
+      }
+
+      details.appendChild(impactSection);
     }
 
-    // Add HTML fragment if present
-    if (issue.html) {
-      const html = document.createElement('pre');
-      html.className = 'issue-html';
-      html.textContent = issue.html;
-      details.appendChild(html);
+    // 3. Add WCAG information if present
+    if (issue.wcag) {
+      const wcagSection = document.createElement('div');
+      wcagSection.className = 'issue-wcag';
+      
+      const wcagTitle = document.createElement('h4');
+      wcagTitle.textContent = 'WCAG Reference';
+      wcagSection.appendChild(wcagTitle);
+
+      const wcagInfo = document.createElement('div');
+      let wcagText = '';
+      
+      if (issue.wcag.principle) {
+        wcagText += `Principle: ${issue.wcag.principle}\n`;
+      }
+      
+      if (issue.wcag.guideline) {
+        wcagText += `Guideline: ${issue.wcag.guideline}\n`;
+      }
+      
+      if (issue.wcag.successCriterion) {
+        wcagText += `Success Criterion: ${issue.wcag.successCriterion}`;
+        if (issue.wcag.level) {
+          wcagText += ` (Level ${issue.wcag.level})`;
+        }
+      }
+      
+      wcagInfo.textContent = wcagText;
+      wcagSection.appendChild(wcagInfo);
+      
+      details.appendChild(wcagSection);
     }
 
-    // Add highlight button if selector is present
+    // 4. Add remediation steps if present (required for fail and warning)
+    if ((issue.type === 'fail' || issue.type === 'warning') && issue.remediation && issue.remediation.length > 0) {
+      const remediationSection = document.createElement('div');
+      remediationSection.className = 'issue-remediation';
+      
+      const remediationTitle = document.createElement('h4');
+      remediationTitle.textContent = 'How to Fix';
+      remediationSection.appendChild(remediationTitle);
+
+      const remediationList = document.createElement('ol');
+      remediationList.className = 'remediation-steps';
+      
+      issue.remediation.forEach(step => {
+        const listItem = document.createElement('li');
+        listItem.textContent = step;
+        remediationList.appendChild(listItem);
+      });
+      
+      remediationSection.appendChild(remediationList);
+      details.appendChild(remediationSection);
+    }
+
+    // 5. Add technical details (selector/xpath and HTML)
+    if (issue.selector || issue.xpath || issue.html) {
+      const technicalSection = document.createElement('div');
+      technicalSection.className = 'issue-technical';
+      
+      const technicalTitle = document.createElement('h4');
+      technicalTitle.textContent = 'Technical Details';
+      technicalSection.appendChild(technicalTitle);
+
+      // Add selector if present
+      if (issue.selector) {
+        const selectorLabel = document.createElement('div');
+        selectorLabel.className = 'technical-label';
+        selectorLabel.textContent = 'CSS Selector:';
+        technicalSection.appendChild(selectorLabel);
+        
+        const selector = document.createElement('pre');
+        selector.className = 'issue-selector';
+        selector.textContent = issue.selector;
+        technicalSection.appendChild(selector);
+      }
+      
+      // Add XPath if present
+      if (issue.xpath) {
+        const xpathLabel = document.createElement('div');
+        xpathLabel.className = 'technical-label';
+        xpathLabel.textContent = 'XPath:';
+        technicalSection.appendChild(xpathLabel);
+        
+        const xpath = document.createElement('pre');
+        xpath.className = 'issue-xpath';
+        xpath.textContent = issue.xpath;
+        technicalSection.appendChild(xpath);
+      }
+
+      // Add HTML fragment if present
+      if (issue.html) {
+        const htmlLabel = document.createElement('div');
+        htmlLabel.className = 'technical-label';
+        htmlLabel.textContent = 'Current HTML:';
+        technicalSection.appendChild(htmlLabel);
+        
+        const html = document.createElement('pre');
+        html.className = 'issue-html';
+        html.textContent = issue.html;
+        technicalSection.appendChild(html);
+      }
+      
+      // Add fixed HTML example if present
+      if (issue.fixedHtml) {
+        const fixedHtmlLabel = document.createElement('div');
+        fixedHtmlLabel.className = 'technical-label';
+        fixedHtmlLabel.textContent = 'Example Fix:';
+        technicalSection.appendChild(fixedHtmlLabel);
+        
+        const fixedHtml = document.createElement('pre');
+        fixedHtml.className = 'issue-fixed-html';
+        fixedHtml.textContent = issue.fixedHtml;
+        technicalSection.appendChild(fixedHtml);
+      }
+      
+      details.appendChild(technicalSection);
+    }
+    
+    // 6. Add resources if present
+    if (issue.resources && issue.resources.length > 0) {
+      const resourcesSection = document.createElement('div');
+      resourcesSection.className = 'issue-resources';
+      
+      const resourcesTitle = document.createElement('h4');
+      resourcesTitle.textContent = 'Resources';
+      resourcesSection.appendChild(resourcesTitle);
+
+      const resourcesList = document.createElement('ul');
+      resourcesList.className = 'resources-list';
+      
+      issue.resources.forEach(resource => {
+        const listItem = document.createElement('li');
+        
+        if (resource.url) {
+          const link = document.createElement('a');
+          link.textContent = resource.title || resource.url;
+          link.href = resource.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          listItem.appendChild(link);
+        } else {
+          listItem.textContent = resource.title;
+        }
+        
+        resourcesList.appendChild(listItem);
+      });
+      
+      resourcesSection.appendChild(resourcesList);
+      details.appendChild(resourcesSection);
+    }
+    
+    // 7. Add highlight button if selector is present
     if (issue.selector) {
+      const actionSection = document.createElement('div');
+      actionSection.className = 'issue-actions';
+      
       const highlightButton = document.createElement('button');
       highlightButton.className = 'highlight-button';
       highlightButton.textContent = 'Highlight Element';
       highlightButton.setAttribute('data-selector', issue.selector);
-      details.appendChild(highlightButton);
+      actionSection.appendChild(highlightButton);
+      
+      details.appendChild(actionSection);
     }
 
     issueItem.appendChild(details);

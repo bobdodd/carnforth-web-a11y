@@ -73,15 +73,80 @@ function getMockTestResults() {
           type: 'fail',
           title: 'Button missing accessible name',
           description: 'This button element does not have an accessible name. Screen reader users will not know the purpose of this button.',
+          
+          impact: {
+            who: 'Screen reader users, voice recognition users, and users with cognitive disabilities',
+            severity: 'High',
+            why: 'Without an accessible name, screen reader users cannot identify the purpose of the button. Voice recognition users cannot target the button by name. This creates a significant barrier to interaction.'
+          },
+          
+          remediation: [
+            'Add an aria-label attribute with descriptive text',
+            'Add visible text inside the button element',
+            'Add an aria-labelledby attribute that references the ID of a visible element'
+          ],
+          
           selector: 'button.close-modal',
-          html: '<button class="close-modal"></button>'
+          xpath: '//button[@class="close-modal"]',
+          html: '<button class="close-modal"></button>',
+          fixedHtml: '<button class="close-modal" aria-label="Close modal">✕</button>',
+          
+          wcag: {
+            principle: 'Operable',
+            guideline: '2.4 Navigable',
+            successCriterion: '2.4.6 Headings and Labels',
+            level: 'AA'
+          },
+          
+          resources: [
+            {
+              title: 'Understanding Success Criterion 2.4.6: Headings and Labels',
+              url: 'https://www.w3.org/WAI/WCAG21/Understanding/headings-and-labels.html'
+            },
+            {
+              title: 'Accessible Name and Description Computation',
+              url: 'https://www.w3.org/TR/accname-1.1/'
+            }
+          ]
         },
         {
           type: 'warning',
           title: 'Image with generic alt text',
           description: 'This image has generic alt text that does not describe its specific content or function.',
+          
+          impact: {
+            who: 'Screen reader users, users with slow connections who see alt text before images load',
+            severity: 'Medium',
+            why: 'Generic alt text like "image" provides no useful information about the image content or purpose, making it impossible for screen reader users to understand what the image conveys.'
+          },
+          
+          remediation: [
+            'Replace generic alt text with specific, concise description of the image content or function',
+            'If the image is decorative only, use an empty alt attribute (alt="") instead'
+          ],
+          
           selector: 'img.hero-image',
-          html: '<img class="hero-image" alt="image" src="hero.jpg">'
+          xpath: '//img[@class="hero-image"]',
+          html: '<img class="hero-image" alt="image" src="hero.jpg">',
+          fixedHtml: '<img class="hero-image" alt="Company headquarters building in downtown Seattle" src="hero.jpg">',
+          
+          wcag: {
+            principle: 'Perceivable',
+            guideline: '1.1 Text Alternatives',
+            successCriterion: '1.1.1 Non-text Content',
+            level: 'A'
+          },
+          
+          resources: [
+            {
+              title: 'Alt Text Decision Tree',
+              url: 'https://www.w3.org/WAI/tutorials/images/decision-tree/'
+            },
+            {
+              title: 'Writing Effective and Helpful Alt Text',
+              url: 'https://webaim.org/techniques/alttext/'
+            }
+          ]
         }
       ]
     },
@@ -92,8 +157,41 @@ function getMockTestResults() {
           type: 'fail',
           title: 'Insufficient text contrast',
           description: 'This text has a contrast ratio of 2.8:1, which is below the WCAG AA minimum of 4.5:1 for normal text.',
+          
+          impact: {
+            who: 'Users with low vision, color blindness, older adults, and users in high-glare environments',
+            severity: 'High',
+            why: 'Insufficient contrast makes text difficult or impossible to read for many users, especially those with vision impairments. This affects a large percentage of your audience.'
+          },
+          
+          remediation: [
+            'Darken the text color to at least #595959 to achieve a 4.5:1 contrast ratio for AA compliance',
+            'Darken further to #4D4D4D to achieve a 7:1 contrast ratio for AAA compliance',
+            'Consider using a darker background with light text as an alternative approach'
+          ],
+          
           selector: '.footer-text',
-          html: '<p class="footer-text" style="color: #888888; background-color: #FFFFFF;">Contact us</p>'
+          xpath: '//p[@class="footer-text"]',
+          html: '<p class="footer-text" style="color: #888888; background-color: #FFFFFF;">Contact us</p>',
+          fixedHtml: '<p class="footer-text" style="color: #595959; background-color: #FFFFFF;">Contact us</p>',
+          
+          wcag: {
+            principle: 'Perceivable',
+            guideline: '1.4 Distinguishable',
+            successCriterion: '1.4.3 Contrast (Minimum)',
+            level: 'AA'
+          },
+          
+          resources: [
+            {
+              title: 'WebAIM Contrast Checker',
+              url: 'https://webaim.org/resources/contrastchecker/'
+            },
+            {
+              title: 'Understanding Success Criterion 1.4.3: Contrast (Minimum)',
+              url: 'https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html'
+            }
+          ]
         }
       ]
     },
@@ -104,20 +202,81 @@ function getMockTestResults() {
           type: 'fail',
           title: 'Missing main heading (h1)',
           description: 'The page does not contain an h1 element. Each page should have exactly one main heading that describes the page content.',
-          selector: null,
-          html: null
+          
+          impact: {
+            who: 'Screen reader users, users with cognitive disabilities, and search engines',
+            severity: 'High',
+            why: 'The main heading (h1) establishes the primary topic of the page and creates a logical starting point for screen reader users navigating by headings. Without it, users may struggle to understand the page's purpose and structure.'
+          },
+          
+          remediation: [
+            'Add a single h1 element at the beginning of the main content that clearly describes the page content',
+            'Ensure the h1 text matches or closely relates to the page title'
+          ],
+          
+          selector: 'body',
+          xpath: '/html/body',
+          html: '<body>\n  <div class="page-content">\n    <div class="header">\n      <img src="logo.png" alt="Company Logo">\n    </div>\n    ...\n  </div>\n</body>',
+          fixedHtml: '<body>\n  <div class="page-content">\n    <div class="header">\n      <img src="logo.png" alt="Company Logo">\n      <h1>Company Name - Product Catalog</h1>\n    </div>\n    ...\n  </div>\n</body>',
+          
+          wcag: {
+            principle: 'Perceivable',
+            guideline: '1.3 Adaptable',
+            successCriterion: '1.3.1 Info and Relationships',
+            level: 'A'
+          },
+          
+          resources: [
+            {
+              title: 'Heading Structure and Accessibility',
+              url: 'https://webaim.org/techniques/semanticstructure/#headings'
+            },
+            {
+              title: 'W3C WAI Headings Tutorial',
+              url: 'https://www.w3.org/WAI/tutorials/page-structure/headings/'
+            }
+          ]
         },
         {
           type: 'warning',
           title: 'Skipped heading level',
           description: 'The heading structure skips from h2 to h4, missing the h3 level. This creates a confusing document outline.',
+          
+          impact: {
+            who: 'Screen reader users and users with cognitive disabilities',
+            severity: 'Medium',
+            why: 'Skipping heading levels creates a confusing document structure. Screen reader users navigating by headings will have difficulty understanding the relationship between content sections when the hierarchy is not sequential.'
+          },
+          
+          remediation: [
+            'Change the h4 to an h3 to maintain a proper sequential hierarchy',
+            'If deeper nesting is needed, restructure the entire heading hierarchy consistently'
+          ],
+          
           selector: 'h4.subheading',
-          html: '<h4 class="subheading">Product Features</h4>'
+          xpath: '//h4[@class="subheading"]',
+          html: '<h4 class="subheading">Product Features</h4>',
+          fixedHtml: '<h3 class="subheading">Product Features</h3>',
+          
+          wcag: {
+            principle: 'Perceivable',
+            guideline: '1.3 Adaptable',
+            successCriterion: '1.3.1 Info and Relationships',
+            level: 'A'
+          },
+          
+          resources: [
+            {
+              title: 'Understanding Success Criterion 1.3.1: Info and Relationships',
+              url: 'https://www.w3.org/WAI/WCAG21/Understanding/info-and-relationships.html'
+            }
+          ]
         },
         {
           type: 'info',
           title: 'Multiple sections with same heading',
           description: 'There are multiple sections with identical heading text. Consider making headings unique to improve navigation.',
+          
           selector: 'h2.section-title',
           html: '<h2 class="section-title">Details</h2>'
         }
