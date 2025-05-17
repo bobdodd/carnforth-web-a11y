@@ -260,7 +260,8 @@ main {
 .accordion-summary {
   display: flex;
   align-items: center;
-  gap: var(--margin-medium);
+  gap: var(--margin-small);
+  margin-left: var(--margin-medium);
 }
 
 /* Add spacer to push everything after title and summary to the right if needed */

@@ -214,30 +214,27 @@ document.addEventListener('DOMContentLoaded', function() {
     summary.className = 'accordion-summary';
 
     if (counts.fail > 0) {
-      const failDot = document.createElement('span');
-      failDot.className = 'dot fail';
-      failDot.textContent = counts.fail.toString();
-      failDot.setAttribute('title', `${counts.fail} Failures`);
-      failDot.setAttribute('aria-label', `${counts.fail} Failures`);
-      summary.appendChild(failDot);
+      const failCount = document.createElement('span');
+      failCount.className = 'count fail';
+      failCount.textContent = `${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}`;
+      failCount.setAttribute('title', `${counts.fail} ${counts.fail === 1 ? 'Failure' : 'Failures'}`);
+      summary.appendChild(failCount);
     }
 
     if (counts.warning > 0) {
-      const warnDot = document.createElement('span');
-      warnDot.className = 'dot warning';
-      warnDot.textContent = counts.warning.toString();
-      warnDot.setAttribute('title', `${counts.warning} Warnings`);
-      warnDot.setAttribute('aria-label', `${counts.warning} Warnings`);
-      summary.appendChild(warnDot);
+      const warnCount = document.createElement('span');
+      warnCount.className = 'count warning';
+      warnCount.textContent = `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`;
+      warnCount.setAttribute('title', `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`);
+      summary.appendChild(warnCount);
     }
 
     if (counts.info > 0) {
-      const infoDot = document.createElement('span');
-      infoDot.className = 'dot info';
-      infoDot.textContent = counts.info.toString();
-      infoDot.setAttribute('title', `${counts.info} Information items`);
-      infoDot.setAttribute('aria-label', `${counts.info} Information items`);
-      summary.appendChild(infoDot);
+      const infoCount = document.createElement('span');
+      infoCount.className = 'count info';
+      infoCount.textContent = `${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}`;
+      infoCount.setAttribute('title', `${counts.info} Information ${counts.info === 1 ? 'item' : 'items'}`);
+      summary.appendChild(infoCount);
     }
 
     header.appendChild(summary);
