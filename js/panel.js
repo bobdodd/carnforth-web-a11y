@@ -880,6 +880,24 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 0;
     }
     
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      padding: 8px;
+      z-index: 100;
+      background: #ffffff;
+      color: var(--info-color);
+      border: 2px solid var(--border-color);
+      border-radius: var(--border-radius-small);
+      transition: top 0.2s;
+    }
+    
+    .skip-link:focus {
+      top: 0;
+      outline: 2px solid var(--focus-outline-color);
+    }
+    
     .meta-info {
       background-color: #f5f5f5;
       padding: 1rem;
@@ -1108,6 +1126,56 @@ document.addEventListener('DOMContentLoaded', function() {
       outline-offset: 2px;
     }
     
+    /* Table of Contents Styles */
+    .toc {
+      background-color: #f8f8f8;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+    }
+    
+    .toc ul {
+      list-style-type: none;
+      margin-left: 0;
+    }
+    
+    .toc ul ul {
+      margin-left: 1.5rem;
+    }
+    
+    .toc li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .toc a {
+      text-decoration: none;
+      color: var(--info-color);
+      line-height: 1.6;
+    }
+    
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    
+    .back-to-toc {
+      text-align: right;
+      margin-top: 1.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .back-to-toc a {
+      font-size: 0.9rem;
+      padding: 0.25rem 0.5rem;
+      text-decoration: none;
+      color: var(--info-color);
+    }
+    
+    .back-to-toc a:hover {
+      text-decoration: underline;
+    }
+    
     @media print {
       body {
         padding: 0;
@@ -1124,6 +1192,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <h1>Accessibility Audit Report</h1>
   
   <div class="meta-info">
@@ -1151,7 +1220,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
       
+      // Add table of contents
       htmlTemplate += `
+  <section aria-labelledby="toc-heading">
+    <h2 id="toc-heading">Table of Contents</h2>
+    <nav class="toc" aria-label="Table of contents">
+      <ul>
+        <li><a href="#summary-heading">Summary</a></li>
+        <li>
+          <a href="#details-heading">Detailed Results</a>
+          <ul>`;
+      
+      // Add touchpoint links to table of contents
+      sortedTouchpoints.forEach(touchpoint => {
+        const touchpointData = currentTestResults[touchpoint];
+        const issues = touchpointData.issues || [];
+        
+        if (issues.length === 0) {
+          return; // Skip touchpoints with no issues
+        }
+        
+        // Format touchpoint name for display
+        const displayName = touchpoint
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, l => l.toUpperCase());
+        
+        htmlTemplate += `
+            <li><a href="#${touchpoint}-heading">${displayName}</a></li>`;
+      });
+      
+      htmlTemplate += `
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </section>
+
+  <main id="main-content">
   <section aria-labelledby="summary-heading">
     <h2 id="summary-heading">Summary</h2>
     <div class="summary">
@@ -1398,6 +1503,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         htmlTemplate += `
+        <div class="back-to-toc">
+          <a href="#toc-heading" aria-label="Back to Table of Contents">↑ Back to Table of Contents</a>
+        </div>
       </div>
     </div>`;
       });
@@ -1406,6 +1514,8 @@ document.addEventListener('DOMContentLoaded', function() {
       htmlTemplate += `
   </section>
   
+  </main>
+
   <footer>
     <p>Generated with Carnforth Web A11y - ${date} at ${time}</p>
   </footer>
