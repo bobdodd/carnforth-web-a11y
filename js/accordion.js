@@ -164,11 +164,11 @@ function toggleIssueDetails() {
       // This helps screen readers navigate into the content
       details.focus();
       
-      // Automatically highlight the element if there's a selector
+      // Automatically highlight the element if there's a valid selector
       const highlightButton = details.querySelector('.highlight-button');
       if (highlightButton) {
         const selector = highlightButton.getAttribute('data-selector');
-        if (selector) {
+        if (selector && selector !== 'null' && selector !== 'undefined' && selector !== '') {
           // Use the highlight function to highlight the element
           highlightElement(selector);
         }

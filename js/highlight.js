@@ -12,6 +12,12 @@
  * @param {string} selector - CSS selector or XPath for the element
  */
 function highlightElement(selector) {
+  // Validate the selector before attempting to highlight
+  if (!selector || selector === 'null' || selector === 'undefined' || selector === '') {
+    console.error('Invalid selector, cannot highlight element');
+    return;
+  }
+  
   // Execute the highlight function in the context of the inspected page
   chrome.devtools.inspectedWindow.eval(
     `(${highlightFunctionToInject.toString()})("${selector}")`,

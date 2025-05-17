@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 7. Create a hidden element to store the selector for auto-highlighting
-    if (issue.selector) {
+    if (issue.selector && issue.selector !== 'null' && issue.selector !== 'undefined' && issue.selector !== '') {
       // Create a hidden highlight button with the selector data
       // This is used by the toggleIssueDetails function
       const highlightDataElement = document.createElement('button');
@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
       highlightDataElement.setAttribute('tabindex', '-1');
       details.appendChild(highlightDataElement);
       
-      // Add a note about automatic highlighting
+      // Add a note about automatic highlighting only if there's a valid selector
       const autoHighlightNote = document.createElement('p');
       autoHighlightNote.className = 'auto-highlight-note';
       autoHighlightNote.innerHTML = `<em>Element is automatically highlighted in the page.</em>`;
