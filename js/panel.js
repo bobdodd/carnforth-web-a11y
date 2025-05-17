@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const failCount = document.getElementById('fail-count');
   const warningCount = document.getElementById('warning-count');
   const infoCount = document.getElementById('info-count');
+  const testStatus = document.getElementById('test-status');
 
   // Initialize to default state
   function resetUI() {
@@ -34,8 +35,9 @@ document.addEventListener('DOMContentLoaded', function() {
     exportJsonButton.disabled = true;
     exportExcelButton.disabled = true;
     
-    // Clear current results
+    // Clear current results and test status
     currentTestResults = null;
+    testStatus.textContent = '';
   }
   
   // Reset UI on page load
@@ -54,6 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
     startTestButton.disabled = true;
     startTestButton.textContent = 'Running tests...';
     resultsContainer.innerHTML = '<p class="results-message">Analyzing page for accessibility issues...</p>';
+    
+    // Update aria-live region to announce testing has started
+    testStatus.textContent = 'Analyzing page for accessibility issues. Please wait while testing is in progress.';
     
     // Reset counts
     failCount.textContent = '0 Fails';
@@ -80,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
       exportBar.classList.remove('hidden');
       exportJsonButton.disabled = false;
       exportExcelButton.disabled = false;
+      
+      // The updateSummary function will handle the status announcement
     } catch (error) {
       resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
       console.error('Error running tests:', error);
@@ -90,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function() {
       exportBar.classList.add('hidden');
       exportJsonButton.disabled = true;
       exportExcelButton.disabled = true;
+      
+      // Update status for screen reader to announce test error
+      testStatus.textContent = `Error running tests: ${error.message}. Please try again.`;
     }
     
     // When ready to connect to real tests, uncomment this:
@@ -296,29 +306,42 @@ document.addEventListener('DOMContentLoaded', function() {
   function createIssueElement(issue, touchpoint, index) {
     const issueItem = document.createElement('li');
     issueItem.className = 'issue-item';
-
-    // Create issue header
-    const issueHeader = document.createElement('div');
-    issueHeader.className = 'issue-header';
-    issueHeader.setAttribute('role', 'button');
-    issueHeader.setAttribute('aria-expanded', 'false');
-    issueHeader.setAttribute('aria-controls', `details-${touchpoint}-${index}`);
-    issueHeader.setAttribute('tabindex', '0');
-
-    // Add type indicator
+    
+    // Create disclosure button that will contain the heading
+    const disclosureBtn = document.createElement('button');
+    disclosureBtn.className = 'issue-disclosure-btn';
+    disclosureBtn.setAttribute('aria-expanded', 'false');
+    disclosureBtn.setAttribute('aria-controls', `details-${touchpoint}-${index}`);
+    
+    // Add issue title heading within the button
+    const title = document.createElement('h3');
+    title.className = 'issue-title';
+    title.id = `issue-title-${touchpoint}-${index}`;
+    
+    // Add type indicator inside the heading
     const bullet = document.createElement('span');
     bullet.className = `issue-bullet ${issue.type}`;
     bullet.textContent = issue.type === 'fail' ? 'F' : issue.type === 'warning' ? 'W' : 'I';
+    // Hide the bullet letter from screen readers as we have the semantic label
     bullet.setAttribute('aria-hidden', 'true');
-    issueHeader.appendChild(bullet);
-
-    // Add issue title
-    const title = document.createElement('h3');
-    title.className = 'issue-title';
-    title.textContent = issue.title;
-    issueHeader.appendChild(title);
-
-    issueItem.appendChild(issueHeader);
+    
+    // Create a screen reader text that announces the type
+    const srType = document.createElement('span');
+    srType.className = 'issue-type-label';
+    srType.textContent = issue.type === 'fail' ? 'Fail: ' : issue.type === 'warning' ? 'Warning: ' : 'Info: ';
+    
+    // Append the bullet and type label to the title
+    title.appendChild(bullet);
+    title.appendChild(srType);
+    
+    // Add the issue title text
+    const titleText = document.createTextNode(issue.title);
+    title.appendChild(titleText);
+    
+    // Add the heading to the button
+    disclosureBtn.appendChild(title);
+    
+    issueItem.appendChild(disclosureBtn);
 
     // Create issue details
     const details = document.createElement('div');
@@ -581,6 +604,11 @@ document.addEventListener('DOMContentLoaded', function() {
     failCount.textContent = `${fails} ${fails === 1 ? 'Fail' : 'Fails'}`;
     warningCount.textContent = `${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}`;
     infoCount.textContent = `${infos} ${infos === 1 ? 'Info' : 'Info'}`;
+    
+    // Create a more descriptive announcement for screen readers
+    // Use the preferred order: fail > warn > info
+    const summaryText = `Testing complete. Found ${fails} ${fails === 1 ? 'failure' : 'failures'}, ${warnings} ${warnings === 1 ? 'warning' : 'warnings'}, and ${infos} information ${infos === 1 ? 'item' : 'items'}.`;
+    testStatus.textContent = summaryText;
   }
   
   /**

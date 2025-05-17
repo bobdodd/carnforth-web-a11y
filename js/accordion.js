@@ -67,19 +67,13 @@ function initializeAccordions() {
  * Initialize issue disclosure widgets
  */
 function initializeIssueDisclosures() {
-  const issueHeaders = document.querySelectorAll('.issue-header');
+  const disclosureBtns = document.querySelectorAll('.issue-disclosure-btn');
   
-  issueHeaders.forEach(header => {
+  disclosureBtns.forEach(button => {
     // Set up click handler
-    header.addEventListener('click', toggleIssueDetails);
+    button.addEventListener('click', toggleIssueDetails);
     
-    // Set up keyboard handler
-    header.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleIssueDetails.call(this);
-      }
-    });
+    // No need for keyboard handler as buttons already handle Enter and Space
   });
 }
 
@@ -115,6 +109,12 @@ function toggleIssueDetails() {
   // Toggle aria-expanded
   const expanded = this.getAttribute('aria-expanded') === 'true';
   this.setAttribute('aria-expanded', !expanded);
+  
+  // Update the screen reader text
+  const srText = this.querySelector('.sr-only');
+  if (srText) {
+    srText.textContent = expanded ? 'Show details' : 'Hide details';
+  }
   
   // Find the details element
   const controlsId = this.getAttribute('aria-controls');

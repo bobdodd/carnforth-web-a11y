@@ -12,11 +12,12 @@
   </header>
   
   <div class="message-bar">
-    <p class="initial-message">Click "Start Test" to analyze accessibility issues on this page.</p>
+    <p id="test-description" class="initial-message">Click "Start Test" to analyze accessibility issues on this page.</p>
+    <div id="test-status" class="sr-only" aria-live="polite"></div>
   </div>
 
   <div class="control-bar">
-    <button id="start-test" class="primary-button">Start Test</button>
+    <button id="start-test" class="primary-button" aria-describedby="test-description">Start Test</button>
     <div id="summary-container" class="summary-container">
       <div class="summary-label">Summary:</div>
       <span id="fail-count" class="count fail">0 Fails</span>
