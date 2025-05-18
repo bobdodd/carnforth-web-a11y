@@ -5,6 +5,12 @@
 window.test_dialogs = async function() {
   try {
     console.log("[Dialogs] Starting dialogs test...");
+    console.log("[Dialogs] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Dialogs] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Dialogs] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_dialogs = async function() {
         {
           type: 'info',
           title: 'Touchpoint <dialogs> Installed',
-          description: 'The dialogs touchpoint has been successfully installed.'
+          description: 'The dialogs touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

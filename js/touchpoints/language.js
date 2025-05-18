@@ -5,6 +5,12 @@
 window.test_language = async function() {
   try {
     console.log("[Language] Starting language test...");
+    console.log("[Language] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Language] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Language] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_language = async function() {
         {
           type: 'info',
           title: 'Touchpoint <language> Installed',
-          description: 'The language touchpoint has been successfully installed.'
+          description: 'The language touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

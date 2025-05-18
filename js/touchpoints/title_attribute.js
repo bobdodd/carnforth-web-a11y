@@ -5,6 +5,12 @@
 window.test_title_attribute = async function() {
   try {
     console.log("[Title Attribute] Starting title_attribute test...");
+    console.log("[Title Attribute] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Title Attribute] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Title Attribute] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_title_attribute = async function() {
         {
           type: 'info',
           title: 'Touchpoint <title_attribute> Installed',
-          description: 'The title_attribute touchpoint has been successfully installed.'
+          description: 'The title_attribute touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

@@ -11,7 +11,7 @@ if (typeof window.__CARNFORTH_TOUCHPOINT_LOADER_LOADED !== 'undefined') {
   // Mark as loaded
   window.__CARNFORTH_TOUCHPOINT_LOADER_LOADED = true;
   
-  // List of all touchpoints we need to load
+  // List of all touchpoints we need to load (uncomment as they're implemented)
   const touchpoints = [
     'accessible_name', 'animation', 'color_contrast', 'color_use', 
     'dialogs', 'electronic_documents', 'event_handling', 
@@ -146,24 +146,39 @@ async function loadAndRunAllTouchpoints() {
   console.log("[Touchpoint Loader] Loading and running all touchpoints");
   
   const results = {};
+  const totalTouchpoints = touchpoints.length;
+  console.log(`[Touchpoint Loader] Preparing to run ${totalTouchpoints} touchpoints`);
   
-  for (const touchpoint of touchpoints) {
-    try {
-      const result = await loadAndRunTouchpoint(touchpoint);
-      results[touchpoint] = result;
-    } catch (error) {
-      console.error(`[Touchpoint Loader] Error with touchpoint ${touchpoint}:`, error);
-      results[touchpoint] = { 
-        error: error.message,
-        issues: [{
-          type: 'info',
-          title: `Error loading touchpoint: ${touchpoint}`,
-          description: error.message
-        }]
-      };
-    }
+  // Process touchpoints in batches to avoid overwhelming the browser
+  const batchSize = 5;
+  for (let i = 0; i < touchpoints.length; i += batchSize) {
+    const batch = touchpoints.slice(i, i + batchSize);
+    console.log(`[Touchpoint Loader] Processing batch ${Math.floor(i/batchSize) + 1} with ${batch.length} touchpoints`);
+    
+    // Run touchpoints in this batch concurrently
+    await Promise.all(batch.map(async touchpoint => {
+      try {
+        console.log(`[Touchpoint Loader] Starting touchpoint: ${touchpoint}`);
+        const result = await loadAndRunTouchpoint(touchpoint);
+        results[touchpoint] = result;
+        console.log(`[Touchpoint Loader] Completed touchpoint: ${touchpoint}`);
+      } catch (error) {
+        console.error(`[Touchpoint Loader] Error with touchpoint ${touchpoint}:`, error);
+        results[touchpoint] = { 
+          description: `Error processing touchpoint: ${touchpoint}`,
+          issues: [{
+            type: 'error',
+            title: `Error loading touchpoint: ${touchpoint}`,
+            description: error.message || "Unknown error occurred"
+          }]
+        };
+      }
+    }));
+    
+    console.log(`[Touchpoint Loader] Finished batch ${Math.floor(i/batchSize) + 1}`);
   }
   
+  console.log(`[Touchpoint Loader] All touchpoints processed. Results for ${Object.keys(results).length} touchpoints`);
   return results;
 }
 

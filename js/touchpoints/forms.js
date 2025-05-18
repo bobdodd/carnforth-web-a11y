@@ -5,6 +5,12 @@
 window.test_forms = async function() {
   try {
     console.log("[Forms] Starting forms test...");
+    console.log("[Forms] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Forms] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Forms] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_forms = async function() {
         {
           type: 'info',
           title: 'Touchpoint <forms> Installed',
-          description: 'The forms touchpoint has been successfully installed.'
+          description: 'The forms touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

@@ -5,6 +5,12 @@
 window.test_read_more = async function() {
   try {
     console.log("[Read More] Starting read_more test...");
+    console.log("[Read More] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Read More] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Read More] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_read_more = async function() {
         {
           type: 'info',
           title: 'Touchpoint <read_more> Installed',
-          description: 'The read_more touchpoint has been successfully installed.'
+          description: 'The read_more touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

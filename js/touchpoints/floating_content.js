@@ -5,6 +5,12 @@
 window.test_floating_content = async function() {
   try {
     console.log("[Floating Content] Starting floating_content test...");
+    console.log("[Floating Content] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Floating Content] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Floating Content] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_floating_content = async function() {
         {
           type: 'info',
           title: 'Touchpoint <floating_content> Installed',
-          description: 'The floating_content touchpoint has been successfully installed.'
+          description: 'The floating_content touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

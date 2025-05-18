@@ -5,6 +5,12 @@
 window.test_tabindex = async function() {
   try {
     console.log("[Tabindex] Starting tabindex test...");
+    console.log("[Tabindex] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Tabindex] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Tabindex] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_tabindex = async function() {
         {
           type: 'info',
           title: 'Touchpoint <tabindex> Installed',
-          description: 'The tabindex touchpoint has been successfully installed.'
+          description: 'The tabindex touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

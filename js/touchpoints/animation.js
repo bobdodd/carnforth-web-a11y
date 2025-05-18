@@ -5,6 +5,12 @@
 window.test_animation = async function() {
   try {
     console.log("[Animation] Starting animation test...");
+    console.log("[Animation] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Animation] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Animation] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_animation = async function() {
         {
           type: 'info',
           title: 'Touchpoint <animation> Installed',
-          description: 'The animation touchpoint has been successfully installed.'
+          description: 'The animation touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

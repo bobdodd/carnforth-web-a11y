@@ -5,6 +5,12 @@
 window.test_electronic_documents = async function() {
   try {
     console.log("[Electronic Documents] Starting electronic_documents test...");
+    console.log("[Electronic Documents] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Electronic Documents] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Electronic Documents] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_electronic_documents = async function() {
         {
           type: 'info',
           title: 'Touchpoint <electronic_documents> Installed',
-          description: 'The electronic_documents touchpoint has been successfully installed.'
+          description: 'The electronic_documents touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

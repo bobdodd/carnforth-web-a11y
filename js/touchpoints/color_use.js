@@ -5,6 +5,12 @@
 window.test_color_use = async function() {
   try {
     console.log("[Color Use] Starting color_use test...");
+    console.log("[Color Use] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Color Use] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Color Use] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_color_use = async function() {
         {
           type: 'info',
           title: 'Touchpoint <color_use> Installed',
-          description: 'The color_use touchpoint has been successfully installed.'
+          description: 'The color_use touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

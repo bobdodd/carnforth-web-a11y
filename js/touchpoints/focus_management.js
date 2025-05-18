@@ -5,6 +5,12 @@
 window.test_focus_management = async function() {
   try {
     console.log("[Focus Management] Starting focus_management test...");
+    console.log("[Focus Management] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Focus Management] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Focus Management] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_focus_management = async function() {
         {
           type: 'info',
           title: 'Touchpoint <focus_management> Installed',
-          description: 'The focus_management touchpoint has been successfully installed.'
+          description: 'The focus_management touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

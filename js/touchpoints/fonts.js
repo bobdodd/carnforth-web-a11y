@@ -5,6 +5,12 @@
 window.test_fonts = async function() {
   try {
     console.log("[Fonts] Starting fonts test...");
+    console.log("[Fonts] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Fonts] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Fonts] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_fonts = async function() {
         {
           type: 'info',
           title: 'Touchpoint <fonts> Installed',
-          description: 'The fonts touchpoint has been successfully installed.'
+          description: 'The fonts touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

@@ -5,6 +5,12 @@
 window.test_color_contrast = async function() {
   try {
     console.log("[Color Contrast] Starting color_contrast test...");
+    console.log("[Color Contrast] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Color Contrast] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Color Contrast] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_color_contrast = async function() {
         {
           type: 'info',
           title: 'Touchpoint <color_contrast> Installed',
-          description: 'The color_contrast touchpoint has been successfully installed.'
+          description: 'The color_contrast touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

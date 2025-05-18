@@ -5,6 +5,12 @@
 window.test_event_handling = async function() {
   try {
     console.log("[Event Handling] Starting event_handling test...");
+    console.log("[Event Handling] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Event Handling] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Event Handling] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_event_handling = async function() {
         {
           type: 'info',
           title: 'Touchpoint <event_handling> Installed',
-          description: 'The event_handling touchpoint has been successfully installed.'
+          description: 'The event_handling touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };

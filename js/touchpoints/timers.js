@@ -5,6 +5,12 @@
 window.test_timers = async function() {
   try {
     console.log("[Timers] Starting timers test...");
+    console.log("[Timers] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Timers] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Timers] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
     
     // Return a simple info issue for testing
     return {
@@ -13,7 +19,12 @@ window.test_timers = async function() {
         {
           type: 'info',
           title: 'Touchpoint <timers> Installed',
-          description: 'The timers touchpoint has been successfully installed.'
+          description: 'The timers touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
         }
       ]
     };
