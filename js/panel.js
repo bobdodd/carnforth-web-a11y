@@ -1220,6 +1220,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
       
+      // Sort touchpoints alphabetically first
+      const sortedTouchpoints = Object.keys(currentTestResults).sort();
+      
       // Add table of contents
       htmlTemplate += `
   <section aria-labelledby="toc-heading">
@@ -1277,9 +1280,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   <section aria-labelledby="details-heading">
     <h2 id="details-heading">Detailed Results</h2>`;
-      
-      // Sort touchpoints alphabetically
-      const sortedTouchpoints = Object.keys(currentTestResults).sort();
       
       // Add each touchpoint section
       sortedTouchpoints.forEach(touchpoint => {
