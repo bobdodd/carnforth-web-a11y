@@ -1,68 +1,55 @@
 /**
- * Tabindex Touchpoint
- * 
- * Tests for proper usage of tabindex attributes
+ * Tabindex Test
+ * Tests for accessibility issues related to tabindex
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Tabindex',
-  description: 'Checks for proper usage of tabindex attributes, particularly looking for tabindex values greater than 0 which can disrupt normal keyboard navigation. Affects keyboard users who rely on a predictable tab order.',
-  wcagCriteria: [
-    {
-      principle: 'Operable',
-      guideline: '2.1 Keyboard Accessible',
-      successCriterion: '2.1.1 Keyboard',
-      level: 'A'
-    },
-    {
-      principle: 'Operable',
-      guideline: '2.4 Navigable',
-      successCriterion: '2.4.3 Focus Order',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_tabindex = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Tabindex] Starting tabindex test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Checks for proper usage of tabindex attributes. Proper tabindex usage ensures a logical keyboard navigation order and prevents focus traps.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <tabindex> Installed',
+          description: 'The tabindex touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The tabindex tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Tabindex] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Checks for proper usage of tabindex attributes. Proper tabindex usage ensures a logical keyboard navigation order and prevents focus traps.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running tabindex test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Tabindex] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_tabindex().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'tabindex',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_tabindex");

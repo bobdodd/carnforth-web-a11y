@@ -1,62 +1,55 @@
 /**
- * Color Use Touchpoint
- * 
- * Tests whether color alone is used to convey information
+ * Color Use Test
+ * Tests for accessibility issues related to color use
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Color Use',
-  description: 'Checks that color is not the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element. Affects users with color vision deficiencies who may miss information presented solely through color.',
-  wcagCriteria: [
-    {
-      principle: 'Perceivable',
-      guideline: '1.4 Distinguishable',
-      successCriterion: '1.4.1 Use of Color',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_color_use = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Color Use] Starting color_use test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Checks that color is not the only visual means of conveying information or indicating an action. Non-color indicators ensure that users with color vision deficiencies can perceive important information.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <color_use> Installed',
+          description: 'The color_use touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The color use tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Color Use] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Checks that color is not the only visual means of conveying information or indicating an action. Non-color indicators ensure that users with color vision deficiencies can perceive important information.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running color_use test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Color Use] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_color_use().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'color_use',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_color_use");

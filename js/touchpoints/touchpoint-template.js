@@ -1,64 +1,55 @@
 /**
- * Touchpoint Module Template
- * 
- * This is a template for creating touchpoint testing modules.
- * It provides the basic structure and interface that all touchpoint modules should follow.
+ * TOUCHPOINT_NAME Test
+ * Tests for accessibility issues with TOUCHPOINT_DESCRIPTION
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Touchpoint Name',
-  description: 'A short description of what this touchpoint tests.',
-  wcagCriteria: [
-    {
-      principle: 'WCAG Principle (e.g., Perceivable, Operable, Understandable, Robust)',
-      guideline: 'WCAG Guideline (e.g., 1.1 Text Alternatives)',
-      successCriterion: 'WCAG Success Criterion (e.g., 1.1.1 Non-text Content)',
-      level: 'A, AA, or AAA'
-    }
-    // Add more WCAG criteria as needed
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_TOUCHPOINT_NAME = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[TOUCHPOINT_NAME] Starting TOUCHPOINT_NAME test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'TOUCHPOINT_DESCRIPTION_LONG',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <TOUCHPOINT_NAME> Installed',
+          description: 'The TOUCHPOINT_NAME touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The actual tests for this touchpoint have not been implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[TOUCHPOINT_NAME] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'TOUCHPOINT_DESCRIPTION_LONG',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running TOUCHPOINT_NAME test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[TOUCHPOINT_NAME] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_TOUCHPOINT_NAME().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'TOUCHPOINT_NAME',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_TOUCHPOINT_NAME");

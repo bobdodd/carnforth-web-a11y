@@ -1,62 +1,55 @@
 /**
- * Animation Touchpoint
- * 
- * Tests whether animations are properly controlled and can be paused/stopped
+ * Animation Test
+ * Tests for accessibility issues related to animation
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Animation',
-  description: 'Evaluates whether animated content can be paused, stopped, or hidden by users. Excessive or uncontrollable animation can cause issues for users with vestibular disorders, attention disorders, or those who are distracted by movement.',
-  wcagCriteria: [
-    {
-      principle: 'Operable',
-      guideline: '2.2 Enough Time',
-      successCriterion: '2.2.2 Pause, Stop, Hide',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_animation = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Animation] Starting animation test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Evaluates whether animated content can be paused, stopped, or hidden by users. Controls for animation are essential for people with vestibular disorders, attention disorders, and those who prefer reduced motion.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <animation> Installed',
+          description: 'The animation touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The animation tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Animation] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Evaluates whether animated content can be paused, stopped, or hidden by users. Controls for animation are essential for people with vestibular disorders, attention disorders, and those who prefer reduced motion.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running animation test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Animation] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_animation().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'animation',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_animation");

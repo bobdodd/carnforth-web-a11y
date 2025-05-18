@@ -1,68 +1,55 @@
 /**
- * Floating Content Touchpoint
- * 
- * Tests for proper implementation of tooltips, popovers, and other floating content
+ * Floating Content Test
+ * Tests for accessibility issues related to floating content
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Floating Content',
-  description: 'Evaluates tooltips, popovers, and other floating content for keyboard accessibility, proper ARIA attributes, and dismissibility. Important for ensuring keyboard and screen reader users can access and dismiss temporary content.',
-  wcagCriteria: [
-    {
-      principle: 'Operable',
-      guideline: '2.1 Keyboard Accessible',
-      successCriterion: '2.1.1 Keyboard',
-      level: 'A'
-    },
-    {
-      principle: 'Robust',
-      guideline: '4.1 Compatible',
-      successCriterion: '4.1.2 Name, Role, Value',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_floating_content = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Floating Content] Starting floating_content test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Evaluates tooltips, popovers, and other floating content for keyboard accessibility and proper ARIA implementation. Proper floating content implementation ensures that all users can access this information.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <floating_content> Installed',
+          description: 'The floating_content touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The floating content tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Floating Content] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Evaluates tooltips, popovers, and other floating content for keyboard accessibility and proper ARIA implementation. Proper floating content implementation ensures that all users can access this information.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running floating_content test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Floating Content] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_floating_content().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'floating_content',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_floating_content");

@@ -386,6 +386,8 @@ The extension itself must be fully accessible:
    - ✅ Complete test runner implementation to support touchpoint modules
    - ✅ Fix ES module import issues with "getMockTestResults is not defined" error
    - ✅ Implement actual testing logic for maps touchpoint
+   - ✅ Fix maps detection issues for test fixtures
+   - ✅ Create test fixtures for debugging touchpoints
    - ⏭️ Implement actual testing logic for accessible_name touchpoint
    - ⏭️ Implement actual testing logic for headings touchpoint
    - ⏭️ Implement actual testing logic for images touchpoint
@@ -394,9 +396,10 @@ The extension itself must be fully accessible:
    - ✅ Add Windows High Contrast Mode support
    - ✅ Change "Export as Excel" to "Export as CSV"
    - ✅ Improve error handling with detailed debugging information
+   - ✅ Create testing framework for touchpoints using fixtures
    - Implement DOCX export functionality
-   - Set up testing framework for the extension
    - Review and refine standardized JSON result reporting structure
+   - Add more comprehensive fixtures for all touchpoints
 
 ## Development Guidelines
 
@@ -434,6 +437,38 @@ The extension itself must be fully accessible:
 9. Created v0.1.0-framework tag to mark completion of the framework
 10. Updated project documentation with current status and todo list
 
+### May 19, 2025 Session
+1. Debugged and fixed maps touchpoint detection issues
+2. Enhanced maps detection logic in touchpoint-loader.js with better logging
+3. Created test fixtures folder for testing touchpoints
+4. Added maps_test.html and accessible_name_test.html fixtures
+5. Created debug scripts for testing map detection directly
+6. Added special handling for test fixture detection in maps touchpoint
+7. Created Python HTTP server script for easier fixture testing
+8. Added fixtures documentation in README.md
+
+### May 20, 2025 Session (Current)
+1. Fixed critical issue with touchpoint functions not being available in the page's global scope
+2. Updated touchpoint-loader.js to properly inject functions into the window object
+3. Changed script injection to use document.documentElement instead of document.head
+4. Added ensureTouchpointFunctionsLoaded function to handle timing issues
+5. Added custom event dispatch when functions are loaded
+6. Updated manifest.json to add web_accessible_resources permissions
+7. Enhanced error handling for better troubleshooting
+8. Added wait-for-function capability with timeout handling
+9. Created debug logging for better diagnosing injection issues
+10. Simplified async function declaration in touchpoint-loader.js
+
+### Current Todo List
+1. ✅ Create a fix for the touchpoint-loader.js script to properly inject test functions into the global scope
+2. ✅ Test the fix by running maps touchpoint on the test fixture
+3. ✅ Add ensureTouchpointFunctionsLoaded function to handle timing issues between content script and page script contexts
+4. ✅ Update manifest.json to add web_accessible_resources for touchpoint-loader.js
+5. ⏭️ Verify all touchpoint tests are working correctly
+6. ⏭️ Implement actual testing logic for accessible_name touchpoint
+7. ⏭️ Implement actual testing logic for headings touchpoint
+8. ⏭️ Implement actual testing logic for images touchpoint
+
 ### Issues Encountered and Resolutions
 1. ES modules in Chrome extensions: 
    - Problem: Chrome extensions have limitations with ES modules in content scripts
@@ -450,6 +485,22 @@ The extension itself must be fully accessible:
 4. Error reporting clarity:
    - Problem: Error messages weren't providing enough context for debugging
    - Solution: Enhanced error reporting with detailed diagnostics and specific touchpoint handling
+
+5. Map detection for test fixtures:
+   - Problem: Maps weren't being detected in test fixtures, especially with empty src attributes
+   - Solution: Enhanced map detection to check for class names, IDs, and text content in addition to src
+
+6. Content script access to local files:
+   - Problem: Chrome extensions have limitations accessing local file:// URLs
+   - Solution: Added file:// permissions in manifest.json and created a local server for testing
+
+7. Touchpoint functions not available in page context:
+   - Problem: Extension was displaying errors "window[touchpoint] is not a function" for all touchpoints
+   - Solution: Updated touchpoint-loader.js to explicitly assign functions to window object, improved injection method, and added timing checks
+   
+8. Script context isolation in Chrome extensions:
+   - Problem: Chrome extensions have separate JavaScript contexts - content script vs. page script
+   - Solution: Used document.documentElement.appendChild instead of document.head, added custom event to signal when functions are loaded
 
 ### Completed Touchpoints
 1. Maps touchpoint:

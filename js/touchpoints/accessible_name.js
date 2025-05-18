@@ -1,74 +1,66 @@
 /**
- * Accessible Name Touchpoint
- * 
- * Tests whether interactive elements have proper accessible names (labels, alt text, etc.)
+ * Accessible Name Test
+ * Tests for accessibility issues related to accessible name
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Accessible Name',
-  description: 'Checks that all interactive elements have accessible names that clearly identify their purpose. Proper labeling ensures that assistive technology users can understand the function of each element. Affects screen reader users particularly and impacts usability for voice recognition software users.',
-  wcagCriteria: [
-    {
-      principle: 'Perceivable',
-      guideline: '1.1 Text Alternatives',
-      successCriterion: '1.1.1 Non-text Content',
-      level: 'A'
-    },
-    {
-      principle: 'Operable',
-      guideline: '2.4 Navigable',
-      successCriterion: '2.4.6 Headings and Labels',
-      level: 'AA'
-    },
-    {
-      principle: 'Robust',
-      guideline: '4.1 Compatible',
-      successCriterion: '4.1.2 Name, Role, Value',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_accessible_name = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Accessible Name] Starting accessible_name test...");
+    console.log("[Accessible Name] Running on document:", document.title);
+    
+    // Log some details about the page for debugging
+    console.log("[Accessible Name] Page has", document.querySelectorAll('*').length, "elements");
+    console.log("[Accessible Name] Interactive elements:", 
+      document.querySelectorAll('button, a, input, select, textarea').length);
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Checks that all interactive elements have accessible names that clearly identify their purpose. Proper labeling ensures that assistive technology users can understand the function of each element.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <accessible_name> Installed',
+          description: 'The accessible_name touchpoint has been successfully installed and executed.'
+        },
+        {
+          type: 'info',
+          title: 'Page Details',
+          description: `Running on "${document.title}" page with ${document.querySelectorAll('*').length} elements.`
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The accessible name tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Accessible Name] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Checks that all interactive elements have accessible names that clearly identify their purpose. Proper labeling ensures that assistive technology users can understand the function of each element.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running accessible_name test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Accessible Name] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_accessible_name().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'accessible_name',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_accessible_name");

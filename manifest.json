@@ -31,10 +31,17 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["js/touchpoint-loader.js", "js/content.js"]
+      "run_at": "document_idle",
+      "js": ["js/content.js"]
     }
   ],
   "background": {
     "service_worker": "js/background.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["js/touchpoint-loader.js", "js/touchpoints/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

@@ -45,6 +45,108 @@ document.addEventListener('DOMContentLoaded', function() {
   // Reset UI on page load
   resetUI();
   
+  // Connection management
+  let port = null;
+  const tabId = chrome.devtools.inspectedWindow.tabId;
+  
+  // Function to establish connection to background script
+  function connectToBackground() {
+    // Cleanup old connection if it exists
+    if (port) {
+      try {
+        port.disconnect();
+      } catch (e) {
+        console.error('Error disconnecting old port:', e);
+      }
+    }
+    
+    console.log('Connecting to background script...');
+    port = chrome.runtime.connect({name: 'carnforth-devtools'});
+    
+    // Set up reconnection when connection drops
+    port.onDisconnect.addListener(() => {
+      console.log('Connection to background script lost, reconnecting in 1 second...');
+      setTimeout(connectToBackground, 1000);
+    });
+    
+    // Listen for messages from the background script
+    port.onMessage.addListener(handleBackgroundMessage);
+    
+    // Initialize with the current tab ID
+    port.postMessage({
+      action: 'init',
+      tabId: tabId
+    });
+  }
+  
+  // Initial connection
+  connectToBackground();
+  
+  // Function to handle test results when they arrive
+  function handleTestResults(results) {
+    console.log('Handling test results:', results);
+    
+    if (!results || Object.keys(results).length === 0) {
+      resultsContainer.innerHTML = `<p class="results-message">No results returned from tests.</p>`;
+      console.warn('No results returned from tests');
+      startTestButton.disabled = false;
+      startTestButton.textContent = 'Start Test';
+      return;
+    }
+    
+    // Store results for export
+    currentTestResults = results;
+    
+    // Display results in UI
+    console.log('Displaying results in UI');
+    displayResults(results);
+    updateSummary(results);
+    
+    // Update button states
+    startTestButton.disabled = false;
+    startTestButton.textContent = 'Start Test';
+    
+    // Show export bar and enable export buttons
+    exportBar.classList.remove('hidden');
+    exportJsonButton.disabled = false;
+    exportExcelButton.disabled = false;
+    exportHtmlButton.disabled = false;
+  }
+
+  // Handle messages from the background script
+  function handleBackgroundMessage(message) {
+    console.log('DevTools received message:', message);
+    
+    if (message.action === 'initialized') {
+      console.log('DevTools panel initialized for tab:', message.tabId);
+    }
+    
+    if (message.action === 'pageChanged') {
+      console.log('Page changed:', message.url);
+      resetUI();
+    }
+    
+    if (message.action === 'testResults') {
+      console.log('Test results received:', message);
+      
+      if (message.error) {
+        resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${message.error}</p>`;
+        console.error('Error running tests:', message.error);
+        
+        startTestButton.disabled = false;
+        startTestButton.textContent = 'Start Test';
+        
+        // Update status for screen reader to announce test error
+        testStatus.textContent = `Error running tests: ${message.error}. Please try again.`;
+        return;
+      }
+      
+      if (message.results) {
+        handleTestResults(message.results);
+      }
+    }
+  }
+  
   // Listen for URL changes or page refreshes
   chrome.runtime.onMessage.addListener(function(message) {
     if (message.action === 'resetPanel') {
@@ -53,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Listen for test button click
-  startTestButton.addEventListener('click', async function() {
+  startTestButton.addEventListener('click', function() {
     // Show loading state
     startTestButton.disabled = true;
     startTestButton.textContent = 'Running tests...';
@@ -67,44 +169,66 @@ document.addEventListener('DOMContentLoaded', function() {
     warningCount.textContent = '0 Warnings';
     infoCount.textContent = '0 Info';
 
-    // Run tests and handle results
-    try {
-      // Run all tests from the touchpoint modules
-      const results = await runAllTests();
+    // Get the current tab ID from DevTools API
+    const tabId = chrome.devtools.inspectedWindow.tabId;
+    
+    console.log('Starting tests on tab:', tabId);
+    
+    // Create a direct message to the background script
+    chrome.runtime.sendMessage({
+      action: 'runAllTests',
+      tabId: tabId
+    }, function(response) {
+      // Check for errors in the response
+      if (chrome.runtime.lastError) {
+        // Handle the error
+        const errorMsg = chrome.runtime.lastError.message;
+        resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${errorMsg}</p>`;
+        console.error('Error running tests:', errorMsg);
+        startTestButton.disabled = false;
+        startTestButton.textContent = 'Start Test';
+        
+        // Hide export bar and disable export buttons
+        exportBar.classList.add('hidden');
+        exportJsonButton.disabled = true;
+        exportExcelButton.disabled = true;
+        exportHtmlButton.disabled = true;
+        
+        // Update status for screen reader to announce test error
+        testStatus.textContent = `Error running tests: ${errorMsg}. Please try again.`;
+        return;
+      }
       
-      // Store results for export
-      currentTestResults = results;
+      if (response && response.error) {
+        // Handle error in the response
+        resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${response.error}</p>`;
+        console.error('Error running tests:', response.error);
+        startTestButton.disabled = false;
+        startTestButton.textContent = 'Start Test';
+        
+        // Hide export bar and disable export buttons
+        exportBar.classList.add('hidden');
+        exportJsonButton.disabled = true;
+        exportExcelButton.disabled = true;
+        exportHtmlButton.disabled = true;
+        
+        // Update status for screen reader to announce test error
+        testStatus.textContent = `Error running tests: ${response.error}. Please try again.`;
+        return;
+      }
       
-      // Display results in UI
-      displayResults(results);
-      updateSummary(results);
+      console.log('Initial response from background:', response);
       
-      // Update button states
-      startTestButton.disabled = false;
-      startTestButton.textContent = 'Start Test';
-      
-      // Show export bar and enable export buttons
-      exportBar.classList.remove('hidden');
-      exportJsonButton.disabled = false;
-      exportExcelButton.disabled = false;
-      exportHtmlButton.disabled = false;
-      
-      // The updateSummary function will handle the status announcement
-    } catch (error) {
-      resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
-      console.error('Error running tests:', error);
-      startTestButton.disabled = false;
-      startTestButton.textContent = 'Start Test';
-      
-      // Hide export bar and disable export buttons
-      exportBar.classList.add('hidden');
-      exportJsonButton.disabled = true;
-      exportExcelButton.disabled = true;
-      exportHtmlButton.disabled = true;
-      
-      // Update status for screen reader to announce test error
-      testStatus.textContent = `Error running tests: ${error.message}. Please try again.`;
-    }
+      // For initial response, we don't expect results yet - they'll come asynchronously
+      if (response && response.status === 'processing') {
+        console.log('Tests are processing, waiting for results...');
+        // Keep the loading state - results will come via port message
+      } else if (response && response.results) {
+        // In case results are returned immediately (unlikely but possible)
+        console.log('Received immediate test results:', response.results);
+        handleTestResults(response.results);
+      }
+    });
   });
 
   /**

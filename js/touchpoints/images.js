@@ -1,62 +1,55 @@
 /**
- * Images Touchpoint
- * 
- * Tests for proper image alt text and descriptions
+ * Images Test
+ * Tests for accessibility issues related to images
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Images',
-  description: 'Checks that images have appropriate alternative text that conveys the same information as the visual content. Essential for screen reader users and situations where images fail to load.',
-  wcagCriteria: [
-    {
-      principle: 'Perceivable',
-      guideline: '1.1 Text Alternatives',
-      successCriterion: '1.1.1 Non-text Content',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_images = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Images] Starting images test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Checks that images have appropriate alternative text. Proper alt text ensures that users who cannot see images can understand their content or purpose.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <images> Installed',
+          description: 'The images touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The image tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Images] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Checks that images have appropriate alternative text. Proper alt text ensures that users who cannot see images can understand their content or purpose.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running images test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Images] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_images().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'images',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_images");

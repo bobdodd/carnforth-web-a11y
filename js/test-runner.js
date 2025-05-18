@@ -2,37 +2,120 @@
  * Test runner for executing all accessibility touchpoint tests
  */
 
+// Create a port connection to the background page once
+let backgroundPort;
+let tabId;
+
+// Initialize the connection to the background script
+function initializeConnection() {
+  if (!backgroundPort && typeof chrome !== 'undefined' && chrome.devtools) {
+    // Get the current tab ID from the DevTools API
+    tabId = chrome.devtools.inspectedWindow.tabId;
+    
+    // Create a connection to the background script
+    backgroundPort = chrome.runtime.connect({
+      name: 'carnforth-devtools'
+    });
+    
+    console.log('[DevTools] Connecting to background script with tabId:', tabId);
+    
+    // Initialize the connection
+    backgroundPort.postMessage({
+      action: 'init',
+      tabId: tabId
+    });
+    
+    // Set up message listener
+    backgroundPort.onMessage.addListener(function(message) {
+      console.log('[DevTools] Received message from background:', message);
+    });
+    
+    // Handle disconnections
+    backgroundPort.onDisconnect.addListener(function() {
+      console.log('[DevTools] Disconnected from background script');
+      backgroundPort = null;
+    });
+  }
+}
+
+// Ensure the connection is initialized when this script loads
+if (typeof chrome !== 'undefined' && chrome.devtools) {
+  initializeConnection();
+}
+
 /**
  * Run all accessibility tests
  * @returns {Promise<Object>} - Results from all touchpoint tests
  */
 async function runAllTests() {
   // For production with content script communication
-  if (typeof chrome !== 'undefined' && chrome.runtime) {
-    // Create a message to send to the content script
-    const message = {
-      action: 'runAllTests'
-    };
+  if (typeof chrome !== 'undefined' && chrome.devtools) {
+    console.log('[DevTools] Running all tests');
     
-    // Send message to the content script via the background script
+    // Ensure we have a connection
+    if (!backgroundPort) {
+      console.log('[DevTools] No connection to background, initializing...');
+      initializeConnection();
+    }
+    
+    // Send message through the DevTools port connection
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(message, function(response) {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
+      // We need to declare these variables before using them in closure
+      let messageListener, clearTimeoutOnResponse, timeoutId;
+      
+      // Make sure to clear timeout when we get a response
+      clearTimeoutOnResponse = function(message) {
+        if (message.action === 'testResults') {
+          clearTimeout(timeoutId);
         }
+      };
+      
+      // Set up a temporary listener for the test results
+      messageListener = function(message) {
+        console.log('[DevTools] Received message during test:', message);
         
-        if (response && response.error) {
-          reject(new Error(response.error));
-          return;
+        // Handle test results
+        if (message.action === 'testResults') {
+          // Remove both listeners
+          backgroundPort.onMessage.removeListener(messageListener);
+          backgroundPort.onMessage.removeListener(clearTimeoutOnResponse);
+          
+          // Clear the timeout to prevent memory leaks
+          clearTimeout(timeoutId);
+          
+          if (message.error) {
+            console.error('[DevTools] Error from background:', message.error);
+            reject(new Error(message.error));
+            return;
+          }
+          
+          resolve(message.results || {});
         }
-        
-        resolve(response.results || {});
+      };
+      
+      // Set a timeout to prevent hanging indefinitely
+      timeoutId = setTimeout(() => {
+        backgroundPort.onMessage.removeListener(messageListener);
+        backgroundPort.onMessage.removeListener(clearTimeoutOnResponse);
+        reject(new Error('Test request timed out after 30 seconds'));
+      }, 30000);
+      
+      // Add listeners
+      backgroundPort.onMessage.addListener(messageListener);
+      backgroundPort.onMessage.addListener(clearTimeoutOnResponse);
+      
+      // Send the actual request
+      backgroundPort.postMessage({
+        action: 'runAllTests',
+        tabId: tabId
       });
+      
+      console.log('[DevTools] Sent runAllTests message to background');
     });
   } 
   // For development/testing when running locally
   else {
+    console.log('[Local] Using mock results for runAllTests');
     // Use simple placeholder results when not in extension
     return getLocalResults();
   }
@@ -45,32 +128,74 @@ async function runAllTests() {
  */
 async function runTouchpointTest(touchpoint) {
   // For production with content script communication
-  if (typeof chrome !== 'undefined' && chrome.runtime) {
-    // Create a message to send to the content script
-    const message = {
-      action: 'runTouchpointTest',
-      touchpoint: touchpoint
-    };
+  if (typeof chrome !== 'undefined' && chrome.devtools) {
+    console.log(`[DevTools] Running touchpoint test: ${touchpoint}`);
     
-    // Send message to the content script via the background script
+    // Ensure we have a connection
+    if (!backgroundPort) {
+      console.log('[DevTools] No connection to background, initializing...');
+      initializeConnection();
+    }
+    
+    // Send message through the DevTools port connection
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(message, function(response) {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
+      // We need to declare these variables before using them in closure
+      let messageListener, clearTimeoutOnResponse, timeoutId;
+      
+      // Make sure to clear timeout when we get a response
+      clearTimeoutOnResponse = function(message) {
+        if (message.action === 'testResults' && message.touchpoint === touchpoint) {
+          clearTimeout(timeoutId);
         }
+      };
+      
+      // Set up a temporary listener for the test results
+      messageListener = function(message) {
+        console.log('[DevTools] Received message during touchpoint test:', message);
         
-        if (response && response.error) {
-          reject(new Error(response.error));
-          return;
+        // Handle test results for this specific touchpoint
+        if (message.action === 'testResults' && message.touchpoint === touchpoint) {
+          // Remove both listeners
+          backgroundPort.onMessage.removeListener(messageListener);
+          backgroundPort.onMessage.removeListener(clearTimeoutOnResponse);
+          
+          // Clear the timeout to prevent memory leaks
+          clearTimeout(timeoutId);
+          
+          if (message.error) {
+            console.error(`[DevTools] Error running ${touchpoint} test:`, message.error);
+            reject(new Error(message.error));
+            return;
+          }
+          
+          resolve(message.results || {});
         }
-        
-        resolve(response.results || {});
+      };
+      
+      // Set a timeout to prevent hanging indefinitely
+      timeoutId = setTimeout(() => {
+        backgroundPort.onMessage.removeListener(messageListener);
+        backgroundPort.onMessage.removeListener(clearTimeoutOnResponse);
+        reject(new Error(`Test request for ${touchpoint} timed out after 30 seconds`));
+      }, 30000);
+      
+      // Add listeners
+      backgroundPort.onMessage.addListener(messageListener);
+      backgroundPort.onMessage.addListener(clearTimeoutOnResponse);
+      
+      // Send the actual request
+      backgroundPort.postMessage({
+        action: 'runTouchpointTest',
+        tabId: tabId,
+        touchpoint: touchpoint
       });
+      
+      console.log(`[DevTools] Sent runTouchpointTest message for ${touchpoint} to background`);
     });
   } 
   // For development/testing when running locally
   else {
+    console.log(`[Local] Using mock results for touchpoint: ${touchpoint}`);
     // Get mock results and return just this touchpoint
     const results = getLocalResults();
     const result = results[touchpoint];

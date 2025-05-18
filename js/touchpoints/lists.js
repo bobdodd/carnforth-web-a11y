@@ -1,62 +1,55 @@
 /**
- * Lists Touchpoint
- * 
- * Tests for proper use of semantic list elements
+ * Lists Test
+ * Tests for accessibility issues related to lists
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Lists',
-  description: 'Checks that content presented visually as lists uses proper semantic list elements (ul, ol, dl). List markup helps screen reader users understand the structure and nature of list content.',
-  wcagCriteria: [
-    {
-      principle: 'Perceivable',
-      guideline: '1.3 Adaptable',
-      successCriterion: '1.3.1 Info and Relationships',
-      level: 'A'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_lists = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Lists] Starting lists test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Checks that content presented visually as lists uses proper semantic list elements. Proper list markup helps screen reader users understand content relationships and navigate efficiently.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <lists> Installed',
+          description: 'The lists touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The list tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Lists] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Checks that content presented visually as lists uses proper semantic list elements. Proper list markup helps screen reader users understand content relationships and navigate efficiently.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running lists test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Lists] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_lists().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'lists',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_lists");

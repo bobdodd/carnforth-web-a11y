@@ -1,68 +1,55 @@
 /**
- * Electronic Documents Touchpoint
- * 
- * Tests for accessibility of PDF and other electronic document links
+ * Electronic Documents Test
+ * Tests for accessibility issues related to electronic documents
  */
-
-/**
- * Touchpoint metadata and description
- */
-const metadata = {
-  name: 'Electronic Documents',
-  description: 'Evaluates links to electronic documents (PDFs, Word files, etc.) to ensure they indicate file type and size, and checks that accessible versions are available when possible. Helps users prepare for document downloads and ensures access to content in multiple formats.',
-  wcagCriteria: [
-    {
-      principle: 'Perceivable',
-      guideline: '1.1 Text Alternatives',
-      successCriterion: '1.1.1 Non-text Content',
-      level: 'A'
-    },
-    {
-      principle: 'Understandable',
-      guideline: '3.2 Predictable',
-      successCriterion: '3.2.4 Consistent Identification',
-      level: 'AA'
-    }
-  ]
-};
-
-/**
- * Run the touchpoint test
- * @returns {Promise<Object>} - Test results
- */
-async function test() {
+window.test_electronic_documents = async function() {
   try {
-    // Create result object with touchpoint information
-    const result = {
-      description: metadata.description,
-      issues: []
+    console.log("[Electronic Documents] Starting electronic_documents test...");
+    
+    // Return a simple info issue for testing
+    return {
+      description: 'Evaluates links to electronic documents to ensure they indicate file type and size. This information helps users decide whether to download a file, especially for those with limited bandwidth or who require assistive technology compatibility.',
+      issues: [
+        {
+          type: 'info',
+          title: 'Touchpoint <electronic_documents> Installed',
+          description: 'The electronic_documents touchpoint has been successfully installed.'
+        }
+      ]
     };
-    
-    // Example info issue to show the touchpoint is working
-    result.issues.push({
-      type: 'info',
-      title: `${metadata.name} test detected`,
-      description: 'This is a placeholder issue. The electronic documents tests have not been fully implemented yet.'
-    });
-    
-    return result;
   } catch (error) {
-    console.error(`Error in ${metadata.name} touchpoint test:`, error);
+    console.error(`[Electronic Documents] Error in test:`, error);
     
     // Return error as an issue
     return {
-      description: metadata.description,
+      description: 'Evaluates links to electronic documents to ensure they indicate file type and size. This information helps users decide whether to download a file, especially for those with limited bandwidth or who require assistive technology compatibility.',
       issues: [{
-        type: 'info',
-        title: `Error running ${metadata.name} test`,
+        type: 'error',
+        title: `Error running electronic_documents test`,
         description: `An error occurred while testing: ${error.message}`
       }]
     };
   }
-}
-
-// Export the touchpoint module
-export default {
-  metadata,
-  test
 };
+
+// Listen for messages from the content script
+document.addEventListener('FROM_EXTENSION', function(event) {
+  const message = event.detail;
+  console.log('[Electronic Documents] Received message:', message);
+  
+  if (message.action === 'runTest') {
+    // Run the test and send back the results
+    window.test_electronic_documents().then(result => {
+      // Send the result back to the content script
+      document.dispatchEvent(new CustomEvent('FROM_INJECTED_SCRIPT', { 
+        detail: {
+          action: 'testResult',
+          touchpoint: 'electronic_documents',
+          results: result
+        }
+      }));
+    });
+  }
+});
+
+console.log("[Touchpoint Loaded] test_electronic_documents");
