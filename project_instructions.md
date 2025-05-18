@@ -229,27 +229,66 @@ The extension itself must be fully accessible:
    - All interactive elements must be keyboard accessible
    - Proper focus indicators (2px outline with high contrast)
    - Logical tab order
+   - Skip links for bypassing navigation
 
 2. **Screen Reader Support**
    - Proper ARIA roles, states, and properties
    - Meaningful labels and descriptions
    - Appropriate announcements for state changes
+   - ARIA live regions for dynamic content updates
+   - Proper semantics for interactive elements
 
 3. **Visual Design**
    - Color is not the only means of conveying information
    - All text has sufficient contrast (7:1 ratio for AAA compliance)
    - Interface is responsive and supports zoom
+   - Consistent visual indicators for interactive elements
 
 4. **Cognitive Considerations**
    - Clear, simple language in descriptions
    - Consistent patterns and behavior
    - Helpful error messages and guidance
+   - Logical organization of content
+   - Table of Contents for complex documents
+
+## Recent Accessibility Improvements
+
+1. **Accordion Improvements:**
+   - Enhanced WAI-ARIA implementation with proper focus management
+   - Added programmatic focus to expanded content regions
+   - Improved keyboard navigation between accordion sections
+   - Added proper semantics with heading structure
+
+2. **Element Highlighting:**
+   - Automatic highlighting when expanding issue details
+   - Removed extra click requirement for better usability
+   - Added descriptive text indicating automatic highlighting
+   - Robust validation to prevent errors with invalid selectors
+
+3. **Status Announcements:**
+   - Added ARIA live regions for test status updates
+   - Implemented status messages for test start and completion
+   - Included count information in status announcements
+   - Improved error handling with descriptive messages
+
+4. **HTML Export Enhancements:**
+   - Accessible Table of Contents with proper navigation
+   - Skip-to-content links for keyboard users
+   - Back-to-top navigation for long reports
+   - Proper heading hierarchy and semantic structure
+   - Print-friendly styles for PDF generation
 
 ## Export Functionality
 
 ### Current Export Options
 - **JSON Export**: Complete data export with full issue details and metadata
 - **Excel/CSV Export**: Tabular format with key fields and metadata section
+- **HTML Export**: Self-contained HTML report with all styles embedded
+  - Includes Table of Contents with section links
+  - Features accessible navigation with skip links
+  - Formats code with proper escaping and syntax
+  - Organizes results by touchpoint with back-to-top links
+  - Provides print-friendly styling for PDF generation
 
 ### DOCX Export Requirements (Planned)
 - Generate accessible Word documents that follow accessibility best practices
@@ -291,11 +330,16 @@ The extension itself must be fully accessible:
 - Accordion and disclosure widgets for results display
 - Element highlighting functionality
 - Reset functionality for page changes
-- JSON and Excel/CSV export functionality
+- JSON, Excel/CSV, and HTML export functionality
 - WCAG AAA compliant UI with appropriate color contrast
 - Relative units (rem) for all sizes for better accessibility
 - Left-aligned layout for better readability
 - Summary indicators with counts
+- Improved accordion implementation with proper focus management
+- Automatic element highlighting for issues when expanded
+- Accessible Table of Contents for HTML exports
+- ARIA live regions for status announcements
+- Skip links for keyboard navigation
 
 ### In Progress
 - Test runner implementation
@@ -307,6 +351,19 @@ The extension itself must be fully accessible:
 - DOCX export functionality
 - Testing framework for the extension
 - Review of existing prototype code for reusable components
+
+## Current To-Do List (Prioritized)
+
+1. **High Priority:**
+   - Plan implementation strategy for touchpoint modules
+   - Create touchpoint module framework for test implementation
+   - Set up structure for all 23 touchpoints with standardized interfaces
+   - Complete test runner implementation to support touchpoint modules
+   
+2. **Medium Priority:**
+   - Implement DOCX export functionality
+   - Set up testing framework for the extension
+   - Review and refine standardized JSON result reporting structure
 
 ## Development Guidelines
 
