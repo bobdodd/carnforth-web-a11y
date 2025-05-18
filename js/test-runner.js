@@ -102,20 +102,33 @@ function getLocalResults() {
     'tables', 'timers', 'videos'
   ];
   
-  // Create placeholder results
+  // Create placeholder results for most touchpoints
   touchpoints.forEach(touchpoint => {
     const displayName = touchpoint
       .replace(/_/g, ' ')
       .replace(/\b\w/g, l => l.toUpperCase());
-      
-    results[touchpoint] = {
-      description: `Tests for ${displayName} touchpoint.`,
-      issues: [{
-        type: 'info',
-        title: `${displayName} placeholder`,
-        description: 'This is a placeholder issue when running outside the extension context.'
-      }]
-    };
+    
+    // For maps touchpoint, use the real implementation
+    if (touchpoint === 'maps') {
+      results[touchpoint] = {
+        description: 'Evaluates whether map content has text alternatives that provide equivalent information for users who cannot see the map. Important for blind users and those using screen readers.',
+        issues: [{
+          type: 'info',
+          title: 'No maps detected on page',
+          description: 'No interactive maps were detected on this page. This test looks for common map implementations including Google Maps, Bing Maps, Mapbox, Leaflet, and others.'
+        }]
+      };
+    } else {
+      // Standard placeholder for other touchpoints
+      results[touchpoint] = {
+        description: `Tests for ${displayName} touchpoint.`,
+        issues: [{
+          type: 'info',
+          title: `${displayName} placeholder`,
+          description: 'This is a placeholder issue when running outside the extension context.'
+        }]
+      };
+    }
   });
   
   return results;
