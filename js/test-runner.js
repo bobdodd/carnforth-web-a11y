@@ -38,7 +38,10 @@ function initializeConnection() {
   }
 }
 
-// Ensure the connection is initialized when this script loads
+// This code should only execute when user explicitly clicks the test button
+// Nothing should run automatically on load
+
+// Initialize connection ONLY, no automatic test execution
 if (typeof chrome !== 'undefined' && chrome.devtools) {
   initializeConnection();
 }

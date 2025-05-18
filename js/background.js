@@ -38,22 +38,11 @@ chrome.runtime.onConnect.addListener(port => {
       
       console.log("[Background] Initialized for tab", tabId);
       
-      // Check if we have pending results for this tab
+      // We've removed the automatic sending of pending results to prevent
+      // automatic test execution when the DevTools panel is opened.
+      // Pending results will only be sent when explicitly requested.
       if (pendingResults[tabId]) {
-        console.log("[Background] Sending pending results for tab", tabId);
-        
-        try {
-          port.postMessage({
-            action: 'testResults',
-            results: pendingResults[tabId],
-            source: 'pending'
-          });
-          
-          // Clear pending results
-          delete pendingResults[tabId];
-        } catch (error) {
-          console.error("[Background] Error sending pending results:", error);
-        }
+        console.log("[Background] Found pending results for tab", tabId, "but not sending automatically");
       }
     }
     // Handle other message types
@@ -192,34 +181,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const tabId = message.tabId;
     console.log("[Background] Handling runAllTests for tab", tabId);
     
-    // Inject content script and test script
-    executeScripts(tabId).then(() => {
-      console.log("[Background] Scripts injected successfully");
-      
-      // Then send the test request to the content script
-      chrome.tabs.sendMessage(tabId, { action: 'runAllTests' }, response => {
-        // Important: Chrome handles this response asynchronously
-        // Don't try to use sendResponse here
-        
-        // Check if we got an immediate error
-        if (chrome.runtime.lastError) {
-          console.error("[Background] Error sending message to content script:", chrome.runtime.lastError.message);
-        }
-        
-        console.log("[Background] Response from content script:", response);
-      });
-      
-      // We don't actually use sendResponse for this request
-      // The results will be sent via a separate testResults message
-      
-      // Send back a synchronous response to prevent port closure
-      sendResponse({ status: "processing" });
-    }).catch(error => {
-      console.error("[Background] Error injecting scripts:", error);
-      sendResponse({ error: error.message });
-    });
+    // Tests are now run directly in the DevTools panel, no need to inject scripts
+    // We just acknowledge the message
+    sendResponse({ status: "acknowledged" });
     
-    // Return true to indicate we'll send a response asynchronously
     return true;
   }
   
@@ -229,39 +194,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const touchpoint = message.touchpoint;
     console.log("[Background] Handling runTouchpointTest for tab", tabId, "touchpoint:", touchpoint);
     
-    // Inject content script and test script
-    executeScripts(tabId).then(() => {
-      console.log("[Background] Scripts injected successfully");
-      
-      // Then send the test request to the content script
-      chrome.tabs.sendMessage(tabId, { 
-        action: 'runTouchpointTest',
-        touchpoint: touchpoint
-      }, response => {
-        // Check if we got an immediate error
-        if (chrome.runtime.lastError) {
-          console.error("[Background] Error sending message to content script:", chrome.runtime.lastError.message);
-        }
-        
-        console.log("[Background] Response from content script:", response);
-      });
-      
-      // Send back a synchronous response to prevent port closure
-      sendResponse({ status: "processing" });
-    }).catch(error => {
-      console.error("[Background] Error injecting scripts:", error);
-      sendResponse({ error: error.message });
-    });
+    // Tests are now run directly in the DevTools panel, no need to inject scripts
+    // We just acknowledge the message
+    sendResponse({ status: "acknowledged" });
     
-    // Return true to indicate we'll send a response asynchronously
     return true;
   }
   
   // Handle highlightElement message
   if (message.action === 'highlightElement') {
     const tabId = message.tabId;
-    chrome.tabs.sendMessage(tabId, message);
-    sendResponse({ success: true });
+    
+    // Make sure the content script is injected before sending the message
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["js/content.js"]
+    }).then(() => {
+      // Send message to content script to highlight the element
+      chrome.tabs.sendMessage(tabId, message, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("[Background] Error highlighting element:", chrome.runtime.lastError);
+        }
+      });
+      
+      sendResponse({ success: true });
+    }).catch(error => {
+      console.error("[Background] Error injecting content script for highlighting:", error);
+      sendResponse({ error: error.message });
+    });
+    
     return true;
   }
   
@@ -269,29 +230,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return false;
 });
 
-/**
- * Execute all needed scripts in the tab
- * @param {number} tabId - The tab ID to inject scripts into
- * @returns {Promise<boolean>} - Resolves when scripts are injected
- */
-async function executeScripts(tabId) {
-  try {
-    console.log(`[Background] Injecting scripts into tab ${tabId}`);
-    
-    // Only inject the content script - it will handle loading touchpoint-loader.js
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ["js/content.js"]
-    });
-    
-    // Don't inject touchpoint-loader.js directly from background
-    // The content script will do that via chrome.runtime.getURL and <script> tag
-    // This avoids any issues with chrome.tabs not being available in content scripts
-    
-    console.log(`[Background] Content script injected into tab ${tabId}`);
-    return true;
-  } catch (error) {
-    console.error("[Background] Error executing scripts:", error);
-    throw error;
-  }
-}
+// We no longer need the executeScripts function
+// Tests now run directly in the DevTools panel without injecting scripts into the page
