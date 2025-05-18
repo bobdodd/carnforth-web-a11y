@@ -567,3 +567,121 @@ main {
   white-space: nowrap;
   border: 0;
 }
+
+/* Windows High Contrast Mode support */
+@media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
+  /* Use system colors in high contrast mode */
+  :root {
+    --background-color: Canvas;
+    --fail-color: LinkText;
+    --warning-color: MarkText;
+    --info-color: LinkText;
+    --text-color: CanvasText;
+    --border-color: CanvasText;
+    --focus-outline-color: Highlight;
+    --fail-bg-color: Canvas;
+    --warning-bg-color: Canvas;
+    --info-bg-color: LinkText;
+  }
+  
+  /* Ensure all interactive elements have proper focus indicators */
+  a:focus, 
+  button:focus, 
+  [tabindex]:focus,
+  .accordion-header:focus,
+  .issue-disclosure-btn:focus {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+    background-color: Canvas;
+  }
+  
+  /* Ensure buttons have proper borders */
+  .primary-button,
+  .export-button {
+    border: 1px solid CanvasText;
+  }
+  
+  /* Update colors for various UI elements */
+  .summary-container {
+    background-color: Canvas;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Add patterns for color indicators since colors may be removed */
+  .count.fail {
+    text-decoration: underline;
+    background-color: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  
+  .count.warning {
+    font-style: italic;
+    background-color: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  
+  .count.info {
+    text-decoration: dotted underline;
+    background-color: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Accordion and issue bullet patterns */
+  .accordion-header {
+    background-color: Canvas;
+    border: 1px solid CanvasText;
+  }
+  
+  .accordion-content {
+    border-color: CanvasText;
+  }
+  
+  .issue-bullet.fail,
+  .issue-bullet.warning,
+  .issue-bullet.info,
+  .dot.fail,
+  .dot.warning,
+  .dot.info {
+    background-color: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Apply different border patterns for distinguishing issue types */
+  .issue-bullet.fail {
+    border: 2px solid CanvasText;
+  }
+  
+  .issue-bullet.warning {
+    border: 1px dashed CanvasText;
+  }
+  
+  .issue-bullet.info {
+    border: 1px dotted CanvasText;
+  }
+  
+  /* Section styles */
+  .issue-impact, 
+  .issue-wcag, 
+  .issue-remediation, 
+  .issue-technical, 
+  .issue-resources {
+    background-color: Canvas;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Remove background colors */
+  .issue-disclosure-btn:hover,
+  .touchpoint-description,
+  pre,
+  .issue-selector, 
+  .issue-xpath, 
+  .issue-html, 
+  .issue-fixed-html {
+    background-color: Canvas;
+    border-color: CanvasText;
+  }
+}
