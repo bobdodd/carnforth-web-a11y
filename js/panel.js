@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Listen for test button click
-  startTestButton.addEventListener('click', function() {
+  startTestButton.addEventListener('click', async function() {
     // Show loading state
     startTestButton.disabled = true;
     startTestButton.textContent = 'Running tests...';
@@ -67,10 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
     warningCount.textContent = '0 Warnings';
     infoCount.textContent = '0 Info';
 
-    // For development, use mock test results
+    // Run tests and handle results
     try {
-      // Get the mock test results
-      const results = getMockTestResults();
+      // Run all tests from the touchpoint modules
+      const results = await runAllTests();
       
       // Store results for export
       currentTestResults = results;
@@ -105,20 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update status for screen reader to announce test error
       testStatus.textContent = `Error running tests: ${error.message}. Please try again.`;
     }
-    
-    // When ready to connect to real tests, uncomment this:
-    /*
-    runAllTests().then(function(results) {
-      displayResults(results);
-      updateSummary(results);
-      startTestButton.disabled = false;
-      startTestButton.textContent = 'Start Test';
-    }).catch(function(error) {
-      resultsContainer.innerHTML = `<p class="results-message error">Error running tests: ${error.message}</p>`;
-      startTestButton.disabled = false;
-      startTestButton.textContent = 'Start Test';
-    });
-    */
   });
 
   /**
@@ -675,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Export results as Excel (CSV) file
+   * Export results as CSV file
    */
   function exportAsExcel() {
     if (!currentTestResults) {
@@ -695,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
-   * Perform the Excel (CSV) export after getting the URL
+   * Perform the CSV export after getting the URL
    * @param {string} pageUrl - The URL of the inspected page
    */
   function performExcelExport(pageUrl) {
@@ -827,9 +813,13 @@ document.addEventListener('DOMContentLoaded', function() {
       padding: 0;
     }
     
+    html {
+      font-size: 100%; /* Ensure 1rem = 16px */
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-size: 1rem;
+      font-size: 1rem; /* 16px */
       line-height: 1.5;
       color: var(--text-color);
       background-color: var(--background-color);
@@ -860,8 +850,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     h4 {
-      font-size: 1.1rem;
+      font-size: 1.25rem; /* Increased from 1.1rem to ensure good readability */
       margin-top: 1rem;
+    }
+    
+    h5 {
+      font-size: 1.1rem; /* Ensure minimum size for h5 elements */
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
     }
     
     p {
@@ -1055,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .issue-title {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.2rem; /* Increased from 1.1rem for better readability */
     }
     
     .issue-body {
@@ -1083,11 +1079,13 @@ document.addEventListener('DOMContentLoaded', function() {
     .impact-who, 
     .impact-severity, 
     .impact-why {
+      font-size: 1rem; /* Ensure minimum 16px font size */
       margin-bottom: 0.5rem;
     }
     
     .technical-label {
       font-weight: bold;
+      font-size: 1rem; /* Ensure minimum 16px font size */
       margin-top: 0.75rem;
       margin-bottom: 0.25rem;
     }
@@ -1098,6 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() {
       border-radius: 0.25rem;
       border: 1px solid #e0e0e0;
       font-family: monospace;
+      font-size: 1rem; /* Ensure minimum 16px font size */
       overflow-x: auto;
       white-space: pre-wrap;
       margin-bottom: 0.75rem;
@@ -1109,6 +1108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     li {
+      font-size: 1rem; /* Ensure minimum 16px font size */
       margin-bottom: 0.25rem;
     }
     
@@ -1159,14 +1159,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .back-to-toc {
-      text-align: right;
+      text-align: left;
       margin-top: 1.5rem;
       padding-top: 0.5rem;
       border-top: 1px solid var(--border-color);
     }
     
     .back-to-toc a {
-      font-size: 0.9rem;
+      font-size: 1rem; /* Changed from 0.9rem to ensure 16px minimum size */
       padding: 0.25rem 0.5rem;
       text-decoration: none;
       color: var(--info-color);
@@ -1174,6 +1174,63 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .back-to-toc a:hover {
       text-decoration: underline;
+    }
+    
+    /* Auto highlight note */
+    .auto-highlight-note {
+      font-size: 1rem; /* Ensure minimum 16px font size */
+      color: var(--info-color);
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Windows High Contrast Mode support */
+    @media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
+      /* Reset all colors to system colors in high contrast mode */
+      :root {
+        --background-color: Canvas;
+        --fail-color: LinkText;
+        --warning-color: MarkText;
+        --info-color: LinkText;
+        --text-color: CanvasText;
+        --border-color: CanvasText;
+        --focus-outline-color: Highlight;
+      }
+      
+      /* Force solid backgrounds and borders for better visibility */
+      .fail, .warning, .info {
+        background-color: Canvas;
+        border: 1px solid;
+      }
+      
+      .issue-bullet {
+        border: 1px solid CanvasText;
+      }
+      
+      .issue-bullet.fail, .issue-bullet.warning, .issue-bullet.info {
+        background-color: Canvas;
+        color: CanvasText;
+      }
+      
+      /* Ensure proper focus indicators */
+      a:focus, button:focus {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+      }
+      
+      /* Ensure links and interactive elements have proper contrast */
+      a, button, .count-badge {
+        color: LinkText;
+      }
+      
+      /* Add patterns for color indicators since colors may be removed */
+      .count-badge.fail {
+        text-decoration: underline;
+      }
+      
+      .count-badge.warning {
+        font-style: italic;
+      }
     }
     
     @media print {

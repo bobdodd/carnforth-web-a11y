@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function injectContentScript(tabId) {
   return chrome.scripting.executeScript({
     target: { tabId: tabId },
-    files: ['js/content.js']
+    files: ['js/touchpoint-loader.js', 'js/content.js']
   });
 }
 
