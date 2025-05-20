@@ -495,9 +495,7 @@ main {
 }
 
 .issue-selector, 
-.issue-xpath, 
-.issue-html, 
-.issue-fixed-html {
+.issue-xpath {
   padding: var(--padding-medium);
   background-color: #f1f1f1;
   border-radius: var(--border-radius-small);
@@ -507,6 +505,61 @@ main {
   overflow-x: auto;
   white-space: pre-wrap;
   margin-bottom: var(--margin-medium);
+}
+
+/* Syntax highlighted code blocks */
+.issue-html, 
+.issue-fixed-html,
+.issue-before-code,
+.issue-after-code {
+  padding: 0; /* Remove padding as highlight.js adds its own */
+  background-color: transparent; /* Let highlight.js handle the background */
+  border-radius: var(--border-radius-small);
+  border: 1px solid #e0e0e0;
+  overflow-x: auto;
+  margin-bottom: var(--margin-medium);
+}
+
+/* Target code elements for proper styling */
+.issue-html code, 
+.issue-fixed-html code,
+.issue-before-code code,
+.issue-after-code code {
+  font-family: monospace;
+  font-size: var(--base-font-size);
+  white-space: pre-wrap;
+  padding: var(--padding-medium);
+  display: block;
+}
+
+/* Before and after code example styles */
+.before-after-example {
+  margin-top: var(--margin-large);
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+}
+
+.code-label-before,
+.code-label-after {
+  padding: var(--padding-small);
+  font-weight: bold;
+}
+
+.code-label-before {
+  color: var(--fail-color);
+}
+
+.code-label-after {
+  color: #2e7d32; /* Green */
+  margin-top: var(--margin-medium);
+}
+
+.issue-before-code {
+  border-left: 3px solid var(--fail-color);
+}
+
+.issue-after-code {
+  border-left: 3px solid #2e7d32; /* Green */
 }
 
 /* Resources list */

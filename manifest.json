@@ -41,7 +41,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["js/touchpoint-loader.js", "js/touchpoints/*"],
+      "resources": [
+        "js/touchpoint-loader.js", 
+        "js/touchpoints/*",
+        "vendor/highlight/*",
+        "vendor/highlight/styles/*"
+      ],
       "matches": ["<all_urls>", "file:///*"]
     }
   ]

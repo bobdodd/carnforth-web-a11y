@@ -6,9 +6,10 @@ window.test_maps = async function() {
   console.log("=============================================");
   console.log("MAPS TOUCHPOINT TEST STARTED");
   console.log("=============================================");
+  
   try {
     console.log("[Maps] Starting maps test...");
-    console.log("WOOOOOOO HOOOOO");
+    
     // Function to execute in the context of the inspected page
     function analyzeMapAccessibility() {
       // Function to generate XPath for elements
@@ -88,7 +89,11 @@ window.test_maps = async function() {
             'bing.com/maps', 
             'openstreetmap.org',
             'waze.com',
-            'maps.apple.com'
+            'maps.apple.com',
+            'mapbox.com',
+            'arcgis.com',
+            'here.com',
+            'tomtom.com'
           ];
           
           const src = iframe.src || '';
@@ -99,18 +104,37 @@ window.test_maps = async function() {
             iframe.getAttribute('allowfullscreen') === '' ||
             iframe.hasAttribute('allowfullscreen') ||
             iframe.hasAttribute('scrolling') ||
+            iframe.hasAttribute('controls') ||
             src.includes('zoom=') ||
-            src.includes('&z=');
+            src.includes('&z=') ||
+            src.includes('interactive=true') ||
+            src.includes('overlay=') ||
+            src.includes('layer=') ||
+            src.includes('mode=directions') ||
+            src.includes('&dirflg=') ||
+            src.includes('saddr=') ||
+            src.includes('daddr=');
             
           // Check if it's from a provider known to be interactive
           const isFromInteractiveProvider = interactiveProviders.some(provider => 
             src.toLowerCase().includes(provider)
           );
           
-          return hasInteractiveAttributes || isFromInteractiveProvider;
+          // Check if there are any query parameters - most interactive maps have them
+          const hasQueryParams = src.includes('?') && src.includes('=');
+          
+          // If it's a blank page, it's definitely not interactive
+          const isBlankPage = src === 'about:blank' || src === '';
+          
+          if (isBlankPage) {
+            return false;
+          }
+          
+          return hasInteractiveAttributes || isFromInteractiveProvider || hasQueryParams;
         } catch (e) {
           // If there's an error checking, default to assuming it's interactive
           // for safety
+          console.error('[Maps] Error checking for interactive content:', e);
           return true;
         }
       }
@@ -119,27 +143,35 @@ window.test_maps = async function() {
       mapIframes.forEach(iframe => {
         const provider = identifyMapProvider(iframe.src);
         const title = iframe.getAttribute('title');
+        const ariaLabel = iframe.getAttribute('aria-label');
+        const ariaLabelledby = iframe.getAttribute('aria-labelledby');
         const ariaHidden = iframe.getAttribute('aria-hidden');
+        const hasAccessibleName = !!title || !!ariaLabel || !!ariaLabelledby;
         const isInteractive = checkForInteractiveContent(iframe);
+
+        // Get HTML snippet
+        const iframeHtml = iframe.outerHTML;
+        
+        // Get CSS selector
+        const id = iframe.getAttribute('id');
+        const cssSelector = id ? `#${id}` : getFullXPath(iframe);
 
         const mapInfo = {
           provider: provider,
           src: iframe.src,
           title: title,
-          hasTitle: !!title,
+          ariaLabel: ariaLabel,
+          ariaLabelledby: ariaLabelledby,
+          hasAccessibleName: hasAccessibleName,
           ariaHidden: ariaHidden === 'true',
           isInteractive: isInteractive,
           dimensions: {
             width: iframe.getAttribute('width'),
             height: iframe.getAttribute('height')
           },
-          attributes: {
-            id: iframe.id || null,
-            class: iframe.className || null,
-            title: title,
-            ariaHidden: ariaHidden
-          },
-          xpath: getFullXPath(iframe)
+          selector: cssSelector,
+          xpath: getFullXPath(iframe),
+          html: iframeHtml
         };
 
         results.maps.push(mapInfo);
@@ -149,14 +181,15 @@ window.test_maps = async function() {
           (results.summary.mapsByProvider[provider] || 0) + 1;
 
         // Check for violations
-        if (!title) {
+        if (!hasAccessibleName) {
           results.summary.mapsWithoutTitle++;
           results.violations.push({
-            type: 'missing-title',
+            type: 'missing-accessible-name',
             provider: provider,
             src: iframe.src,
+            selector: cssSelector,
             xpath: getFullXPath(iframe),
-            element: iframe.outerHTML
+            html: iframeHtml
           });
         }
 
@@ -170,8 +203,10 @@ window.test_maps = async function() {
               provider: provider,
               src: iframe.src,
               title: title,
+              selector: cssSelector,
               xpath: getFullXPath(iframe),
-              element: iframe.outerHTML
+              html: iframeHtml,
+              isInteractive: true
             });
           } else {
             // Non-interactive with aria-hidden
@@ -180,8 +215,10 @@ window.test_maps = async function() {
               provider: provider,
               src: iframe.src,
               title: title,
+              selector: cssSelector,
               xpath: getFullXPath(iframe),
-              element: iframe.outerHTML
+              html: iframeHtml,
+              isInteractive: false
             });
           }
         }
@@ -194,19 +231,16 @@ window.test_maps = async function() {
           const idValue = div.id || '';
           const classAndId = (classValue + ' ' + idValue).toLowerCase();
           
-          // Debug map div detection
-          if(classAndId.includes('map')) {
-            console.log('[MAP DIV DETECTION]', {
-              element: div.outerHTML.substring(0, 100),
-              classValue,
-              idValue,
-              classAndId
-            });
-          }
-          
+          // Check if this is likely to be a map container
+          // Exclude common false positives like sitemaps, heatmaps, imagemaps, etc.
           return classAndId.includes('map') && 
                  !classAndId.includes('sitemap') && // Exclude sitemaps
-                 !classAndId.includes('heatmap'); // Exclude heatmaps
+                 !classAndId.includes('heatmap') && // Exclude heatmaps
+                 !classAndId.includes('imagemap') && // Exclude image maps
+                 !classAndId.includes('site-map') && // Exclude site maps
+                 !classAndId.includes('site_map') && // Exclude site maps
+                 !classAndId.includes('roadmap') && // Exclude roadmaps 
+                 !classAndId.includes('mindmap'); // Exclude mind maps
         });
 
       mapDivs.forEach(div => {
@@ -214,33 +248,87 @@ window.test_maps = async function() {
         const hasMapboxGL = document.querySelector('script[src*="mapbox-gl"]');
         const hasLeaflet = document.querySelector('link[href*="leaflet"]');
         const hasGoogleMaps = document.querySelector('script[src*="maps.google"]');
+        const hasOpenLayers = document.querySelector('script[src*="openlayers"]');
+        const hasArcGIS = document.querySelector('script[src*="arcgis"]');
+        const hasHERE = document.querySelector('script[src*="here"]');
         
         let provider = 'Unknown Map Provider';
         if (hasMapboxGL) provider = 'Mapbox';
         if (hasLeaflet) provider = 'Leaflet';
         if (hasGoogleMaps) provider = 'Google Maps';
+        if (hasOpenLayers) provider = 'OpenLayers';
+        if (hasArcGIS) provider = 'ArcGIS';
+        if (hasHERE) provider = 'HERE Maps';
+
+        const ariaLabel = div.getAttribute('aria-label');
+        const ariaLabelledby = div.getAttribute('aria-labelledby');
+        const role = div.getAttribute('role');
+        const hasAccessibleName = !!ariaLabel || !!ariaLabelledby;
+        
+        // Get HTML snippet
+        const divHtml = div.outerHTML;
+        
+        // Get CSS selector
+        const id = div.getAttribute('id');
+        const cssSelector = id ? `#${id}` : (div.className ? `.${div.className.split(' ')[0].replace(/:/g, '\\:')}` : getFullXPath(div));
 
         const mapInfo = {
           provider: provider,
           type: 'div',
-          id: div.id || null,
-          class: div.className,
-          ariaLabel: div.getAttribute('aria-label'),
-          role: div.getAttribute('role'),
-          xpath: getFullXPath(div)
+          ariaLabel: ariaLabel,
+          ariaLabelledby: ariaLabelledby,
+          role: role,
+          hasAccessibleName: hasAccessibleName,
+          selector: cssSelector,
+          xpath: getFullXPath(div),
+          html: divHtml
         };
-
+        
         results.maps.push(mapInfo);
-        results.summary.mapsByProvider[provider] = 
-          (results.summary.mapsByProvider[provider] || 0) + 1;
+        results.summary.mapsByProvider[provider] = (results.summary.mapsByProvider[provider] || 0) + 1;
 
+        // Check if the div map is likely to be interactive
+        const hasInteractiveAttributes = div.hasAttribute('tabindex') || 
+                                     div.querySelector('button, a, input, select, textarea') !== null ||
+                                     div.getAttribute('role') === 'application' ||
+                                     div.querySelector('[role="button"]') !== null;
+                                     
+        // Check if the div has aria-hidden
+        const ariaHidden = div.getAttribute('aria-hidden');
+        
+        // For interactive div maps with aria-hidden, this is a more serious issue
+        if (ariaHidden === 'true' && hasInteractiveAttributes) {
+          results.violations.push({
+            type: 'aria-hidden-interactive',
+            provider: provider,
+            element: 'div',
+            selector: cssSelector,
+            xpath: getFullXPath(div),
+            html: divHtml,
+            isInteractive: true
+          });
+        }
+        // For non-interactive div maps with aria-hidden, this is a warning
+        else if (ariaHidden === 'true') {
+          results.violations.push({
+            type: 'aria-hidden',
+            provider: provider,
+            element: 'div',
+            selector: cssSelector,
+            xpath: getFullXPath(div),
+            html: divHtml,
+            isInteractive: false
+          });
+        }
         // Check for accessibility attributes on div-based maps
-        if (!div.getAttribute('aria-label') && !div.getAttribute('role')) {
+        else if (!hasAccessibleName || !role) {
           results.violations.push({
             type: 'div-map-missing-attributes',
             provider: provider,
-            element: div.outerHTML,
-            xpath: getFullXPath(div)
+            element: 'div',
+            selector: cssSelector,
+            xpath: getFullXPath(div),
+            html: divHtml
           });
         }
       });
@@ -314,15 +402,15 @@ window.test_maps = async function() {
         description: 'Evaluates embedded digital maps for proper accessibility attributes and alternative content. This test identifies common map implementations including Google Maps, Mapbox, and Leaflet, and checks that they are properly labeled and accessible to screen reader users.',
         issues: [{
           type: 'info',
-          title: 'No maps found',
-          description: 'No maps were detected on this page.'
+          title: 'No maps detected on page',
+          description: 'No interactive maps were detected on this page. This test looks for common map implementations including Google Maps, Bing Maps, Mapbox, Leaflet, and others.'
         }]
       };
     }
 
     // 2. Maps Without Title Attributes
     if (mapsData.pageFlags.hasMapsWithoutTitle) {
-      const violations = mapsData.results.violations.filter(v => v.type === 'missing-title');
+      const violations = mapsData.results.violations.filter(v => v.type === 'missing-accessible-name');
       
       // For individual maps (up to 3), create separate issues
       violations.slice(0, 3).forEach(violation => {
@@ -331,61 +419,104 @@ window.test_maps = async function() {
         
         issues.push({
           type: 'fail',
-          title: `${provider} map iframe missing title attribute`,
-          description: `A map iframe is missing a title attribute. Screen reader users won't be able to identify the purpose of this map iframe.`,
-          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          title: `${provider} map missing accessible name`,
+          description: `A map iframe is missing an accessible name (title, aria-label, or aria-labelledby attribute). Screen reader users won't be able to identify the purpose of this map.`,
+          selector: violation.selector,
           xpath: mapXpath,
-          html: violation.element,
+          html: violation.html,
           impact: {
-            who: 'Screen reader users, keyboard-only users, and users with cognitive disabilities',
+            who: 'Screen reader users and users with cognitive disabilities',
             severity: 'High',
-            why: 'Screen reader users cannot identify the purpose of the map without a descriptive title'
+            why: 'Screen reader users rely on accessible names to understand the purpose of the map. Without a descriptive title, users may not understand what information the map is conveying.'
           },
           wcag: {
             principle: 'Operable, Robust',
-            guideline: 'Navigable, Compatible',
-            successCriterion: '2.4.1, 4.1.2',
+            guideline: '2.4 Navigable, 4.1 Compatible',
+            successCriterion: '2.4.1 Bypass Blocks, 4.1.2 Name, Role, Value',
             level: 'A'
           },
           remediation: [
             'Add a title attribute to the map iframe',
-            'Ensure the title describes the map\'s purpose (e.g., \'Map showing our office locations\')',
+            'Ensure the title describes the map\'s purpose (e.g., "Map showing our office locations")',
+            'Alternatively, you can use aria-label or aria-labelledby attributes',
             'Test with a screen reader to verify the map is properly announced'
-          ]
+          ],
+          codeExample: {
+            before: `<iframe 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  style="border:0;"
+  allowfullscreen=""
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade">
+</iframe>`,
+            after: `<iframe 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  title="Map showing our office location at 123 Main Street, Chicago"
+  style="border:0;"
+  allowfullscreen=""
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade">
+</iframe>`
+          }
         });
       });
       
-      // For maps beyond the first 3, we'll include them individually instead of a summary
-      // This ensures each issue is actionable
+      // For maps beyond the first 3, continue to include them individually
       violations.slice(3).forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
-          title: `${provider} map iframe missing title attribute`,
-          description: `A map iframe is missing a title attribute. Screen reader users won't be able to identify the purpose of this map iframe.`,
-          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          title: `${provider} map missing accessible name`,
+          description: `A map iframe is missing an accessible name (title, aria-label, or aria-labelledby attribute). Screen reader users won't be able to identify the purpose of this map.`,
+          selector: violation.selector,
           xpath: mapXpath,
-          html: violation.element,
+          html: violation.html,
           impact: {
-            who: 'Screen reader users, keyboard-only users, and users with cognitive disabilities',
+            who: 'Screen reader users and users with cognitive disabilities',
             severity: 'High',
-            why: 'Screen reader users cannot identify the purpose of the map without a descriptive title'
+            why: 'Screen reader users rely on accessible names to understand the purpose of the map. Without a descriptive title, users may not understand what information the map is conveying.'
           },
           wcag: {
             principle: 'Operable, Robust',
-            guideline: 'Navigable, Compatible',
-            successCriterion: '2.4.1, 4.1.2',
+            guideline: '2.4 Navigable, 4.1 Compatible',
+            successCriterion: '2.4.1 Bypass Blocks, 4.1.2 Name, Role, Value',
             level: 'A'
           },
           remediation: [
             'Add a title attribute to the map iframe',
-            'Ensure the title describes the map\'s purpose (e.g., \'Map showing our office locations\')',
+            'Ensure the title describes the map\'s purpose (e.g., "Map showing our office locations")',
+            'Alternatively, you can use aria-label or aria-labelledby attributes',
             'Test with a screen reader to verify the map is properly announced'
-          ]
+          ],
+          codeExample: {
+            before: `<iframe 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  style="border:0;"
+  allowfullscreen=""
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade">
+</iframe>`,
+            after: `<iframe 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  title="Map showing our office location at 123 Main Street, Chicago"
+  style="border:0;"
+  allowfullscreen=""
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade">
+</iframe>`
+          }
         });
-      })
+      });
     }
 
     // 3a. Maps With aria-hidden='true' that are interactive (serious fail)
@@ -396,31 +527,118 @@ window.test_maps = async function() {
       interactiveHiddenViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
+        const elementType = violation.element === 'div' ? 'div' : 'iframe';
         
+        // Primary issue - Information and Relationships
         issues.push({
           type: 'fail',
           title: `${provider} interactive map incorrectly hidden with aria-hidden='true'`,
-          description: `An interactive map has aria-hidden='true' which creates a serious accessibility problem. Interactive elements must never be hidden with aria-hidden as it creates conflicts between visual presentation and accessibility tree.`,
-          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          description: `This interactive map has aria-hidden="true" which creates a serious accessibility issue. The map becomes invisible to screen-reader users while remaining interactive for keyboard users. This creates a "silent focus trap" where keyboard users can tab into the map and get stuck without any screen reader feedback.`,
+          selector: violation.selector,
           xpath: mapXpath,
-          html: violation.element,
+          html: violation.html,
           impact: {
-            who: 'Screen reader users, keyboard users',
+            who: 'Screen reader users who navigate with a keyboard',
             severity: 'Critical',
-            why: 'Interactive elements with aria-hidden create a focus trap where keyboard users can still tab into "invisible" content, creating a confusing experience'
+            why: 'This creates a "silent focus trap" in the accessibility tree. Keyboard users can tab into and interact with elements inside the map, but these interactions will be completely silent for screen-reader users. Focus will move through interactive elements with no audio feedback, creating a confusing and disorienting experience.'
           },
           wcag: {
             principle: 'Perceivable, Operable',
-            guideline: 'Text Alternatives, Keyboard Accessible',
-            successCriterion: '1.1.1, 2.1.1',
+            guideline: '1.3 Adaptable, 2.1 Keyboard Accessible',
+            successCriterion: '1.3.1 Info and Relationships, 2.1.1 Keyboard',
             level: 'A'
           },
           remediation: [
-            'Remove aria-hidden=\'true\' from the interactive map element',
-            'Make the map fully accessible with proper title and attributes',
-            'If the map must not be accessible, use CSS display:none or visibility:hidden instead',
-            'Ensure keyboard focus cannot reach content that is hidden from screen readers'
-          ]
+            'Remove aria-hidden="true" from the interactive map',
+            'Add proper accessible name with title, aria-label, or aria-labelledby',
+            'For complex maps, provide an accessible alternative like a data table or descriptive text',
+            'If the map must be hidden from screen readers, ensure it is also not focusable with the keyboard',
+            'Test with a screen reader to verify the experience is equivalent for all users'
+          ],
+          codeExample: {
+            before: `<${elementType} 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  aria-hidden="true"
+  allowfullscreen=""
+  loading="lazy">
+</${elementType}>`,
+            after: `<${elementType}
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600" 
+  height="450"
+  title="Interactive map showing our office location"
+  allowfullscreen=""
+  loading="lazy">
+</${elementType}>
+
+<!-- OR provide an accessible alternative -->
+<div class="map-alternative">
+  <h3>Our Office Location</h3>
+  <p>Our office is located at 123 Main Street, Chicago, IL.</p>
+  <p>Nearby landmarks: Two blocks east of Grant Park.</p>
+  <p>Public transit: Red Line (State/Lake station)</p>
+</div>`
+          }
+        });
+        
+        // Secondary issue - Text Alternatives warning
+        issues.push({
+          type: 'warning',
+          title: `${provider} map content may lack text alternatives`,
+          description: `The map with aria-hidden="true" may contain important visual information that has no text alternative. If this map presents content that is not available elsewhere on the page, this creates an accessibility barrier.`,
+          selector: violation.selector,
+          xpath: mapXpath,
+          html: violation.html,
+          impact: {
+            who: 'Screen reader users',
+            severity: 'Medium',
+            why: 'Maps often contain important location or spatial information. If this information is hidden from screen readers and not provided in another format, it may violate WCAG 1.1.1 by failing to provide text alternatives for non-text content.'
+          },
+          wcag: {
+            principle: 'Perceivable',
+            guideline: '1.1 Text Alternatives',
+            successCriterion: '1.1.1 Non-text Content',
+            level: 'A'
+          },
+          remediation: [
+            'Provide a text description of what the map shows',
+            'Add a data table with the key locations or information from the map',
+            'Ensure all important information conveyed visually is also available in text format'
+          ],
+          codeExample: {
+            before: `<!-- Map without text alternatives -->
+<div class="map-container">
+  <${elementType} 
+    src="https://www.google.com/maps/embed?pb=..."
+    width="600"
+    height="450"
+    aria-hidden="true">
+  </${elementType}>
+</div>`,
+            after: `<!-- Map with text alternatives -->
+<div class="map-container">
+  <${elementType} 
+    src="https://www.google.com/maps/embed?pb=..."
+    width="600"
+    height="450"
+    title="Map showing our office location">
+  </${elementType}>
+  
+  <!-- Added text alternatives for key map information -->
+  <div class="map-description">
+    <h3>Our Office Location</h3>
+    <p>Address: 123 Main Street, Chicago, IL 60601</p>
+    <h4>Key Information:</h4>
+    <ul>
+      <li>Nearby landmarks: Two blocks east of City Hall</li>
+      <li>Public transit: Red Line (State/Lake station)</li>
+      <li>Parking: Public garage available at 130 Main Street</li>
+    </ul>
+  </div>
+</div>`
+          }
         });
       });
     }
@@ -433,31 +651,56 @@ window.test_maps = async function() {
       nonInteractiveHiddenViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
+        const elementType = violation.element === 'div' ? 'div' : 'iframe';
         
         issues.push({
           type: 'warning',
           title: `${provider} map hidden with aria-hidden='true'`,
-          description: `A map has aria-hidden='true' which makes it completely invisible to screen readers. If the map contains important information, screen reader users won't have access to it.`,
-          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          description: `This map has aria-hidden='true' which makes it completely invisible to screen-reader users. While this map appears to be non-interactive, it may still contain important visual information that should be accessible to all users. Screen-reader users won't receive any information about the map's presence or content.`,
+          selector: violation.selector,
           xpath: mapXpath,
-          html: violation.element,
+          html: violation.html,
           impact: {
             who: 'Screen reader users',
             severity: 'Medium',
-            why: 'Maps with aria-hidden=\'true\' are hidden from screen readers, potentially excluding important geographic information'
+            why: 'Using aria-hidden="true" removes the element from the accessibility tree, making any geographic or location information in the map unavailable to people who rely on screen-readers.'
           },
           wcag: {
             principle: 'Perceivable',
-            guideline: 'Text Alternatives',
-            successCriterion: '1.1.1',
+            guideline: '1.1 Text Alternatives',
+            successCriterion: '1.1.1 Non-text Content',
             level: 'A'
           },
           remediation: [
-            'Consider removing aria-hidden=\'true\' from the map element',
-            'Ensure the map has proper accessibility attributes if made visible to screen readers',
-            'Provide equivalent textual information nearby that describes the map content',
-            'Test with screen readers to verify the experience'
-          ]
+            'If the map conveys important information: Remove aria-hidden="true" and add descriptive text (via title, aria-label, or nearby content)',
+            'If the map is purely decorative: Consider adding role="presentation" instead of aria-hidden',
+            'Add text nearby that describes what the map is showing - this benefits all users',
+            'For complex maps, consider providing an accessible alternative like a data table or descriptive text'
+          ],
+          codeExample: {
+            before: `<!-- Map hidden from screen readers -->
+<${elementType} 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  aria-hidden="true">
+</${elementType}>`,
+            after: `<!-- Option 1: If map contains important information -->
+<${elementType} 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  title="Map showing our office location at 123 Main Street">
+</${elementType}>
+
+<!-- OR Option 2: If map is purely decorative -->
+<${elementType} 
+  src="https://www.google.com/maps/embed?pb=..."
+  width="600"
+  height="450"
+  role="presentation">
+</${elementType}>`
+          }
         });
       });
     }
@@ -466,70 +709,59 @@ window.test_maps = async function() {
     const divMapViolations = mapsData.results.violations.filter(v => v.type === 'div-map-missing-attributes');
     
     if (divMapViolations.length > 0) {
-      // For individual div maps (up to 3), create separate issues
-      divMapViolations.slice(0, 3).forEach(violation => {
+      // For individual div maps, create separate issues
+      divMapViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
           title: `${provider} div-based map missing accessibility attributes`,
-          description: `A div-based map is missing accessibility attributes such as aria-label and role. Screen reader users won't be able to identify this element as a map.`,
+          description: `This div-based map implementation is missing essential accessibility attributes (aria-label and role). Unlike traditional HTML elements (like <img>), div elements have no semantic meaning to assistive technologies. Without proper ARIA attributes, screen-reader users won't know this is a map or understand its purpose.`,
           xpath: mapXpath,
-          html: violation.element,
+          selector: violation.selector,
+          html: violation.html,
           impact: {
             who: 'Screen reader users, keyboard-only users',
             severity: 'High',
-            why: 'Div-based maps without proper ARIA attributes are not identified as maps by screen readers'
+            why: 'Modern mapping libraries (like Mapbox, Leaflet, Google Maps JS API) typically render in <div> elements, which are semantically meaningless to people using screen readers. Without proper ARIA attributes, the map becomes an unidentified "group" or is announced simply as "div", providing no context about its purpose or content.'
           },
           wcag: {
             principle: 'Perceivable, Robust',
-            guideline: 'Text Alternatives, Compatible',
-            successCriterion: '1.1.1, 4.1.2',
+            guideline: '1.1 Text Alternatives, 4.1 Compatible',
+            successCriterion: '1.1.1 Non-text Content, 4.1.2 Name, Role, Value',
             level: 'A'
           },
           remediation: [
-            'Add role=\'application\' or role=\'img\' to the map container',
-            'Add an aria-label that describes the map\'s purpose',
-            'Consider adding additional text descriptions near the map',
-            'Ensure keyboard accessibility for map interactions',
-            'Test with screen readers and keyboard-only navigation'
-          ]
+            'For interactive maps: Add role="application" to the map container',
+            'For decorative/static maps: Add role="img" to the map container',
+            'Add an aria-label attribute that concisely describes what the map shows (e.g., "Map of downtown Chicago")',
+            'Consider adding descriptive text or a caption adjacent to the map visible to all users',
+            'For complex maps, provide alternative ways to access the same information (data tables, text descriptions)',
+            'Ensure all map controls are keyboard accessible with proper labels'
+          ],
+          codeExample: {
+            before: `<div id="map" class="map-container">
+  <!-- Map content rendered by JavaScript library -->
+</div>`,
+            after: `<!-- For interactive maps -->
+<div id="map" 
+  class="map-container"
+  role="application"
+  aria-label="Interactive map showing our store locations in Chicago">
+  <!-- Map content rendered by JavaScript library -->
+</div>
+
+<!-- OR for static/decorative maps -->
+<div id="map" 
+  class="map-container"
+  role="img"
+  aria-label="Map showing our office location at 123 Main Street">
+  <!-- Map content rendered by JavaScript library -->
+</div>`
+          }
         });
       });
-      
-      // For div maps beyond the first 3, we'll include them individually instead of a summary
-      // This ensures each issue is actionable
-      divMapViolations.slice(3).forEach(violation => {
-        const provider = violation.provider || 'Unknown';
-        const mapXpath = violation.xpath || '';
-        
-        issues.push({
-          type: 'fail',
-          title: `${provider} div-based map missing accessibility attributes`,
-          description: `A div-based map is missing accessibility attributes such as aria-label and role. Screen reader users won't be able to identify this element as a map.`,
-          xpath: mapXpath,
-          html: violation.element,
-          impact: {
-            who: 'Screen reader users, keyboard-only users',
-            severity: 'High',
-            why: 'Div-based maps without proper ARIA attributes are not identified as maps by screen readers'
-          },
-          wcag: {
-            principle: 'Perceivable, Robust',
-            guideline: 'Text Alternatives, Compatible',
-            successCriterion: '1.1.1, 4.1.2',
-            level: 'A'
-          },
-          remediation: [
-            'Add role=\'application\' or role=\'img\' to the map container',
-            'Add an aria-label that describes the map\'s purpose',
-            'Consider adding additional text descriptions near the map',
-            'Ensure keyboard accessibility for map interactions',
-            'Test with screen readers and keyboard-only navigation'
-          ]
-        });
-      })
     }
 
     // 5. If maps are found but no accessibility issues detected, add an info message
@@ -541,7 +773,7 @@ window.test_maps = async function() {
       
       issues.push({
         type: 'info',
-        title: 'Maps with no accessibility issues',
+        title: 'Maps with no accessibility issues detected',
         description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo}). No accessibility issues detected.`
       });
     }

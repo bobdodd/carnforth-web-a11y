@@ -1,0 +1,61 @@
+/**
+ * Custom syntax highlighting styles that override highlight.js
+ * to ensure better color contrast for accessibility
+ */
+
+/* HTML/XML tag names - original #22863a (green) */
+.hljs-name,
+.hljs-selector-tag,
+.tag {
+  color: #0b5d1e !important; /* Darker green - improved contrast */
+}
+
+/* HTML attributes - original #005cc5 (blue) */
+.hljs-attr,
+.hljs-attribute,
+.attr {
+  color: #0b3578 !important; /* Darker blue - improved contrast */
+}
+
+/* String values - original #032f62 (blue) */
+.hljs-string,
+.hljs-meta .hljs-string, 
+.string {
+  color: #0a2956 !important; /* Darker blue - improved contrast */
+}
+
+/* Comments - original #6a737d (gray) */
+.hljs-comment,
+.comment {
+  color: #545a61 !important; /* Darker gray - improved contrast */
+}
+
+/* Additional syntax highlight elements with improved contrast */
+.hljs-section {
+  color: #0b3578 !important; /* Darker blue - improved contrast */
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_ {
+  color: #5a33a8 !important; /* Darker purple - improved contrast */
+}
+
+.hljs-keyword,
+.hljs-meta .hljs-keyword,
+.hljs-template-tag {
+  color: #b1302e !important; /* Darker red - improved contrast */
+}
+
+/* For custom fallback highlighting */
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  padding: 1em;
+  border-radius: 4px;
+  margin: 0.5em 0;
+}
+
+code {
+  font-family: monospace;
+}

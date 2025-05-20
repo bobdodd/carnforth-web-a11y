@@ -390,6 +390,136 @@ document.addEventListener('DOMContentLoaded', function() {
     return results;
   }
 
+  /**
+   * Apply syntax highlighting to HTML code blocks using highlight.js
+   * This function has robust error handling and fallbacks
+   */
+  function applyHtmlSyntaxHighlighting() {
+    console.log('[Panel] Applying syntax highlighting with highlight.js...');
+    
+    // Get all HTML code blocks
+    const codeBlocks = document.querySelectorAll('code.language-html');
+    console.log(`[Panel] Found ${codeBlocks.length} code blocks to highlight`);
+    
+    // First check if highlight.js is available
+    if (typeof hljs === 'undefined') {
+      console.error('[Panel] highlight.js not loaded yet, using fallback styling');
+      applyFallbackSyntaxHighlighting(codeBlocks);
+      return;
+    }
+    
+    // Configure highlight.js
+    try {
+      hljs.configure({
+        languages: ['html', 'xml'],  // Just support HTML/XML for now
+        ignoreUnescapedHTML: true // Safer parsing for broken HTML
+      });
+    } catch (configError) {
+      console.error('[Panel] Error configuring highlight.js:', configError);
+      // Continue anyway, as default config might work
+    }
+    
+    // Apply highlighting to each block with error handling
+    codeBlocks.forEach((block, index) => {
+      try {
+        const originalContent = block.textContent || '';
+        
+        // Check if content is already escaped
+        const isAlreadyEscaped = originalContent.includes('&lt;') || originalContent.includes('&gt;');
+        
+        if (isAlreadyEscaped) {
+          // Content is already escaped, create a temporary unescaped version for highlighting
+          const unescapedContent = originalContent
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+          
+          // Set the unescaped content
+          block.textContent = unescapedContent;
+        }
+        
+        // Apply highlighting
+        hljs.highlightElement(block);
+        
+        console.log(`[Panel] Successfully highlighted block #${index + 1}`);
+      } catch (error) {
+        console.error(`[Panel] Error highlighting block #${index + 1}:`, error);
+        // If highlighting fails, apply basic escaping and fallback styling
+        applyFallbackHighlightingToElement(block);
+      }
+    });
+  }
+  
+  /**
+   * Apply fallback styling to all code blocks when highlight.js fails completely
+   * @param {NodeList} codeBlocks - The code blocks to style
+   */
+  function applyFallbackSyntaxHighlighting(codeBlocks) {
+    console.log('[Panel] Applying fallback syntax highlighting');
+    codeBlocks.forEach((block, index) => {
+      applyFallbackHighlightingToElement(block);
+    });
+  }
+  
+  /**
+   * Apply fallback styling to a single code block
+   * @param {HTMLElement} block - The code block to style
+   */
+  function applyFallbackHighlightingToElement(block) {
+    try {
+      // Get the original content
+      const originalContent = block.textContent || '';
+      
+      // Check if content is already escaped
+      const isAlreadyEscaped = originalContent.includes('&lt;') || originalContent.includes('&gt;');
+      
+      let processedContent;
+      
+      if (isAlreadyEscaped) {
+        // Content is already escaped, use it directly
+        processedContent = originalContent;
+      } else {
+        // Content needs escaping
+        processedContent = originalContent
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+      
+      // Apply basic coloring with regex - using higher contrast colors
+      let coloredHTML = processedContent
+        // Color tags - dark green for better contrast
+        .replace(/(&lt;\/?[\w-]+)(\s|&gt;)/g, '<span class="tag">$1</span>$2')
+        // Color attributes - dark blue for better contrast
+        .replace(/(\s[\w-]+=)/g, '<span class="attr">$1</span>')
+        // Color strings in attributes - darker blue for better contrast
+        .replace(/(&quot;.*?&quot;|'.*?')/g, '<span class="string">$1</span>')
+        // Color comments - darker gray for better contrast
+        .replace(/(&lt;!--.*?--&gt;)/g, '<span class="comment">$1</span>');
+      
+      block.innerHTML = coloredHTML;
+    } catch (error) {
+      console.error('[Panel] Error applying fallback highlighting:', error);
+      // Last resort: make sure the content is safe for display
+      const originalContent = block.textContent || '';
+      const isAlreadyEscaped = originalContent.includes('&lt;') || originalContent.includes('&gt;');
+      
+      if (isAlreadyEscaped) {
+        // Already escaped, just use as is
+        block.innerHTML = originalContent;
+      } else {
+        // Needs escaping
+        const safeContent = originalContent
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        block.innerHTML = safeContent;
+      }
+    }
+  }
+
   // Listen for test button click
   startTestButton.addEventListener('click', function() {
     // Show loading state
@@ -538,6 +668,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize accordion functionality
     initializeAccordions();
     initializeIssueDisclosures();
+    
+    // Apply syntax highlighting to all code blocks
+    // Use a longer timeout to ensure DOM is fully rendered and highlight.js is loaded
+    setTimeout(() => {
+      try {
+        applyHtmlSyntaxHighlighting();
+      } catch (error) {
+        console.error('[Panel] Error applying syntax highlighting:', error);
+      }
+    }, 300);
   }
 
   /**
@@ -888,23 +1028,83 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlLabel.textContent = 'Current HTML:';
         technicalSection.appendChild(htmlLabel);
         
-        const html = document.createElement('pre');
-        html.className = 'issue-html';
-        html.textContent = issue.html;
-        technicalSection.appendChild(html);
+        const htmlContainer = document.createElement('pre');
+        htmlContainer.className = 'issue-html';
+        
+        const codeElement = document.createElement('code');
+        codeElement.className = 'language-html';
+        codeElement.textContent = issue.html;
+        htmlContainer.appendChild(codeElement);
+        
+        technicalSection.appendChild(htmlContainer);
+        
+        // We'll apply our custom syntax highlighting when all elements are ready
       }
       
-      // Add fixed HTML example if present
+      // Add before and after code example if present
+      if (issue.codeExample && issue.codeExample.before && issue.codeExample.after) {
+        const beforeAfterSection = document.createElement('div');
+        beforeAfterSection.className = 'before-after-example';
+        
+        const exampleTitle = document.createElement('h4');
+        exampleTitle.textContent = 'Before & After Example';
+        beforeAfterSection.appendChild(exampleTitle);
+        
+        // Before code
+        const beforeLabel = document.createElement('div');
+        beforeLabel.className = 'technical-label code-label-before';
+        beforeLabel.textContent = 'Before:';
+        beforeAfterSection.appendChild(beforeLabel);
+        
+        const beforeContainer = document.createElement('pre');
+        beforeContainer.className = 'issue-before-code';
+        
+        const beforeCodeElement = document.createElement('code');
+        beforeCodeElement.className = 'language-html';
+        beforeCodeElement.textContent = issue.codeExample.before;
+        beforeContainer.appendChild(beforeCodeElement);
+        
+        beforeAfterSection.appendChild(beforeContainer);
+        
+        // After code
+        const afterLabel = document.createElement('div');
+        afterLabel.className = 'technical-label code-label-after';
+        afterLabel.textContent = 'After:';
+        beforeAfterSection.appendChild(afterLabel);
+        
+        const afterContainer = document.createElement('pre');
+        afterContainer.className = 'issue-after-code';
+        
+        const afterCodeElement = document.createElement('code');
+        afterCodeElement.className = 'language-html';
+        afterCodeElement.textContent = issue.codeExample.after;
+        afterContainer.appendChild(afterCodeElement);
+        
+        beforeAfterSection.appendChild(afterContainer);
+        
+        // We'll apply our custom syntax highlighting when all elements are ready
+        
+        technicalSection.appendChild(beforeAfterSection);
+      }
+      
+      // Add fixed HTML example if present (legacy support)
       if (issue.fixedHtml) {
         const fixedHtmlLabel = document.createElement('div');
         fixedHtmlLabel.className = 'technical-label';
         fixedHtmlLabel.textContent = 'Example Fix:';
         technicalSection.appendChild(fixedHtmlLabel);
         
-        const fixedHtml = document.createElement('pre');
-        fixedHtml.className = 'issue-fixed-html';
-        fixedHtml.textContent = issue.fixedHtml;
-        technicalSection.appendChild(fixedHtml);
+        const fixedHtmlContainer = document.createElement('pre');
+        fixedHtmlContainer.className = 'issue-fixed-html';
+        
+        const fixedCodeElement = document.createElement('code');
+        fixedCodeElement.className = 'language-html';
+        fixedCodeElement.textContent = issue.fixedHtml;
+        fixedHtmlContainer.appendChild(fixedCodeElement);
+        
+        technicalSection.appendChild(fixedHtmlContainer);
+        
+        // We'll apply our custom syntax highlighting when all elements are ready
       }
       
       details.appendChild(technicalSection);
@@ -1923,15 +2123,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (issue.html) {
+              // Check if HTML is already escaped
+              const htmlContent = issue.html;
+              const isAlreadyEscaped = htmlContent.includes('&lt;') || htmlContent.includes('&gt;');
+              
               htmlTemplate += `
               <div class="technical-label">Current HTML:</div>
-              <pre>${issue.html.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${isAlreadyEscaped ? htmlContent : htmlContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
             }
             
             if (issue.fixedHtml) {
+              // Check if fixed HTML is already escaped
+              const fixedHtmlContent = issue.fixedHtml;
+              const isFixedAlreadyEscaped = fixedHtmlContent.includes('&lt;') || fixedHtmlContent.includes('&gt;');
+              
               htmlTemplate += `
               <div class="technical-label">Example Fix:</div>
-              <pre>${issue.fixedHtml.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${isFixedAlreadyEscaped ? fixedHtmlContent : fixedHtmlContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
             }
             
             htmlTemplate += `

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Carnforth Web A11y</title>
   <link rel="stylesheet" href="../css/panel.css">
+  <link rel="stylesheet" href="../vendor/highlight/styles/github.min.css">
+  <!-- Load our syntax highlighting overrides after the main highlight.js styles -->
+  <link rel="stylesheet" href="../css/syntax-highlight-override.css">
+  <!-- Load highlight.js before other scripts, but defer execution -->
+  <script src="../vendor/highlight/highlight.min.js" defer></script>
 </head>
 <body>
   <header>
@@ -37,6 +42,38 @@
       <!-- Results will be populated here -->
     </div>
   </main>
+
+  <!-- Fallback styles in case highlight.js fails -->
+  <style id="fallback-highlight-styles">
+    /* Fallback styles for code blocks if highlight.js fails */
+    code.language-html:not(.hljs) {
+      display: block;
+      padding: 0.5rem;
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    
+    /* Higher contrast colors for syntax elements */
+    .tag {
+      color: #0b5d1e; /* Darker green for better contrast */
+    }
+    
+    .attr {
+      color: #0b3578; /* Darker blue for better contrast */
+    }
+    
+    .string {
+      color: #0a2956; /* Darker blue for better contrast */
+    }
+    
+    .comment {
+      color: #545a61; /* Darker gray for better contrast */
+    }
+  </style>
 
   <script src="../js/accordion.js"></script>
   <script src="../js/highlight.js"></script>
