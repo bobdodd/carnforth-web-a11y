@@ -1,9 +1,8 @@
 /**
- * UPDATED Maps Test - VERSION 2
+ * Maps Test
  * Tests for accessibility issues related to maps
  */
 window.test_maps = async function() {
-  alert("MAPS TOUCHPOINT TEST v2 EXECUTED");
   console.log("=============================================");
   console.log("MAPS TOUCHPOINT TEST STARTED");
   console.log("=============================================");
@@ -252,7 +251,7 @@ window.test_maps = async function() {
       violations: mapsData.results?.violations
     });
 
-    // 1. If no maps are found, return an info message
+    // 1. If no maps are found, include an info message about it
     if (!mapsData.pageFlags.hasMaps) {
       console.log('[Maps] No maps found on the page');
       return {
@@ -300,27 +299,23 @@ window.test_maps = async function() {
         });
       });
       
-      // If there are more than 3 maps with issues, add a summary issue
-      if (violations.length > 3) {
-        const allXpaths = violations.map(v => v.xpath || '').filter(Boolean);
-        
-        // Format for readability
-        let xpathsStr;
-        if (allXpaths.length <= 5) {
-          xpathsStr = allXpaths.join(', ');
-        } else {
-          xpathsStr = `${allXpaths.slice(0, 3).join(', ')}, ... (${allXpaths.length - 3} more)`;
-        }
+      // For maps beyond the first 3, we'll include them individually instead of a summary
+      // This ensures each issue is actionable
+      violations.slice(3).forEach(violation => {
+        const provider = violation.provider || 'Unknown';
+        const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
-          title: `${violations.length} maps missing title attributes`,
-          description: `Multiple map iframes are missing title attributes. Screen reader users won't be able to identify the purpose of these map iframes.`,
-          xpath: allXpaths.slice(0, 10).join(', '),
+          title: `${provider} map iframe missing title attribute`,
+          description: `A map iframe is missing a title attribute. Screen reader users won't be able to identify the purpose of this map iframe.`,
+          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          xpath: mapXpath,
+          html: violation.element,
           impact: {
             who: 'Screen reader users, keyboard-only users, and users with cognitive disabilities',
             severity: 'High',
-            why: 'Screen reader users cannot identify the purpose of maps without descriptive titles'
+            why: 'Screen reader users cannot identify the purpose of the map without a descriptive title'
           },
           wcag: {
             principle: 'Operable, Robust',
@@ -329,13 +324,12 @@ window.test_maps = async function() {
             level: 'A'
           },
           remediation: [
-            'Identify all map iframes on the page',
-            'Add descriptive title attributes that explain each map\'s purpose and content',
-            'Ensure titles are concise but informative',
-            'Test with screen readers to verify maps are properly announced'
+            'Add a title attribute to the map iframe',
+            'Ensure the title describes the map\'s purpose (e.g., \'Map showing our office locations\')',
+            'Test with a screen reader to verify the map is properly announced'
           ]
         });
-      }
+      })
     }
 
     // 3. Maps With aria-hidden='true'
@@ -374,23 +368,19 @@ window.test_maps = async function() {
         });
       });
       
-      // If there are more than 3 maps with issues, add a summary issue
-      if (violations.length > 3) {
-        const allXpaths = violations.map(v => v.xpath || '').filter(Boolean);
-        
-        // Format for readability
-        let xpathsStr;
-        if (allXpaths.length <= 5) {
-          xpathsStr = allXpaths.join(', ');
-        } else {
-          xpathsStr = `${allXpaths.slice(0, 3).join(', ')}, ... (${allXpaths.length - 3} more)`;
-        }
+      // For maps beyond the first 3, we'll include them individually instead of a summary
+      // This ensures each issue is actionable
+      violations.slice(3).forEach(violation => {
+        const provider = violation.provider || 'Unknown';
+        const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
-          title: `${violations.length} maps have aria-hidden='true'`,
-          description: `Multiple maps have aria-hidden='true' which makes them completely invisible to screen readers. If these maps contain important information, screen reader users won't have access to it.`,
-          xpath: allXpaths.slice(0, 10).join(', '),
+          title: `${provider} map has aria-hidden='true'`,
+          description: `A map has aria-hidden='true' which makes it completely invisible to screen readers. If the map contains important information, screen reader users won't have access to it.`,
+          selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
+          xpath: mapXpath,
+          html: violation.element,
           impact: {
             who: 'Screen reader users',
             severity: 'High',
@@ -403,13 +393,13 @@ window.test_maps = async function() {
             level: 'A'
           },
           remediation: [
-            'Remove aria-hidden=\'true\' from map elements',
-            'Ensure maps have proper accessibility attributes',
-            'If maps must remain hidden, provide equivalent information in an accessible format nearby',
-            'Test with screen readers to verify the experience'
+            'Remove aria-hidden=\'true\' from the map element',
+            'Ensure the map has proper accessibility attributes like title',
+            'If the map must remain hidden, provide equivalent information in an accessible format nearby',
+            'Test with a screen reader to verify the experience'
           ]
         });
-      }
+      })
     }
 
     // 4. Div-based Maps Without Proper Accessibility Attributes
@@ -448,23 +438,18 @@ window.test_maps = async function() {
         });
       });
       
-      // If there are more than 3 div maps with issues, add a summary issue
-      if (divMapViolations.length > 3) {
-        const allXpaths = divMapViolations.map(v => v.xpath || '').filter(Boolean);
-        
-        // Format for readability
-        let xpathsStr;
-        if (allXpaths.length <= 5) {
-          xpathsStr = allXpaths.join(', ');
-        } else {
-          xpathsStr = `${allXpaths.slice(0, 3).join(', ')}, ... (${allXpaths.length - 3} more)`;
-        }
+      // For div maps beyond the first 3, we'll include them individually instead of a summary
+      // This ensures each issue is actionable
+      divMapViolations.slice(3).forEach(violation => {
+        const provider = violation.provider || 'Unknown';
+        const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
-          title: `${divMapViolations.length} div-based maps missing accessibility attributes`,
-          description: `Multiple div-based maps are missing accessibility attributes such as aria-label and role. Screen reader users won't be able to identify these elements as maps.`,
-          xpath: allXpaths.slice(0, 10).join(', '),
+          title: `${provider} div-based map missing accessibility attributes`,
+          description: `A div-based map is missing accessibility attributes such as aria-label and role. Screen reader users won't be able to identify this element as a map.`,
+          xpath: mapXpath,
+          html: violation.element,
           impact: {
             who: 'Screen reader users, keyboard-only users',
             severity: 'High',
@@ -477,18 +462,18 @@ window.test_maps = async function() {
             level: 'A'
           },
           remediation: [
-            'Add role=\'application\' or role=\'img\' to map container divs',
-            'Provide aria-label attributes that describe each map\'s purpose',
-            'Consider adding additional text descriptions near maps',
+            'Add role=\'application\' or role=\'img\' to the map container',
+            'Add an aria-label that describes the map\'s purpose',
+            'Consider adding additional text descriptions near the map',
             'Ensure keyboard accessibility for map interactions',
             'Test with screen readers and keyboard-only navigation'
           ]
         });
-      }
+      })
     }
 
-    // 5. Add an info summary with map providers if maps were found
-    if (mapsData.pageFlags.hasMaps && mapsData.results.summary.totalMaps > 0) {
+    // 5. If maps are found but no accessibility issues detected, add an info message
+    if (mapsData.pageFlags.hasMaps && issues.length === 0) {
       // Create a formatted string of map providers and counts
       const providersInfo = Object.entries(mapsData.results.summary.mapsByProvider)
         .map(([provider, count]) => `${provider}: ${count}`)
@@ -496,17 +481,8 @@ window.test_maps = async function() {
       
       issues.push({
         type: 'info',
-        title: 'Map providers detected',
-        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo})`
-      });
-    }
-
-    // Add at least one info issue if none exist
-    if (issues.length === 0) {
-      issues.push({
-        type: 'info',
-        title: 'Maps analysis completed',
-        description: 'Maps analysis was executed but no specific issues were found or detected.'
+        title: 'Maps with no accessibility issues',
+        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo}). No accessibility issues detected.`
       });
     }
     
