@@ -218,16 +218,88 @@ document.addEventListener('DOMContentLoaded', function() {
         };
       }
       
-      // Basic test result with page information
-      // In a full implementation, we would add touchpoint-specific tests here
-      return {
-        description: `Touchpoint test for ${touchpoint}`,
-        issues: [{
-          type: 'info',
-          title: `${touchpoint} touchpoint executed`,
-          description: `Analyzed page: ${pageDataResult.title} (${pageDataResult.url})`
-        }]
-      };
+      // Load and execute the specific touchpoint test from its file
+      try {
+        console.log(`[Panel] Attempting to load and execute touchpoint: ${touchpoint}`);
+        
+        // Try to import the touchpoint's JavaScript
+        const touchpointResult = await new Promise((resolve) => {
+          // Create a script element to load the touchpoint
+          const script = document.createElement('script');
+          script.src = chrome.runtime.getURL(`js/touchpoints/${touchpoint}.js`);
+          script.onload = () => {
+            console.log(`[Panel] Successfully loaded ${touchpoint}.js file`);
+            // Try to execute the touchpoint function if it exists
+            const funcName = `test_${touchpoint}`;
+            if (typeof window[funcName] === 'function') {
+              console.log(`[Panel] Executing ${funcName} function`);
+              try {
+                window[funcName]()
+                  .then(result => {
+                    console.log(`[Panel] ${funcName} execution successful:`, result);
+                    resolve(result);
+                  })
+                  .catch(error => {
+                    console.error(`[Panel] ${funcName} execution failed:`, error);
+                    resolve({
+                      description: `Error in ${touchpoint} touchpoint`,
+                      issues: [{
+                        type: 'error',
+                        title: `Error executing ${touchpoint} test`,
+                        description: error.message || 'An unknown error occurred'
+                      }]
+                    });
+                  });
+              } catch (error) {
+                console.error(`[Panel] Error starting ${funcName}:`, error);
+                resolve({
+                  description: `Error in ${touchpoint} touchpoint`,
+                  issues: [{
+                    type: 'error',
+                    title: `Error starting ${touchpoint} test`,
+                    description: error.message || 'An unknown error occurred'
+                  }]
+                });
+              }
+            } else {
+              console.error(`[Panel] Function ${funcName} not found after loading script`);
+              resolve({
+                description: `Error in ${touchpoint} touchpoint`,
+                issues: [{
+                  type: 'error',
+                  title: `Error loading ${touchpoint} test`,
+                  description: `The function ${funcName} could not be found`
+                }]
+              });
+            }
+          };
+          script.onerror = (error) => {
+            console.error(`[Panel] Failed to load ${touchpoint}.js:`, error);
+            resolve({
+              description: `Error in ${touchpoint} touchpoint`,
+              issues: [{
+                type: 'error',
+                title: `Error loading ${touchpoint} script`,
+                description: `Failed to load the ${touchpoint}.js script file`
+              }]
+            });
+          };
+          
+          document.head.appendChild(script);
+        });
+        
+        return touchpointResult;
+      } catch (error) {
+        console.error(`[Panel] Error in touchpoint loading process:`, error);
+        return {
+          description: `Error in ${touchpoint} touchpoint`,
+          issues: [{
+            type: 'error',
+            title: `Error loading ${touchpoint} test`,
+            description: error.message || 'An unknown error occurred in the loading process'
+          }]
+        };
+      }
     } catch (error) {
       console.error(`[Panel] Error running touchpoint ${touchpoint}:`, error);
       return {
