@@ -75,11 +75,52 @@ window.test_maps = async function() {
                src.includes('tomtom');
       });
 
+      // Check if an iframe has interactive content
+      function checkForInteractiveContent(iframe) {
+        try {
+          // In a real implementation, we would try to check the iframe content
+          // But for security reasons, we can't directly access cross-origin iframes
+          // Instead, we'll use heuristics based on the iframe attributes and source
+
+          // Maps that are known to be interactive
+          const interactiveProviders = [
+            'google.com/maps', 
+            'bing.com/maps', 
+            'openstreetmap.org',
+            'waze.com',
+            'maps.apple.com'
+          ];
+          
+          const src = iframe.src || '';
+          
+          // Check for attributes that suggest interactivity
+          const hasInteractiveAttributes = 
+            iframe.getAttribute('allowfullscreen') === 'true' || 
+            iframe.getAttribute('allowfullscreen') === '' ||
+            iframe.hasAttribute('allowfullscreen') ||
+            iframe.hasAttribute('scrolling') ||
+            src.includes('zoom=') ||
+            src.includes('&z=');
+            
+          // Check if it's from a provider known to be interactive
+          const isFromInteractiveProvider = interactiveProviders.some(provider => 
+            src.toLowerCase().includes(provider)
+          );
+          
+          return hasInteractiveAttributes || isFromInteractiveProvider;
+        } catch (e) {
+          // If there's an error checking, default to assuming it's interactive
+          // for safety
+          return true;
+        }
+      }
+
       // Process each map
       mapIframes.forEach(iframe => {
         const provider = identifyMapProvider(iframe.src);
         const title = iframe.getAttribute('title');
         const ariaHidden = iframe.getAttribute('aria-hidden');
+        const isInteractive = checkForInteractiveContent(iframe);
 
         const mapInfo = {
           provider: provider,
@@ -87,6 +128,7 @@ window.test_maps = async function() {
           title: title,
           hasTitle: !!title,
           ariaHidden: ariaHidden === 'true',
+          isInteractive: isInteractive,
           dimensions: {
             width: iframe.getAttribute('width'),
             height: iframe.getAttribute('height')
@@ -120,14 +162,28 @@ window.test_maps = async function() {
 
         if (ariaHidden === 'true') {
           results.summary.mapsWithAriaHidden++;
-          results.violations.push({
-            type: 'aria-hidden',
-            provider: provider,
-            src: iframe.src,
-            title: title,
-            xpath: getFullXPath(iframe),
-            element: iframe.outerHTML
-          });
+          
+          if (isInteractive) {
+            // If interactive with aria-hidden, more serious issue
+            results.violations.push({
+              type: 'aria-hidden-interactive',
+              provider: provider,
+              src: iframe.src,
+              title: title,
+              xpath: getFullXPath(iframe),
+              element: iframe.outerHTML
+            });
+          } else {
+            // Non-interactive with aria-hidden
+            results.violations.push({
+              type: 'aria-hidden',
+              provider: provider,
+              src: iframe.src,
+              title: title,
+              xpath: getFullXPath(iframe),
+              element: iframe.outerHTML
+            });
+          }
         }
       });
 
@@ -332,59 +388,63 @@ window.test_maps = async function() {
       })
     }
 
-    // 3. Maps With aria-hidden='true'
-    if (mapsData.pageFlags.hasMapsWithAriaHidden) {
-      const violations = mapsData.results.violations.filter(v => v.type === 'aria-hidden');
-      
-      // For individual maps (up to 3), create separate issues
-      violations.slice(0, 3).forEach(violation => {
+    // 3a. Maps With aria-hidden='true' that are interactive (serious fail)
+    const interactiveHiddenViolations = mapsData.results.violations.filter(v => v.type === 'aria-hidden-interactive');
+    
+    if (interactiveHiddenViolations.length > 0) {
+      // Process interactive maps with aria-hidden (all of them individually)
+      interactiveHiddenViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
         
         issues.push({
           type: 'fail',
-          title: `${provider} map has aria-hidden='true'`,
-          description: `A map has aria-hidden='true' which makes it completely invisible to screen readers. If the map contains important information, screen reader users won't have access to it.`,
+          title: `${provider} interactive map incorrectly hidden with aria-hidden='true'`,
+          description: `An interactive map has aria-hidden='true' which creates a serious accessibility problem. Interactive elements must never be hidden with aria-hidden as it creates conflicts between visual presentation and accessibility tree.`,
           selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
           xpath: mapXpath,
           html: violation.element,
           impact: {
-            who: 'Screen reader users',
-            severity: 'High',
-            why: 'Maps with aria-hidden=\'true\' are completely inaccessible to screen reader users'
+            who: 'Screen reader users, keyboard users',
+            severity: 'Critical',
+            why: 'Interactive elements with aria-hidden create a focus trap where keyboard users can still tab into "invisible" content, creating a confusing experience'
           },
           wcag: {
-            principle: 'Perceivable',
-            guideline: 'Text Alternatives',
-            successCriterion: '1.1.1',
+            principle: 'Perceivable, Operable',
+            guideline: 'Text Alternatives, Keyboard Accessible',
+            successCriterion: '1.1.1, 2.1.1',
             level: 'A'
           },
           remediation: [
-            'Remove aria-hidden=\'true\' from the map element',
-            'Ensure the map has proper accessibility attributes like title',
-            'If the map must remain hidden, provide equivalent information in an accessible format nearby',
-            'Test with a screen reader to verify the experience'
+            'Remove aria-hidden=\'true\' from the interactive map element',
+            'Make the map fully accessible with proper title and attributes',
+            'If the map must not be accessible, use CSS display:none or visibility:hidden instead',
+            'Ensure keyboard focus cannot reach content that is hidden from screen readers'
           ]
         });
       });
-      
-      // For maps beyond the first 3, we'll include them individually instead of a summary
-      // This ensures each issue is actionable
-      violations.slice(3).forEach(violation => {
+    }
+    
+    // 3b. Maps With aria-hidden='true' that are not interactive (warning)
+    const nonInteractiveHiddenViolations = mapsData.results.violations.filter(v => v.type === 'aria-hidden');
+    
+    if (nonInteractiveHiddenViolations.length > 0) {
+      // Process non-interactive maps with aria-hidden (all of them individually)
+      nonInteractiveHiddenViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
         
         issues.push({
-          type: 'fail',
-          title: `${provider} map has aria-hidden='true'`,
+          type: 'warning',
+          title: `${provider} map hidden with aria-hidden='true'`,
           description: `A map has aria-hidden='true' which makes it completely invisible to screen readers. If the map contains important information, screen reader users won't have access to it.`,
           selector: `iframe[src*="${violation.src ? violation.src.split('?')[0] : ''}"]`,
           xpath: mapXpath,
           html: violation.element,
           impact: {
             who: 'Screen reader users',
-            severity: 'High',
-            why: 'Maps with aria-hidden=\'true\' are completely inaccessible to screen reader users'
+            severity: 'Medium',
+            why: 'Maps with aria-hidden=\'true\' are hidden from screen readers, potentially excluding important geographic information'
           },
           wcag: {
             principle: 'Perceivable',
@@ -393,13 +453,13 @@ window.test_maps = async function() {
             level: 'A'
           },
           remediation: [
-            'Remove aria-hidden=\'true\' from the map element',
-            'Ensure the map has proper accessibility attributes like title',
-            'If the map must remain hidden, provide equivalent information in an accessible format nearby',
-            'Test with a screen reader to verify the experience'
+            'Consider removing aria-hidden=\'true\' from the map element',
+            'Ensure the map has proper accessibility attributes if made visible to screen readers',
+            'Provide equivalent textual information nearby that describes the map content',
+            'Test with screen readers to verify the experience'
           ]
         });
-      })
+      });
     }
 
     // 4. Div-based Maps Without Proper Accessibility Attributes
