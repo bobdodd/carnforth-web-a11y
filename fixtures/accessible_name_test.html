@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Name Touchpoint Test Fixture</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .test-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        form {
+            margin-top: 15px;
+        }
+        input, select, textarea, button {
+            margin: 5px 0;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: block;
+        }
+        label {
+            display: inline-block;
+            margin: 8px 0 4px;
+        }
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        .complex-icon-button {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background-color: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .complex-icon-button:focus {
+            outline: 2px solid blue;
+        }
+        .custom-select {
+            position: relative;
+            width: 200px;
+        }
+        .custom-select-button {
+            width: 100%;
+            text-align: left;
+            background-color: white;
+            cursor: pointer;
+        }
+        .custom-dropdown {
+            display: none;
+            position: absolute;
+            width: 100%;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .custom-dropdown.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Accessible Name Touchpoint Test Fixture</h1>
+    <p>This page contains various elements to test the accessible name touchpoint in the Carnforth Web A11y extension.</p>
+
+    <h2>Interactive Elements with Missing Accessible Names</h2>
+
+    <div class="test-container">
+        <h3>Test 1: Button without accessible name</h3>
+        <div class="test-info">
+            This button has <span class="issue-highlight">no text content, aria-label, or aria-labelledby</span>.
+        </div>
+        <button id="empty-button"></button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 2: Image without alt text</h3>
+        <div class="test-info">
+            This image has <span class="issue-highlight">no alt text</span>.
+        </div>
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3C/svg%3E" id="missing-alt">
+    </div>
+
+    <div class="test-container">
+        <h3>Test 3: Input without label</h3>
+        <div class="test-info">
+            This input has <span class="issue-highlight">no label, aria-label, or aria-labelledby</span>.
+        </div>
+        <input type="text" id="unlabeled-input">
+    </div>
+
+    <div class="test-container">
+        <h3>Test 4: Generic clickable div</h3>
+        <div class="test-info">
+            This div is interactive (has click handler) but <span class="issue-highlight">no accessible name or role</span>.
+        </div>
+        <div id="clickable-div" onclick="alert('Clicked')" style="padding: 10px; background-color: #eee; cursor: pointer;">
+            Click me
+        </div>
+    </div>
+
+    <h2>Elements with Non-Descriptive Accessible Names</h2>
+
+    <div class="test-container">
+        <h3>Test 5: Button with non-descriptive text</h3>
+        <div class="test-info">
+            This button has <span class="issue-highlight">non-descriptive text content</span> ("Click here").
+        </div>
+        <button id="non-descriptive-button">Click here</button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 6: Link with non-descriptive text</h3>
+        <div class="test-info">
+            This link has <span class="issue-highlight">non-descriptive text content</span> ("Read more").
+        </div>
+        <a href="#" id="non-descriptive-link">Read more</a>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 7: Image with insufficient alt text</h3>
+        <div class="test-info">
+            This image has <span class="issue-highlight">insufficient alt text</span> ("Image").
+        </div>
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3C/svg%3E" alt="Image" id="insufficient-alt">
+    </div>
+
+    <h2>Form Controls with Various Labeling Methods</h2>
+
+    <div class="test-container">
+        <h3>Test 8: Explicit label with for attribute</h3>
+        <div class="test-info">
+            This input has a <span class="good-highlight">proper label with 'for' attribute</span>.
+        </div>
+        <form>
+            <label for="name-input">Your Name</label>
+            <input type="text" id="name-input">
+        </form>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 9: Implicit label (wrapping)</h3>
+        <div class="test-info">
+            This input has an <span class="good-highlight">implicit label</span> (input wrapped in label).
+        </div>
+        <form>
+            <label>
+                Email Address
+                <input type="email" id="email-input">
+            </label>
+        </form>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 10: Input with aria-label</h3>
+        <div class="test-info">
+            This input has <span class="good-highlight">aria-label</span> instead of a visible label.
+        </div>
+        <form>
+            <input type="text" id="search-input" aria-label="Search terms">
+        </form>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 11: Input with aria-labelledby</h3>
+        <div class="test-info">
+            This input has <span class="good-highlight">aria-labelledby</span> pointing to another element.
+        </div>
+        <form>
+            <h4 id="address-label">Shipping Address</h4>
+            <textarea id="address-input" aria-labelledby="address-label"></textarea>
+        </form>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 12: Input with placeholder only</h3>
+        <div class="test-info">
+            This input has <span class="issue-highlight">only a placeholder, no label</span>.
+        </div>
+        <form>
+            <input type="text" id="placeholder-only" placeholder="Enter phone number">
+        </form>
+    </div>
+
+    <h2>Complex Interactive Elements</h2>
+
+    <div class="test-container">
+        <h3>Test 13: Icon button with aria-label</h3>
+        <div class="test-info">
+            This icon button has <span class="good-highlight">aria-label</span> describing its purpose.
+        </div>
+        <button aria-label="Close dialog" class="complex-icon-button" id="close-button">✕</button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 14: Icon button without accessible name</h3>
+        <div class="test-info">
+            This icon button has <span class="issue-highlight">no accessible name</span>.
+        </div>
+        <button class="complex-icon-button" id="menu-button">☰</button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 15: Custom select/dropdown</h3>
+        <div class="test-info">
+            This custom select needs <span class="issue-highlight">proper ARIA attributes</span> for accessibility.
+        </div>
+        <div class="custom-select" id="custom-select">
+            <button class="custom-select-button" id="custom-select-button">Select an option</button>
+            <div class="custom-dropdown" id="custom-dropdown">
+                <div class="dropdown-item">Option 1</div>
+                <div class="dropdown-item">Option 2</div>
+                <div class="dropdown-item">Option 3</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 16: Custom select/dropdown with proper ARIA</h3>
+        <div class="test-info">
+            This custom select has <span class="good-highlight">proper ARIA attributes</span> for accessibility.
+        </div>
+        <div class="custom-select" id="custom-select-accessible">
+            <button 
+                class="custom-select-button" 
+                id="custom-select-button-accessible"
+                aria-haspopup="listbox" 
+                aria-expanded="false" 
+                aria-labelledby="custom-select-label"
+            >Select an option</button>
+            <div id="custom-select-label">Favorite Color</div>
+            <div class="custom-dropdown" id="custom-dropdown-accessible" role="listbox">
+                <div class="dropdown-item" role="option" id="option-1">Red</div>
+                <div class="dropdown-item" role="option" id="option-2">Green</div>
+                <div class="dropdown-item" role="option" id="option-3">Blue</div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Special Cases and Edge Cases</h2>
+
+    <div class="test-container">
+        <h3>Test 17: Visually hidden label</h3>
+        <div class="test-info">
+            This input has a <span class="good-highlight">visually hidden label</span> (screen reader accessible).
+        </div>
+        <form>
+            <label for="hidden-label-input" class="visually-hidden">Username</label>
+            <input type="text" id="hidden-label-input">
+        </form>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 18: Button with only an image</h3>
+        <div class="test-info">
+            This button has <span class="good-highlight">an image with alt text</span> as its content.
+        </div>
+        <button id="image-button">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='%23ccc'/%3E%3C/svg%3E" alt="Save document">
+        </button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 19: Button with only an image but missing alt</h3>
+        <div class="test-info">
+            This button has <span class="issue-highlight">an image without alt text</span> as its only content.
+        </div>
+        <button id="image-button-no-alt">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='%23ccc'/%3E%3C/svg%3E">
+        </button>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 20: SVG with accessible name</h3>
+        <div class="test-info">
+            This SVG has <span class="good-highlight">title and aria-labelledby</span> for proper accessibility.
+        </div>
+        <svg width="100" height="100" aria-labelledby="svg-title" role="img">
+            <title id="svg-title">Blue Circle</title>
+            <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="blue" />
+        </svg>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 21: SVG without accessible name</h3>
+        <div class="test-info">
+            This SVG has <span class="issue-highlight">no title or accessible name</span>.
+        </div>
+        <svg width="100" height="100">
+            <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+        </svg>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 22: Dialog without accessible name</h3>
+        <div class="test-info">
+            This dialog has <span class="issue-highlight">no accessible name</span>.
+        </div>
+        <dialog id="unnamed-dialog" style="border: 1px solid #ccc; padding: 20px;">
+            <p>This dialog needs an accessible name.</p>
+            <button>Close</button>
+        </dialog>
+        <button id="show-unnamed-dialog">Show Dialog</button>
+        <script>
+            document.getElementById('show-unnamed-dialog').addEventListener('click', function() {
+                document.getElementById('unnamed-dialog').showModal();
+            });
+        </script>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 23: Dialog with accessible name</h3>
+        <div class="test-info">
+            This dialog has <span class="good-highlight">aria-labelledby</span> for accessible name.
+        </div>
+        <dialog id="named-dialog" aria-labelledby="dialog-title" style="border: 1px solid #ccc; padding: 20px;">
+            <h3 id="dialog-title">Settings</h3>
+            <p>This dialog has a proper accessible name.</p>
+            <button>Close</button>
+        </dialog>
+        <button id="show-named-dialog">Show Dialog</button>
+        <script>
+            document.getElementById('show-named-dialog').addEventListener('click', function() {
+                document.getElementById('named-dialog').showModal();
+            });
+        </script>
+    </div>
+
+    <h2>Testing Instructions</h2>
+    <ol>
+        <li>Open this page in Chrome</li>
+        <li>Use the Carnforth Web A11y extension to run the accessible name touchpoint test</li>
+        <li>Verify that issues are detected for elements missing accessible names:
+            <ul>
+                <li>Empty button (Test 1)</li>
+                <li>Image without alt text (Test 2)</li>
+                <li>Unlabeled input (Test 3)</li>
+                <li>Clickable div without role (Test 4)</li>
+                <li>Non-descriptive button text (Test 5)</li>
+                <li>Non-descriptive link text (Test 6)</li>
+                <li>Image with insufficient alt text (Test 7)</li>
+                <li>Input with placeholder only (Test 12)</li>
+                <li>Icon button without accessible name (Test 14)</li>
+                <li>Custom select without ARIA (Test 15)</li>
+                <li>Button with image missing alt (Test 19)</li>
+                <li>SVG without accessible name (Test 21)</li>
+                <li>Dialog without accessible name (Test 22)</li>
+            </ul>
+        </li>
+        <li>Verify that properly labeled elements (Tests 8-11, 13, 16-18, 20, 23) do not produce warnings or errors</li>
+    </ol>
+
+    <script>
+        // Simple JS to make the custom dropdown work
+        document.getElementById('custom-select-button').addEventListener('click', function() {
+            document.getElementById('custom-dropdown').classList.toggle('show');
+        });
+
+        document.getElementById('custom-select-button-accessible').addEventListener('click', function() {
+            const dropdown = document.getElementById('custom-dropdown-accessible');
+            const expanded = dropdown.classList.toggle('show');
+            this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.custom-select-button')) {
+                const dropdowns = document.getElementsByClassName('custom-dropdown');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                    }
+                }
+                
+                // Update aria-expanded for the accessible dropdown
+                const accessibleButton = document.getElementById('custom-select-button-accessible');
+                if (accessibleButton) {
+                    accessibleButton.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

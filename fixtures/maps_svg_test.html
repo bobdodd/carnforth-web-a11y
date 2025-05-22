@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps SVG Touchpoint Test Fixture</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        svg {
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 400px;
+            margin-top: 10px;
+            background-color: #eee;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maps SVG Touchpoint Test Fixture</h1>
+    <p>This page contains SVG-based map implementations to test the maps touchpoint in the Carnforth Web A11y extension.</p>
+
+    <h2>SVG-based Maps</h2>
+
+    <div class="map-container">
+        <h3>Test 1: SVG map with proper accessibility attributes (ideal implementation)</h3>
+        <div class="test-info">
+            This SVG map has <span class="good-highlight">role="img"</span>, a <span class="good-highlight">title element</span>, and an <span class="good-highlight">aria-label</span>.
+        </div>
+        <svg 
+            viewBox="0 0 800 500" 
+            aria-label="Map of United States showing population density by state"
+            role="img">
+            <title>United States Population Density Map</title>
+            <desc>A map showing population density across US states. Darker colors indicate higher population density.</desc>
+            <!-- Simplified US Map -->
+            <g id="states">
+                <path d="M 100 100 L 200 100 L 200 200 L 100 200 Z" fill="#b3d1ff" stroke="#000" id="california" data-state="California"></path>
+                <path d="M 210 100 L 310 100 L 310 200 L 210 200 Z" fill="#cce0ff" stroke="#000" id="nevada" data-state="Nevada"></path>
+                <path d="M 320 100 L 420 100 L 420 200 L 320 200 Z" fill="#e6f0ff" stroke="#000" id="utah" data-state="Utah"></path>
+                <path d="M 100 210 L 200 210 L 200 310 L 100 310 Z" fill="#99c2ff" stroke="#000" id="arizona" data-state="Arizona"></path>
+                <path d="M 210 210 L 310 210 L 310 310 L 210 310 Z" fill="#80b3ff" stroke="#000" id="new-mexico" data-state="New Mexico"></path>
+                <!-- More states would go here in a full implementation -->
+            </g>
+            <g id="legend" transform="translate(600, 400)">
+                <rect x="0" y="0" width="20" height="20" fill="#80b3ff"></rect>
+                <text x="25" y="15" font-size="12">High Density</text>
+                <rect x="0" y="25" width="20" height="20" fill="#b3d1ff"></rect>
+                <text x="25" y="40" font-size="12">Medium Density</text>
+                <rect x="0" y="50" width="20" height="20" fill="#e6f0ff"></rect>
+                <text x="25" y="65" font-size="12">Low Density</text>
+            </g>
+        </svg>
+        <p>This map implementation follows best practices by including a title element, an aria-label, and a role.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 2: SVG map with missing accessibility attributes</h3>
+        <div class="test-info">
+            This SVG map is missing <span class="issue-highlight">role</span> and has <span class="issue-highlight">no title element or aria-label</span>.
+        </div>
+        <svg viewBox="0 0 800 500">
+            <!-- Simplified Europe Map -->
+            <g id="countries">
+                <path d="M 100 100 L 200 100 L 200 160 L 100 160 Z" fill="#ffcccc" stroke="#000" id="france" data-country="France"></path>
+                <path d="M 210 100 L 310 100 L 310 160 L 210 160 Z" fill="#ffcccc" stroke="#000" id="germany" data-country="Germany"></path>
+                <path d="M 150 170 L 250 170 L 250 210 L 150 210 Z" fill="#ffcccc" stroke="#000" id="italy" data-country="Italy"></path>
+                <path d="M 70 70 L 120 70 L 120 100 L 70 100 Z" fill="#ffcccc" stroke="#000" id="uk" data-country="United Kingdom"></path>
+                <!-- More countries would go here in a full implementation -->
+            </g>
+        </svg>
+        <p>This SVG map lacks necessary accessibility attributes, making it difficult for screen reader users to understand its purpose.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3: SVG map with aria-hidden="true"</h3>
+        <div class="test-info">
+            This SVG map has <span class="issue-highlight">aria-hidden="true"</span> which completely hides it from assistive technology.
+        </div>
+        <svg 
+            viewBox="0 0 800 500" 
+            aria-hidden="true">
+            <!-- Simplified Asia Map -->
+            <g id="asia-countries">
+                <path d="M 100 100 L 180 100 L 180 200 L 100 200 Z" fill="#d1e0e0" stroke="#000" id="china" data-country="China"></path>
+                <path d="M 190 140 L 230 140 L 230 200 L 190 200 Z" fill="#d1e0e0" stroke="#000" id="japan" data-country="Japan"></path>
+                <path d="M 100 210 L 180 210 L 180 270 L 100 270 Z" fill="#d1e0e0" stroke="#000" id="india" data-country="India"></path>
+                <!-- More countries would go here in a full implementation -->
+            </g>
+        </svg>
+        <p>Although visually displayed, this map is hidden from screen readers with aria-hidden="true", making its content inaccessible.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 4: Interactive SVG map with aria-hidden (serious issue)</h3>
+        <div class="test-info">
+            This SVG map is <span class="issue-highlight">interactive</span> (has tabindex and onclick handlers) but also has <span class="issue-highlight">aria-hidden="true"</span>.
+        </div>
+        <svg 
+            viewBox="0 0 800 500" 
+            aria-hidden="true"
+            tabindex="0">
+            <!-- Simplified Africa Map with clickable regions -->
+            <g id="africa-countries">
+                <path d="M 100 100 L 180 100 L 180 160 L 100 160 Z" fill="#d4e6f6" stroke="#000" id="egypt" data-country="Egypt" tabindex="0" onclick="alert('Egypt clicked')"></path>
+                <path d="M 100 170 L 180 170 L 180 240 L 100 240 Z" fill="#d4e6f6" stroke="#000" id="nigeria" data-country="Nigeria" tabindex="0" onclick="alert('Nigeria clicked')"></path>
+                <path d="M 190 200 L 270 200 L 270 270 L 190 270 Z" fill="#d4e6f6" stroke="#000" id="kenya" data-country="Kenya" tabindex="0" onclick="alert('Kenya clicked')"></path>
+                <path d="M 150 280 L 220 280 L 220 350 L 150 350 Z" fill="#d4e6f6" stroke="#000" id="south-africa" data-country="South Africa" tabindex="0" onclick="alert('South Africa clicked')"></path>
+            </g>
+            <g id="controls" transform="translate(600, 100)">
+                <rect x="0" y="0" width="100" height="30" fill="#f0f0f0" stroke="#000" rx="5" id="zoom-in" tabindex="0" onclick="alert('Zoom in')"></rect>
+                <text x="50" y="20" text-anchor="middle">Zoom In</text>
+                <rect x="0" y="40" width="100" height="30" fill="#f0f0f0" stroke="#000" rx="5" id="zoom-out" tabindex="0" onclick="alert('Zoom out')"></rect>
+                <text x="50" y="60" text-anchor="middle">Zoom Out</text>
+            </g>
+        </svg>
+        <p>This creates a serious accessibility issue: the interactive elements are hidden from screen readers but remain keyboard-focusable.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 5: SVG map with partial accessibility attributes</h3>
+        <div class="test-info">
+            This SVG map has a <span class="good-highlight">title element</span> but is missing <span class="issue-highlight">role="img"</span>.
+        </div>
+        <svg viewBox="0 0 800 500">
+            <title>South America Map</title>
+            <!-- Simplified South America Map -->
+            <g id="sa-countries">
+                <path d="M 100 100 L 200 100 L 200 300 L 150 350 L 100 300 Z" fill="#d8f0d8" stroke="#000" id="brazil" data-country="Brazil"></path>
+                <path d="M 80 100 L 100 100 L 100 300 L 80 280 Z" fill="#d8f0d8" stroke="#000" id="peru" data-country="Peru"></path>
+                <path d="M 100 300 L 150 350 L 150 400 L 100 400 Z" fill="#d8f0d8" stroke="#000" id="argentina" data-country="Argentina"></path>
+            </g>
+        </svg>
+        <p>This map has a title but is missing the role attribute, which affects how it's announced by screen readers.</p>
+    </div>
+
+    <!-- Script to simulate D3.js being loaded -->
+    <script>
+        // Simulate the presence of D3.js and TopoJSON
+        document.head.appendChild(document.createElement('script')).src = 'https://d3js.org/d3.v7.min.js';
+        document.head.appendChild(document.createElement('script')).src = 'https://unpkg.com/topojson@3';
+    </script>
+
+    <h2>Testing Instructions</h2>
+    <ol>
+        <li>Open this page in Chrome</li>
+        <li>Use the Carnforth Web A11y extension to run the maps touchpoint test</li>
+        <li>Verify that the following issues are detected:
+            <ul>
+                <li>SVG map missing accessibility attributes (Test 2)</li>
+                <li>SVG map with aria-hidden="true" (Test 3)</li>
+                <li>Interactive SVG map with aria-hidden="true" (Test 4) - should be detected as a more serious issue</li>
+                <li>SVG map with missing role attribute (Test 5)</li>
+            </ul>
+        </li>
+        <li>Verify that the properly implemented SVG map (Test 1) does not produce warnings or errors</li>
+    </ol>
+
+    <p>Note: The maps touchpoint should detect SVG-based maps and verify they have proper accessibility attributes.</p>
+</body>
+</html>

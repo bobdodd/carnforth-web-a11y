@@ -447,7 +447,7 @@ The extension itself must be fully accessible:
 7. Created Python HTTP server script for easier fixture testing
 8. Added fixtures documentation in README.md
 
-### May 20, 2025 Session (Current)
+### May 20, 2025 Session
 1. Fixed critical issue with touchpoint functions not being available in the page's global scope
 2. Updated touchpoint-loader.js to properly inject functions into the window object
 3. Changed script injection to use document.documentElement instead of document.head
@@ -459,15 +459,30 @@ The extension itself must be fully accessible:
 9. Created debug logging for better diagnosing injection issues
 10. Simplified async function declaration in touchpoint-loader.js
 
+### May 21, 2025 Session (Current)
+1. Fixed critical issue with element highlighting functionality
+2. Identified that scrollIntoView() in highlight.js and content.js was causing panel reset 
+3. Removed scrollIntoView() calls from both highlight.js and content.js
+4. Added extensive comments explaining why auto-scrolling was removed to prevent future reintroduction
+5. Fixed the core issue of panel resetting when clicking on issues to expand them
+6. Consolidated changes and ensured all use cases work across different browsers
+7. Updated accordion.js to better interact with highlight.js
+8. Fixed issue with the highlight element integration between accordion.js and highlight.js
+9. Added explicit checks for DevTools context to avoid using chrome.tabs API in DevTools panel
+10. Diagnosed complex interaction issues between DevTools panel and content scripts
+
 ### Current Todo List
 1. ✅ Create a fix for the touchpoint-loader.js script to properly inject test functions into the global scope
 2. ✅ Test the fix by running maps touchpoint on the test fixture
 3. ✅ Add ensureTouchpointFunctionsLoaded function to handle timing issues between content script and page script contexts
 4. ✅ Update manifest.json to add web_accessible_resources for touchpoint-loader.js
-5. ⏭️ Verify all touchpoint tests are working correctly
-6. ⏭️ Implement actual testing logic for accessible_name touchpoint
-7. ⏭️ Implement actual testing logic for headings touchpoint
-8. ⏭️ Implement actual testing logic for images touchpoint
+5. ✅ Fix issue with panel resetting when highlighting elements from expanded issues
+6. ✅ Remove scrollIntoView() calls that were causing navigation events
+7. ✅ Ensure element highlighting works without causing panel resets
+8. ⏭️ Verify all touchpoint tests are working correctly
+9. ⏭️ Implement actual testing logic for accessible_name touchpoint
+10. ⏭️ Implement actual testing logic for headings touchpoint
+11. ⏭️ Implement actual testing logic for images touchpoint
 
 ### Issues Encountered and Resolutions
 1. ES modules in Chrome extensions: 
@@ -501,6 +516,20 @@ The extension itself must be fully accessible:
 8. Script context isolation in Chrome extensions:
    - Problem: Chrome extensions have separate JavaScript contexts - content script vs. page script
    - Solution: Used document.documentElement.appendChild instead of document.head, added custom event to signal when functions are loaded
+
+9. Panel reset during element highlighting:
+   - Problem: When expanding an issue to see details, the panel would completely reset (returning to "Start Test" state)
+   - Root cause: The scrollIntoView() calls in highlight.js and content.js were triggering "pageChanged" events
+   - Solution: Removed all scrollIntoView() calls from both files, added detailed comments explaining why
+   
+10. Function collision in accordion.js and highlight.js:
+    - Problem: Both accordion.js and highlight.js defined their own versions of highlightElement()
+    - Implications: When calling highlightElement from accordion.js, it used the wrong implementation
+    - Solution: Updated highlight.js to expose its functions globally for accordion.js to use
+    
+11. Chrome APIs in wrong contexts:
+    - Problem: chrome.tabs.query() was being used in DevTools panel context, where it's not available
+    - Solution: Added explicit checks for DevTools context and used the proper APIs (chrome.devtools.inspectedWindow.eval) when in DevTools panel
 
 ### Completed Touchpoints
 1. Maps touchpoint:

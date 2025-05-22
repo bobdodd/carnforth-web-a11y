@@ -125,113 +125,6 @@ window.test_maps = async function() {
                src.includes('tomtom');
       });
 
-      // Pattern: Enhanced Focusable Element Detection
-      // Educational: This function demonstrates comprehensive detection of interactive elements
-      // It checks for both explicit focusable elements and common interactive patterns
-      function scanForFocusableElements(container, options = {}) {
-        try {
-          // Focusable elements by default (semantic HTML)
-          const focusableSelectors = [
-            'a[href]',              // Links with href
-            'button:not([disabled])', // Enabled buttons
-            'input:not([disabled]):not([type="hidden"])', // Visible, enabled inputs
-            'select:not([disabled])', // Enabled select elements
-            'textarea:not([disabled])', // Enabled textareas
-            'iframe',               // Nested iframes
-            'object',               // Embedded objects
-            'embed',                // Embedded content
-            'audio[controls]',      // Audio with controls
-            'video[controls]',      // Video with controls
-            '[contenteditable="true"]', // Editable content
-            '[contenteditable=""]',  // Editable content (shorthand)
-            'details > summary',     // Summary elements in details
-          ];
-
-          // Elements made focusable via tabindex
-          const tabindexSelectors = [
-            '[tabindex]:not([tabindex="-1"])', // Positive or 0 tabindex
-            '[tabindex="0"]',       // Explicitly in tab order
-          ];
-
-          // Interactive ARIA roles that suggest focusability
-          const interactiveRoles = [
-            '[role="button"]',      // Button role
-            '[role="link"]',        // Link role
-            '[role="checkbox"]',    // Checkbox role
-            '[role="radio"]',       // Radio role
-            '[role="tab"]',         // Tab role
-            '[role="menuitem"]',    // Menu item role
-            '[role="option"]',      // Option role
-            '[role="switch"]',      // Switch role
-            '[role="textbox"]',     // Textbox role
-            '[role="searchbox"]',   // Searchbox role
-            '[role="slider"]',      // Slider role
-            '[role="spinbutton"]',  // Spinbutton role
-            '[role="combobox"]',    // Combobox role
-            '[role="listbox"]',     // Listbox role
-            '[role="grid"]',        // Grid role (often interactive)
-            '[role="gridcell"]',    // Grid cell role
-            '[role="treegrid"]',    // Tree grid role
-          ];
-
-          // Map-specific interactive patterns
-          const mapInteractivePatterns = [
-            '.marker[onclick]',     // Clickable markers
-            '.pin[onclick]',        // Clickable pins
-            '[class*="clickable"]', // Elements with clickable class
-            '[class*="interactive"]', // Elements with interactive class
-            '[data-interactive]',   // Data attribute for interactivity
-            '[data-clickable]',     // Data attribute for clickability
-            '.popup',               // Map popups (often interactive)
-            '.tooltip',             // Map tooltips
-            '.control-button',      // Control buttons
-            '.zoom-control',        // Zoom controls
-            '.layer-control',       // Layer controls
-          ];
-
-          // Combine all selectors
-          const allSelectors = [
-            ...focusableSelectors,
-            ...tabindexSelectors,
-            ...interactiveRoles,
-            ...mapInteractivePatterns
-          ].join(', ');
-
-          // Find all potentially focusable elements
-          const focusableElements = container.querySelectorAll(allSelectors);
-
-          // Additional checks for event listeners (if accessible)
-          const hasEventListeners = Array.from(container.querySelectorAll('*')).some(el => {
-            // Check for inline event handlers
-            const hasInlineHandlers = ['onclick', 'onkeydown', 'onkeyup', 'onkeypress', 'onmousedown', 'onmouseup']
-              .some(handler => el.hasAttribute(handler));
-            
-            // Check for data attributes suggesting interactivity
-            const hasInteractiveData = Array.from(el.attributes)
-              .some(attr => attr.name.includes('click') || attr.name.includes('interactive'));
-
-            return hasInlineHandlers || hasInteractiveData;
-          });
-
-          // Return comprehensive results
-          return {
-            hasFocusableElements: focusableElements.length > 0,
-            focusableCount: focusableElements.length,
-            hasEventListeners: hasEventListeners,
-            elements: options.returnElements ? Array.from(focusableElements) : null
-          };
-        } catch (e) {
-          console.error('[Maps] Error scanning for focusable elements:', e);
-          // On error, return conservative estimate
-          return {
-            hasFocusableElements: true, // Assume interactive to avoid missing issues
-            focusableCount: -1,
-            hasEventListeners: false,
-            elements: null
-          };
-        }
-      }
-
       // Pattern: Heuristic Analysis for Interactivity Detection
       // Chrome Extension Limitation: Cross-origin iframes block content access
       // Solution: Use observable attributes and URL patterns to infer interactivity
@@ -241,16 +134,6 @@ window.test_maps = async function() {
           // Educational: Browser security prevents accessing cross-origin iframe content
           // This is a fundamental web security feature (Same-Origin Policy)
           // We must use indirect methods to determine if a map is interactive
-
-          // First, try to scan the iframe's parent container for focusable elements
-          // This catches cases where controls are outside the iframe
-          const parentContainer = iframe.parentElement;
-          if (parentContainer) {
-            const parentScan = scanForFocusableElements(parentContainer);
-            if (parentScan.hasFocusableElements) {
-              return true;
-            }
-          }
 
           // Known interactive map providers based on their standard implementations
           // These providers typically offer pan, zoom, and click interactions
@@ -350,10 +233,6 @@ window.test_maps = async function() {
         const id = iframe.getAttribute('id');
         const cssSelector = id ? `#${id}` : getFullXPath(iframe);
 
-        // Check name quality
-        const accessibleNameText = title || ariaLabel || ariaLabelledby;
-        const nameIsGeneric = hasAccessibleName && isGenericName(accessibleNameText);
-
         const mapInfo = {
           provider: provider,
           src: iframe.src,
@@ -361,7 +240,6 @@ window.test_maps = async function() {
           ariaLabel: ariaLabel,
           ariaLabelledby: ariaLabelledby,
           hasAccessibleName: hasAccessibleName,
-          hasGenericName: nameIsGeneric,
           ariaHidden: ariaHidden === 'true',
           isInteractive: isInteractive,
           dimensions: {
@@ -394,20 +272,6 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(iframe),
             html: iframeHtml
-          });
-        }
-        // Check for generic names
-        else if (nameIsGeneric) {
-          results.violations.push({
-            type: 'generic-name',
-            provider: provider,
-            element: 'iframe',
-            src: iframe.src,
-            selector: cssSelector,
-            xpath: getFullXPath(iframe),
-            html: iframeHtml,
-            currentName: accessibleNameText,
-            severity: 'warning'
           });
         }
 
@@ -795,24 +659,29 @@ window.test_maps = async function() {
       }
       
       // Function to determine if a div-based map is interactive
-      // Enhanced with comprehensive focusable element detection
       function isInteractiveDivMap(div) {
-        // Use our comprehensive focusable element scanner
-        const scanResult = scanForFocusableElements(div);
+        // Check for traditional interactive controls
+        const hasInteractiveControls = div.querySelector('button, a, input, select, textarea, [role="button"], [role="link"]') !== null;
         
-        // If we found focusable elements, it's definitely interactive
-        if (scanResult.hasFocusableElements) {
-          return true;
-        }
+        // Check for common map control classes
+        const hasMapControls = div.querySelector(
+          '[class*="zoom"], [class*="control"], [class*="button"], ' +
+          '[class*="pan"], [class*="rotate"], [class*="navigate"], ' +
+          '[class*="drag"], [class*="slider"]') !== null;
         
-        // Additional checks for map-specific patterns that might not be caught by the scanner
-        // Check for map interaction attributes on the container itself
+        // Check for map interaction attributes
         const hasInteractionAttrs = div.hasAttribute('tabindex') || 
                                  div.hasAttribute('onclick') || 
                                  div.hasAttribute('onmousemove') || 
                                  div.hasAttribute('onmousedown') ||
                                  div.hasAttribute('data-interactive') ||
                                  div.getAttribute('role') === 'application';
+        
+        // Check for common map interaction elements
+        const hasMapInteractionElements = div.querySelector(
+          '.marker, .pin, .popup, .tooltip, .infowindow, ' +
+          '[class*="marker"], [class*="pin"], [class*="popup"], ' +
+          '[class*="tooltip"], [class*="infowindow"]') !== null;
         
         // Check for map data attributes that suggest interactivity
         const hasInteractiveDataAttrs = Array.from(div.attributes)
@@ -830,222 +699,12 @@ window.test_maps = async function() {
           canvas.hasAttribute('onmousemove') || 
           canvas.hasAttribute('tabindex'));
         
-        // Check if the map uses CSS to indicate interactivity
-        const style = window.getComputedStyle(div);
-        const hasCursorPointer = style.cursor === 'pointer' || style.cursor === 'grab' || style.cursor === 'grabbing';
-        
-        return scanResult.hasEventListeners || 
+        return hasInteractiveControls || 
+               hasMapControls || 
                hasInteractionAttrs || 
+               hasMapInteractionElements || 
                hasInteractiveDataAttrs ||
-               canvasHasHandlers ||
-               hasCursorPointer;
-      }
-
-      // Pattern: Landmark Detection for Div-based Maps
-      // Educational: Landmarks provide structural navigation for screen reader users
-      // According to WCAG, complex interactive regions should be within landmarks
-      function checkLandmarkContext(element) {
-        // Landmark roles that provide proper structural context
-        const landmarkRoles = [
-          'region',         // Generic region landmark
-          'main',           // Main content landmark
-          'navigation',     // Navigation landmark
-          'complementary',  // Complementary content landmark
-          'contentinfo',    // Footer landmark
-          'banner',         // Header landmark
-          'application',    // Application landmark (for interactive widgets)
-          'article',        // Article landmark
-          'section'         // Section landmark (when labeled)
-        ];
-
-        // HTML5 elements that are implicit landmarks
-        const landmarkElements = {
-          'main': 'main',
-          'nav': 'navigation',
-          'aside': 'complementary',
-          'header': 'banner',     // Only when not within article/section
-          'footer': 'contentinfo', // Only when not within article/section
-          'section': 'region',    // Only when labeled
-          'article': 'article'
-        };
-
-        // Traverse up the DOM tree looking for landmarks
-        let currentElement = element;
-        while (currentElement && currentElement !== document.body) {
-          // Check for explicit landmark role
-          const role = currentElement.getAttribute('role');
-          if (role && landmarkRoles.includes(role)) {
-            // Check if the landmark has an accessible name
-            const ariaLabel = currentElement.getAttribute('aria-label');
-            const ariaLabelledby = currentElement.getAttribute('aria-labelledby');
-            const hasAccessibleName = !!ariaLabel || !!ariaLabelledby;
-            
-            return {
-              hasLandmark: true,
-              landmarkType: role,
-              landmarkElement: currentElement,
-              hasAccessibleName: hasAccessibleName,
-              landmarkLabel: ariaLabel || ariaLabelledby || null
-            };
-          }
-
-          // Check for HTML5 landmark elements
-          const tagName = currentElement.tagName.toLowerCase();
-          if (landmarkElements[tagName]) {
-            // Special cases for header/footer (only landmarks at top level)
-            if ((tagName === 'header' || tagName === 'footer')) {
-              const parent = currentElement.parentElement;
-              if (parent && (parent.tagName.toLowerCase() === 'article' || 
-                           parent.tagName.toLowerCase() === 'section')) {
-                // Not a landmark when inside article/section
-                currentElement = currentElement.parentElement;
-                continue;
-              }
-            }
-
-            // Section is only a landmark when labeled
-            if (tagName === 'section') {
-              const ariaLabel = currentElement.getAttribute('aria-label');
-              const ariaLabelledby = currentElement.getAttribute('aria-labelledby');
-              if (!ariaLabel && !ariaLabelledby) {
-                currentElement = currentElement.parentElement;
-                continue;
-              }
-            }
-
-            return {
-              hasLandmark: true,
-              landmarkType: landmarkElements[tagName],
-              landmarkElement: currentElement,
-              hasAccessibleName: true, // HTML5 landmarks have implicit names
-              landmarkLabel: null
-            };
-          }
-
-          currentElement = currentElement.parentElement;
-        }
-
-        return {
-          hasLandmark: false,
-          landmarkType: null,
-          landmarkElement: null,
-          hasAccessibleName: false,
-          landmarkLabel: null
-        };
-      }
-
-      // Pattern: Heading Association Detection
-      // Educational: Headings provide context and navigation structure
-      // Maps should be associated with descriptive headings
-      function findAssociatedHeading(element) {
-        // Look for heading that precedes the map
-        let currentElement = element;
-        let attempts = 0;
-        const maxAttempts = 10; // Limit how far back we look
-
-        // First, check if there's a heading inside the map container
-        const internalHeading = element.querySelector('h1, h2, h3, h4, h5, h6');
-        if (internalHeading) {
-          return {
-            hasHeading: true,
-            headingLevel: parseInt(internalHeading.tagName.substring(1)),
-            headingText: internalHeading.textContent.trim(),
-            headingElement: internalHeading,
-            headingLocation: 'inside'
-          };
-        }
-
-        // Look for previous siblings
-        while (attempts < maxAttempts) {
-          const prevSibling = currentElement.previousElementSibling;
-          if (!prevSibling) {
-            // No more siblings, try parent's previous sibling
-            currentElement = currentElement.parentElement;
-            if (!currentElement || currentElement === document.body) {
-              break;
-            }
-            attempts++;
-            continue;
-          }
-
-          // Check if the sibling is a heading
-          const tagName = prevSibling.tagName.toLowerCase();
-          if (/^h[1-6]$/.test(tagName)) {
-            return {
-              hasHeading: true,
-              headingLevel: parseInt(tagName.substring(1)),
-              headingText: prevSibling.textContent.trim(),
-              headingElement: prevSibling,
-              headingLocation: 'before'
-            };
-          }
-
-          // Check if the sibling contains a heading
-          const headingInSibling = prevSibling.querySelector('h1, h2, h3, h4, h5, h6');
-          if (headingInSibling) {
-            return {
-              hasHeading: true,
-              headingLevel: parseInt(headingInSibling.tagName.substring(1)),
-              headingText: headingInSibling.textContent.trim(),
-              headingElement: headingInSibling,
-              headingLocation: 'nearby'
-            };
-          }
-
-          currentElement = prevSibling;
-          attempts++;
-        }
-
-        return {
-          hasHeading: false,
-          headingLevel: null,
-          headingText: null,
-          headingElement: null,
-          headingLocation: null
-        };
-      }
-
-      // Pattern: Name Quality Validation
-      // Educational: Generic names like "map" provide no useful information
-      // Names should describe what the map shows
-      function isGenericName(name) {
-        if (!name) return false;
-        
-        const nameLower = name.toLowerCase().trim();
-        
-        // List of generic, non-descriptive names
-        const genericNames = [
-          'map',
-          'image',
-          'graphic',
-          'diagram',
-          'figure',
-          'picture',
-          'img',
-          'view',
-          'visualization',
-          'chart',
-          'display',
-          'untitled',
-          'placeholder'
-        ];
-
-        // Check if the name is just one of the generic terms
-        if (genericNames.includes(nameLower)) {
-          return true;
-        }
-
-        // Check if name is very short (less than 5 chars is likely not descriptive)
-        if (nameLower.length < 5) {
-          return true;
-        }
-
-        // Check if the name is just "map of" or "image of" without specifics
-        if (nameLower === 'map of' || nameLower === 'image of' || nameLower === 'diagram of') {
-          return true;
-        }
-
-        return false;
+               canvasHasHandlers;
       }
       
       mapDivs.forEach(div => {
@@ -1057,13 +716,6 @@ window.test_maps = async function() {
         const ariaLabelledby = div.getAttribute('aria-labelledby');
         const role = div.getAttribute('role');
         const hasAccessibleName = !!ariaLabel || !!ariaLabelledby;
-        
-        // Check landmark and heading context
-        const landmarkInfo = checkLandmarkContext(div);
-        const headingInfo = findAssociatedHeading(div);
-        
-        // Check name quality
-        const nameIsGeneric = hasAccessibleName && isGenericName(ariaLabel || ariaLabelledby);
         
         // Get HTML snippet - limit size for very large divs
         const divHtml = div.outerHTML.length > 2000 ? 
@@ -1112,11 +764,7 @@ window.test_maps = async function() {
           visibleText: visibleText || null,
           selector: cssSelector,
           xpath: getFullXPath(div),
-          html: divHtml,
-          // New landmark and heading info
-          landmarkContext: landmarkInfo,
-          headingContext: headingInfo,
-          hasGenericName: nameIsGeneric
+          html: divHtml
         };
         
         results.maps.push(mapInfo);
@@ -1149,62 +797,7 @@ window.test_maps = async function() {
             isInteractive: false
           });
         }
-        
-        // Check for role="presentation" on interactive maps (WCAG 4.1.2 violation)
-        if ((role === 'presentation' || role === 'none') && isInteractive) {
-          results.violations.push({
-            type: 'presentation-role-interactive',
-            provider: provider,
-            element: 'div',
-            selector: cssSelector,
-            xpath: getFullXPath(div),
-            html: divHtml,
-            isInteractive: true
-          });
-        }
-        
-        // Check for structural issues with div-based maps
-        // According to spec: Must have landmark OR heading (fail if neither, warn if only heading)
-        if (!landmarkInfo.hasLandmark && !headingInfo.hasHeading) {
-          results.violations.push({
-            type: 'div-map-no-structure',
-            provider: provider,
-            element: 'div',
-            selector: cssSelector,
-            xpath: getFullXPath(div),
-            html: divHtml,
-            isInteractive: isInteractive,
-            severity: 'fail'
-          });
-        } else if (!landmarkInfo.hasLandmark && headingInfo.hasHeading) {
-          results.violations.push({
-            type: 'div-map-heading-only',
-            provider: provider,
-            element: 'div',
-            selector: cssSelector,
-            xpath: getFullXPath(div),
-            html: divHtml,
-            isInteractive: isInteractive,
-            headingText: headingInfo.headingText,
-            severity: 'warning'
-          });
-        }
-        
-        // Check for generic names
-        if (hasAccessibleName && nameIsGeneric) {
-          results.violations.push({
-            type: 'generic-name',
-            provider: provider,
-            element: 'div',
-            selector: cssSelector,
-            xpath: getFullXPath(div),
-            html: divHtml,
-            currentName: ariaLabel || ariaLabelledby,
-            severity: 'warning'
-          });
-        }
-        
-        // Check for missing accessibility attributes (original check)
+        // Check for accessibility attributes on div-based maps
         else if (!hasAccessibleName || !role) {
           results.violations.push({
             type: 'div-map-missing-attributes',
@@ -1246,20 +839,14 @@ window.test_maps = async function() {
         const hasAccessibleName = !!titleText || !!ariaLabel || !!ariaLabelledby;
         
         // Check for interactivity in the SVG
-        // Enhanced with comprehensive focusable element detection
-        const svgScanResult = scanForFocusableElements(svg);
-        const hasInteractiveElements = svgScanResult.hasFocusableElements || 
-                                      svg.querySelectorAll('a, [tabindex], [onclick], [onmouseover], [onmousedown], [role="button"]').length > 0;
+        const hasInteractiveElements = svg.querySelectorAll('a, [tabindex], [onclick], [onmouseover], [onmousedown], [role="button"]').length > 0;
         const hasInteractiveAttributes = svg.hasAttribute('tabindex') || 
                                         svg.hasAttribute('onclick') || 
                                         svg.hasAttribute('onmouseover') || 
                                         svg.hasAttribute('onmousedown');
         
-        const isInteractive = hasInteractiveElements || hasInteractiveAttributes;
-        
-        // Check name quality
-        const accessibleNameText = titleText || ariaLabel || ariaLabelledby;
-        const nameIsGeneric = hasAccessibleName && isGenericName(accessibleNameText);
+        // Note: Many data visualizations and vector maps are built with D3.js
+        const isLikelyD3Map = document.querySelector('script[src*="d3.js"], script[src*="d3.min.js"]') !== null;
         
         // Detect common mapping libraries that use SVG
         let provider = 'SVG Map';
@@ -1279,8 +866,7 @@ window.test_maps = async function() {
           role: role,
           hasAccessibleName: hasAccessibleName,
           hasProperRole: hasProperRole,
-          hasGenericName: nameIsGeneric,
-          isInteractive: isInteractive,
+          isInteractive: hasInteractiveElements || hasInteractiveAttributes,
           selector: cssSelector,
           xpath: getFullXPath(svg),
           html: svgHtml
@@ -1292,7 +878,7 @@ window.test_maps = async function() {
         // Check for accessibility issues
         
         // Most critical: interactive SVG map with aria-hidden="true"
-        if (ariaHidden === 'true' && isInteractive) {
+        if (ariaHidden === 'true' && (hasInteractiveElements || hasInteractiveAttributes)) {
           results.violations.push({
             type: 'aria-hidden-interactive',
             provider: provider,
@@ -1315,34 +901,6 @@ window.test_maps = async function() {
             isInteractive: false
           });
         }
-        
-        // Check for role="presentation" on interactive SVG (WCAG 4.1.2 violation)
-        if ((role === 'presentation' || role === 'none') && isInteractive) {
-          results.violations.push({
-            type: 'presentation-role-interactive',
-            provider: provider,
-            element: 'svg',
-            selector: cssSelector,
-            xpath: getFullXPath(svg),
-            html: svgHtml,
-            isInteractive: true
-          });
-        }
-        
-        // Check for generic names
-        if (hasAccessibleName && nameIsGeneric) {
-          results.violations.push({
-            type: 'generic-name',
-            provider: provider,
-            element: 'svg',
-            selector: cssSelector,
-            xpath: getFullXPath(svg),
-            html: svgHtml,
-            currentName: accessibleNameText,
-            severity: 'warning'
-          });
-        }
-        
         // Missing proper accessibility attributes
         else if (!hasAccessibleName || !hasProperRole) {
           results.violations.push({
@@ -2171,185 +1729,7 @@ window.test_maps = async function() {
       });
     }
 
-    // 6. Div-based Maps Without Proper Structure (No Landmark AND No Heading)
-    const divMapNoStructureViolations = mapsData.results.violations.filter(v => v.type === 'div-map-no-structure');
-    
-    if (divMapNoStructureViolations.length > 0) {
-      divMapNoStructureViolations.forEach(violation => {
-        const provider = violation.provider || 'Unknown';
-        const elementKey = violation.xpath || violation.selector;
-        
-        // Skip if we already have an issue for this element
-        if (elementTracker.has(elementKey)) {
-          return;
-        }
-        
-        // Mark this element as tracked
-        elementTracker.set(elementKey, true);
-        
-        issues.push({
-          type: 'fail',
-          title: `${provider} div-based map lacks structural context`,
-          description: `This div-based map has neither a landmark region nor an associated heading. Screen reader users need structural context to understand the purpose and boundaries of map regions. Without proper structure, the map content appears as an undifferentiated block of content.`,
-          selector: violation.selector,
-          xpath: violation.xpath,
-          html: violation.html,
-          impact: {
-            who: 'Screen reader users',
-            severity: 'High',
-            why: 'Div-based maps are complex regions that need proper structural context. Without a landmark or heading, screen reader users cannot easily navigate to the map or understand its boundaries and purpose within the page structure.'
-          },
-          wcag: {
-            principle: 'Perceivable',
-            guideline: '1.3 Adaptable',
-            successCriterion: '1.3.1 Info and Relationships',
-            level: 'A'
-          },
-          remediation: [
-            'Best practice: Wrap the map in a landmark region with an accessible name',
-            'Alternative: Add a heading element immediately before the map',
-            'For landmark approach: Use <section> with aria-label or role="region" with aria-label',
-            'For heading approach: Use appropriate heading level (h1-h6) that describes the map',
-            'Ensure the landmark or heading clearly describes what the map shows'
-          ],
-          codeExample: {
-            before: `<div id="map" class="map-container">
-  <!-- Map content -->
-</div>`,
-            after: `<!-- Option 1: Using landmark (recommended) -->
-<section aria-label="Office locations map">
-  <div id="map" class="map-container">
-    <!-- Map content -->
-  </div>
-</section>
-
-<!-- Option 2: Using heading -->
-<h2>Our Office Locations</h2>
-<div id="map" class="map-container">
-  <!-- Map content -->
-</div>`
-          }
-        });
-      });
-    }
-
-    // 7. Div-based Maps With Only Heading (Warning)
-    const divMapHeadingOnlyViolations = mapsData.results.violations.filter(v => v.type === 'div-map-heading-only');
-    
-    if (divMapHeadingOnlyViolations.length > 0) {
-      divMapHeadingOnlyViolations.forEach(violation => {
-        const provider = violation.provider || 'Unknown';
-        const elementKey = violation.xpath || violation.selector;
-        const headingText = violation.headingText || 'detected heading';
-        
-        // Skip if we already have an issue for this element
-        if (elementTracker.has(elementKey)) {
-          return;
-        }
-        
-        // Mark this element as tracked
-        elementTracker.set(elementKey, true);
-        
-        issues.push({
-          type: 'warning',
-          title: `${provider} div-based map has heading but no landmark`,
-          description: `This div-based map has an associated heading ("${headingText}") but is not contained within a landmark region. While the heading provides some context, best practice is to use landmarks for complex interactive regions to improve navigation for screen reader users.`,
-          selector: violation.selector,
-          xpath: violation.xpath,
-          html: violation.html,
-          impact: {
-            who: 'Screen reader users',
-            severity: 'Medium',
-            why: 'While the heading provides context, landmarks offer better navigation and structural understanding. Screen reader users can jump between landmarks but may miss content that only has headings.'
-          },
-          wcag: {
-            principle: 'Perceivable',
-            guideline: '1.3 Adaptable',
-            successCriterion: '1.3.1 Info and Relationships (Best Practice)',
-            level: 'A'
-          },
-          remediation: [
-            'Consider wrapping the map in a landmark region for better structure',
-            'Use <section> or role="region" with an accessible name',
-            'The landmark should encompass both the heading and the map',
-            'This improves navigation and provides clearer boundaries for the map content'
-          ],
-          codeExample: {
-            before: `<h2>${headingText}</h2>
-<div id="map" class="map-container">
-  <!-- Map content -->
-</div>`,
-            after: `<section aria-labelledby="map-heading">
-  <h2 id="map-heading">${headingText}</h2>
-  <div id="map" class="map-container">
-    <!-- Map content -->
-  </div>
-</section>`
-          }
-        });
-      });
-    }
-
-    // 8. Maps With Generic Names
-    const genericNameViolations = mapsData.results.violations.filter(v => v.type === 'generic-name');
-    
-    if (genericNameViolations.length > 0) {
-      genericNameViolations.forEach(violation => {
-        const provider = violation.provider || 'Unknown';
-        const elementKey = violation.xpath || violation.selector;
-        const currentName = violation.currentName || 'generic name';
-        const elementType = violation.element || 'map';
-        
-        // Skip if we already have an issue for this element
-        if (elementTracker.has(elementKey)) {
-          return;
-        }
-        
-        // Mark this element as tracked
-        elementTracker.set(elementKey, true);
-        
-        issues.push({
-          type: 'warning',
-          title: `${provider} ${elementType} has generic accessible name`,
-          description: `This ${elementType} has a generic accessible name: "${currentName}". Generic names like "map", "image", or "graphic" don't provide meaningful information about what the map actually shows. Screen reader users need descriptive names to understand the map's content.`,
-          selector: violation.selector,
-          xpath: violation.xpath,
-          html: violation.html,
-          impact: {
-            who: 'Screen reader users',
-            severity: 'Medium',
-            why: 'Generic names provide no useful information about the map\'s content. Users need to know what location, data, or information the map displays to determine if it\'s relevant to their needs.'
-          },
-          wcag: {
-            principle: 'Perceivable',
-            guideline: '1.1 Text Alternatives',
-            successCriterion: '1.1.1 Non-text Content (Quality)',
-            level: 'A'
-          },
-          remediation: [
-            'Replace the generic name with a descriptive one that explains what the map shows',
-            'Include the location, region, or type of data being displayed',
-            'Examples of good names:',
-            '- "Map of downtown Seattle showing public transit routes"',
-            '- "Store locations in the San Francisco Bay Area"',
-            '- "Population density map of European countries"',
-            'Avoid generic terms like "map", "location", "image" without additional context'
-          ],
-          codeExample: {
-            before: `<${elementType === 'iframe' ? 'iframe' : elementType === 'svg' ? 'svg' : 'div'} 
-  ${elementType === 'iframe' ? 'title' : 'aria-label'}="${currentName}">
-  <!-- Map content -->
-</${elementType === 'iframe' ? 'iframe' : elementType === 'svg' ? 'svg' : 'div'}>`,
-            after: `<${elementType === 'iframe' ? 'iframe' : elementType === 'svg' ? 'svg' : 'div'} 
-  ${elementType === 'iframe' ? 'title' : 'aria-label'}="Interactive map showing office locations in downtown Chicago">
-  <!-- Map content -->
-</${elementType === 'iframe' ? 'iframe' : elementType === 'svg' ? 'svg' : 'div'}>`
-          }
-        });
-      });
-    }
-
-    // 9. If maps are found but no accessibility issues detected, add an info message
+    // 5. If maps are found but no accessibility issues detected, add an info message
     if (mapsData.pageFlags.hasMaps && issues.length === 0) {
       // Create a formatted string of map providers and counts
       const providersInfo = Object.entries(mapsData.results.summary.mapsByProvider)

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Div-based Maps Touchpoint Test Fixture</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .map-div {
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 400px;
+            margin-top: 10px;
+            background-color: #e5e5e5;
+            position: relative;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .map-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #ff5555;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+        }
+        .map-marker::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 5px 0;
+            border-style: solid;
+            border-color: #ff5555 transparent transparent;
+        }
+        .map-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .zoom-button {
+            display: block;
+            width: 25px;
+            height: 25px;
+            text-align: center;
+            line-height: 25px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .attribution {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 11px;
+            background: rgba(255,255,255,0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .map-popup {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 150px;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Div-based Maps Touchpoint Test Fixture</h1>
+    <p>This page contains advanced div-based map implementations to test the enhanced detection capabilities of the maps touchpoint.</p>
+
+    <h2>Advanced Div-based Maps</h2>
+
+    <div class="map-container">
+        <h3>Test 1: Mapbox-style div with canvas and controls (fully accessible)</h3>
+        <div class="test-info">
+            This div-based map has <span class="good-highlight">role="application"</span>, <span class="good-highlight">aria-label</span>, and contains a canvas element with map controls.
+        </div>
+        <div 
+            id="mapbox-canvas-map" 
+            class="mapbox-gl-map map-div" 
+            role="application" 
+            aria-label="Interactive map of downtown San Francisco with public transit stations">
+            <canvas></canvas>
+            <div class="map-control">
+                <button class="zoom-button" aria-label="Zoom in">+</button>
+                <button class="zoom-button" aria-label="Zoom out">−</button>
+            </div>
+            <div class="attribution">© Mapbox | © OpenStreetMap contributors</div>
+            <div class="map-marker" style="left: 30%; top: 40%;" aria-hidden="true" 
+                data-lat="37.7749" data-lng="-122.4194" data-name="Market Street"></div>
+            <div class="map-marker" style="left: 60%; top: 70%;" aria-hidden="true"
+                data-lat="37.7833" data-lng="-122.4167" data-name="Union Square"></div>
+        </div>
+        <p>This implementation properly identifies the map's purpose with ARIA attributes.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 2: Complex div-based map with data attributes (missing accessibility)</h3>
+        <div class="test-info">
+            This map has multiple <span class="good-highlight">map-specific data attributes</span> but is missing <span class="issue-highlight">role and aria-label</span>.
+        </div>
+        <div 
+            id="complex-data-map" 
+            class="map-div" 
+            data-map-type="vector"
+            data-zoom="12"
+            data-center-lat="40.7128"
+            data-center-lng="-74.0060"
+            data-interactive="true"
+            data-markers="true">
+            <canvas></canvas>
+            <div class="map-marker" style="left: 25%; top: 35%;" aria-hidden="true" 
+                data-lat="40.7128" data-lng="-74.0060" data-name="New York"></div>
+            <div class="map-marker" style="left: 45%; top: 65%;" aria-hidden="true"
+                data-lat="40.7282" data-lng="-73.7949" data-name="Queens"></div>
+            <div class="map-control">
+                <button class="zoom-button">+</button>
+                <button class="zoom-button">−</button>
+            </div>
+            <div class="attribution">Map data © contributors</div>
+        </div>
+        <p>Despite having many map-specific data attributes, this map lacks necessary accessibility attributes.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3: LeafletJS-style map with marker popup (interactive elements)</h3>
+        <div class="test-info">
+            This map has <span class="good-highlight">LeafletJS-specific classes</span> and <span class="good-highlight">interactive controls</span> but is missing <span class="issue-highlight">role and aria-label</span>.
+        </div>
+        <div 
+            id="leaflet-popup-map" 
+            class="leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim map-div">
+            <div class="leaflet-map-pane">
+                <div class="leaflet-tile-pane">
+                    <!-- Map tiles would be here in a real implementation -->
+                </div>
+                <div class="leaflet-marker-pane">
+                    <div class="map-marker leaflet-marker-icon" style="left: 35%; top: 45%;" 
+                        tabindex="0"></div>
+                </div>
+                <div class="leaflet-popup-pane">
+                    <div class="map-popup leaflet-popup" style="left: 35%; top: 35%;">
+                        <h4>Chicago</h4>
+                        <p>The Windy City</p>
+                        <button class="leaflet-popup-close-button">×</button>
+                    </div>
+                </div>
+            </div>
+            <div class="leaflet-control-container">
+                <div class="leaflet-top leaflet-right">
+                    <div class="map-control leaflet-control-zoom">
+                        <button class="zoom-button leaflet-control-zoom-in">+</button>
+                        <button class="zoom-button leaflet-control-zoom-out">−</button>
+                    </div>
+                </div>
+            </div>
+            <div class="leaflet-attribution-container attribution">
+                © OpenStreetMap contributors
+            </div>
+        </div>
+        <p>This map has Leaflet-specific classes and interactive controls, making it clearly a map to our detection algorithm.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 4: OpenLayers-style map implementation</h3>
+        <div class="test-info">
+            This map has <span class="good-highlight">OpenLayers-specific classes</span> and <span class="good-highlight">interactive elements</span>.
+        </div>
+        <div 
+            id="ol-map" 
+            class="ol-map map-div">
+            <div class="ol-viewport">
+                <canvas class="ol-unselectable"></canvas>
+                <div class="ol-overlaycontainer"></div>
+                <div class="ol-overlaycontainer-stopevent">
+                    <div class="ol-zoom ol-control">
+                        <button class="ol-zoom-in" type="button">+</button>
+                        <button class="ol-zoom-out" type="button">−</button>
+                    </div>
+                    <div class="ol-rotate ol-control">
+                        <button class="ol-rotate-reset" type="button">⇧</button>
+                    </div>
+                </div>
+            </div>
+            <div class="ol-attribution attribution">
+                © OpenStreetMap contributors
+            </div>
+        </div>
+        <p>The OpenLayers classes make this clearly identifiable as a map, despite not having map in the ID.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 5: Google Maps JavaScript API implementation</h3>
+        <div class="test-info">
+            This map has <span class="good-highlight">Google Maps-specific classes</span> and styling.
+        </div>
+        <div 
+            id="google-map" 
+            class="map-div">
+            <div class="gm-style">
+                <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
+                    <!-- Simulated Google Maps content -->
+                    <div class="gm-style-pbc"></div>
+                    <div class="gm-style-cc">
+                        <div>Map data ©2025</div>
+                        <div>Google</div>
+                    </div>
+                </div>
+                <div class="gmnoprint gm-bundled-control" style="position: absolute; right: 10px; top: 10px;">
+                    <div class="gmnoprint gm-style-mtc">
+                        <div role="button" tabindex="0">Map</div>
+                        <div role="button" tabindex="0">Satellite</div>
+                    </div>
+                    <div class="gm-style-cc"></div>
+                </div>
+            </div>
+        </div>
+        <p>The Google Maps specific class names like "gm-style" and "gmnoprint" clearly identify this as a Google Maps implementation.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 6: Map container with attribution only</h3>
+        <div class="test-info">
+            This div doesn't have obvious map classes but contains an <span class="good-highlight">attribution element</span> with map service references.
+        </div>
+        <div 
+            id="subtle-map" 
+            class="custom-view-container map-div">
+            <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%;">
+                <!-- Map content would be here -->
+            </div>
+            <div class="attribution">
+                © Mapbox | © OpenStreetMap contributors | Imagery © 2025 TomTom
+            </div>
+        </div>
+        <p>This map doesn't have obvious map classes, but the attribution text mentions multiple map services.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 7: Map with dimensions and canvas (ambiguous)</h3>
+        <div class="test-info">
+            This div has <span class="good-highlight">canvas element</span> and <span class="good-highlight">defined dimensions</span> but ambiguous class names.
+        </div>
+        <div 
+            id="ambiguous-map" 
+            class="viz-container geographic-display" 
+            style="width: 100%; height: 400px; position: relative;">
+            <canvas width="800" height="400"></canvas>
+            <!-- No obvious map classes, but height, width, and canvas suggest a map -->
+        </div>
+        <p>This should be detected as a map based on multiple signals: dimensions, position:relative, and canvas element.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 8: False positive test - not a map</h3>
+        <div class="test-info">
+            This div has "map" in the class but is actually <span class="good-highlight">not a map</span> (data visualization chart).
+        </div>
+        <div 
+            id="not-map" 
+            class="heatmap-chart data-visualization" 
+            style="width: 100%; height: 400px;">
+            <div style="text-align: center; padding-top: 180px;">
+                <h4>Sales Heatmap Visualization</h4>
+                <p>This is a heatmap chart, not a geographic map!</p>
+            </div>
+        </div>
+        <p>This should NOT be detected as a map despite having "heatmap" in the class.</p>
+    </div>
+
+    <!-- Load map library scripts to help detection -->
+    <script>
+        // Simulate the presence of map libraries
+        document.head.appendChild(document.createElement('script')).src = 'https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js';
+        document.head.appendChild(document.createElement('link')).href = 'https://unpkg.com/leaflet@1.8.0/dist/leaflet.css';
+        document.head.appendChild(document.createElement('script')).src = 'https://openlayers.org/en/latest/build/ol.js';
+        document.head.appendChild(document.createElement('script')).src = 'https://maps.googleapis.com/maps/api/js?key=NO_API_KEY_JUST_FOR_DETECTION';
+    </script>
+
+    <h2>Testing Instructions</h2>
+    <ol>
+        <li>Open this page in Chrome</li>
+        <li>Use the Carnforth Web A11y extension to run the maps touchpoint test</li>
+        <li>Verify that Tests 1-7 are properly detected as maps, despite their different implementations</li>
+        <li>Verify that Test 8 is NOT detected as a map (false positive check)</li>
+        <li>Verify that the following issues are detected:
+            <ul>
+                <li>Test 2: Complex map missing role and aria-label</li>
+                <li>Test 3: LeafletJS-style map missing role and aria-label</li>
+                <li>Test 4: OpenLayers-style map missing role and aria-label</li>
+                <li>Test 5: Google Maps JS API map missing role and aria-label</li>
+                <li>Test 6: Subtle map container missing role and aria-label</li>
+                <li>Test 7: Ambiguous map with canvas missing role and aria-label</li>
+            </ul>
+        </li>
+        <li>Verify that Test 1 (fully accessible map) does not produce warnings or errors</li>
+    </ol>
+</body>
+</html>

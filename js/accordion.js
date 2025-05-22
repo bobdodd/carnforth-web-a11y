@@ -145,11 +145,14 @@ function toggleIssueDetails() {
   const controlsId = this.getAttribute('aria-controls');
   const details = document.getElementById(controlsId);
   
+  // Get the issue ID for tracking the highlight
+  const issueId = controlsId.replace('details-', '');
+  
   // Toggle details visibility
   if (details) {
     details.classList.toggle('expanded');
     
-    // Make the content programmatically focusable when expanded
+    // When expanding
     if (!expanded) {
       // Only make focusable when expanding
       details.setAttribute('tabindex', '-1');
@@ -169,13 +172,17 @@ function toggleIssueDetails() {
       if (highlightButton) {
         const selector = highlightButton.getAttribute('data-selector');
         if (selector && selector !== 'null' && selector !== 'undefined' && selector !== '') {
-          // Use the highlight function to highlight the element
-          highlightElement(selector);
+          // Use the highlight function to highlight the element with the issue ID
+          highlightElement(selector, issueId);
         }
       }
     } else {
+      // When collapsing
       // Remove tabindex when collapsing to avoid extra tab stops
       details.removeAttribute('tabindex');
+      
+      // Remove the highlight for this issue
+      removeHighlight(issueId);
     }
   }
 }
@@ -210,4 +217,107 @@ function findPrevAccordionHeader(currentHeader) {
   }
   
   return null;
+}
+
+/**
+ * Remove highlight for an issue
+ * @param {string} issueId - The issue ID to remove highlight for
+ */
+function removeHighlight(issueId) {
+  // If we're in the DevTools panel context
+  if (typeof chrome.devtools !== 'undefined') {
+    console.log("Using DevTools inspectedWindow to remove highlight for", issueId);
+    
+    // Use chrome.devtools.inspectedWindow.eval to remove the highlight
+    chrome.devtools.inspectedWindow.eval(
+      `(function(issueId) {
+        try {
+          // First try to find the highlight by ID (the preferred way)
+          const highlightId = "carnforth-highlight-" + issueId;
+          const highlight = document.getElementById(highlightId);
+          
+          if (highlight) {
+            console.log("Found highlight element with ID:", highlightId);
+            // Remove event listeners if they exist
+            if (highlight.removeEventListeners) {
+              highlight.removeEventListeners();
+            }
+            // Remove from DOM
+            highlight.remove();
+            return true;
+          }
+          
+          // If not found by ID, do a broader cleanup (in case the ID naming convention changed)
+          // Check for any highlights that might be orphaned
+          const allHighlights = document.querySelectorAll('.carnforth-highlight, [id^="carnforth-highlight-"]');
+          if (allHighlights.length > 0) {
+            console.log("Found", allHighlights.length, "potential highlight elements");
+            allHighlights.forEach(h => {
+              if (h.removeEventListeners) {
+                h.removeEventListeners();
+              }
+              h.remove();
+            });
+            return true;
+          }
+          
+          return false;
+        } catch (error) {
+          console.error("Error removing highlight:", error);
+          return false;
+        }
+      })("${issueId}")`,
+      function(result, isException) {
+        if (isException) {
+          console.error('Error removing highlight:', isException);
+        } else if (result) {
+          console.log('Successfully removed highlight for', issueId);
+        } else {
+          console.log('No highlight found for', issueId);
+        }
+      }
+    );
+  } else {
+    // Fallback for non-DevTools context (should not be used in our case)
+    console.log("Using direct content script messaging to remove highlight");
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: 'removeHighlight',
+        issueId: issueId
+      });
+    });
+  }
+}
+
+/**
+ * Highlight an element on the page
+ * @param {string} selector - CSS selector or XPath for the element
+ * @param {string} issueId - The ID of the issue being highlighted
+ */
+function highlightElement(selector, issueId) {
+  // Validate the selector before attempting to highlight
+  if (!selector || selector === 'null' || selector === 'undefined' || selector === '') {
+    console.error('Invalid selector, cannot highlight element');
+    return;
+  }
+  
+  // If we're in the DevTools panel, use the global highlightElement from highlight.js
+  // which uses chrome.devtools.inspectedWindow.eval
+  if (typeof chrome.devtools !== 'undefined') {
+    console.log("Using highlight.js's highlightElement for DevTools panel");
+    // The global highlightElement is loaded from highlight.js in panel.html
+    // This calls window.highlightElement which will use the proper implementation
+    window.highlightElementFromHighlightJs(selector, issueId);
+  } else {
+    // Fallback to direct content script messaging if not in DevTools
+    // This shouldn't be called in our current context
+    console.log("Using direct content script messaging for highlighting");
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: 'highlightElement',
+        selector: selector,
+        issueId: issueId
+      });
+    });
+  }
 }

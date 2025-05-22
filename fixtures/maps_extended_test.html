@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Extended Touchpoint Test Fixture</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        iframe, .map-div {
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 400px;
+            margin-top: 10px;
+        }
+        .map-div {
+            background-color: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maps Extended Touchpoint Test Fixture</h1>
+    <p>This page contains extended test cases for the maps touchpoint, with a focus on testing different types of aria-hidden scenarios.</p>
+
+    <h2>Base Cases from Standard Test</h2>
+
+    <div class="map-container">
+        <h3>Test 1: Google Maps iframe with accessible name (proper implementation)</h3>
+        <div class="test-info">
+            This map has a <span class="good-highlight">proper title attribute</span> providing an accessible name.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2469.808404424489!2d-1.2366218843387576!3d51.754816996765804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4876c6a9ef8c485b%3A0xd2ff1883a001afed!2sUniversity%20of%20Oxford!5e0!3m2!1sen!2suk!4v1653559428777!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            title="Map showing the location of the University of Oxford"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 2: Google Maps iframe without accessible name</h3>
+        <div class="test-info">
+            This map has <span class="issue-highlight">no title, aria-label, or aria-labelledby</span> attribute.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2463.9834774988936!2d-0.14907498433553722!3d51.5194182606553!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761ad554c335c1%3A0xda2164b934c67c1a!2sRegent%27s%20Park!5e0!3m2!1sen!2suk!4v1653559504877!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <h2>Extended aria-hidden Test Cases</h2>
+
+    <div class="map-container">
+        <h3>Test 3a: Interactive Google Maps iframe with aria-hidden="true" (FAIL)</h3>
+        <div class="test-info">
+            This map is <span class="issue-highlight">interactive</span> (has allowfullscreen attribute, Google Maps with zoom controls) 
+            but also has <span class="issue-highlight">aria-hidden="true"</span> which creates a focus trap.
+            This should be detected as a <span class="issue-highlight">FAIL</span>.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.691016151895!2d-0.13662678434769933!3d51.50330226953295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487604ce3941eb1f%3A0x1a5342fdf089c627!2sWestminster%20Abbey!5e0!3m2!1sen!2suk!4v1653559562339!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            style="border:0;"
+            aria-hidden="true"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <p>Note: This has aria-hidden="true" but also has clear interactive attributes (allowfullscreen, Google Maps source) that should trigger a FAIL.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3b: Non-interactive static map image with aria-hidden="true" (WARNING)</h3>
+        <div class="test-info">
+            This is a <span class="good-highlight">non-interactive</span> static map image in an iframe
+            but has <span class="issue-highlight">aria-hidden="true"</span> which hides it from screen readers.
+            This should be detected as a <span class="issue-highlight">WARNING</span>.
+        </div>
+        <iframe 
+            src="about:blank"
+            width="600"
+            height="450"
+            style="border:0;"
+            aria-hidden="true"
+            loading="lazy">
+        </iframe>
+        <p>Note: This has aria-hidden="true" but has no interactive attributes, making it a warning rather than a failure.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3c: Static image map with aria-hidden but no title (WARNING)</h3>
+        <div class="test-info">
+            This non-interactive map has <span class="issue-highlight">aria-hidden="true"</span> and
+            <span class="issue-highlight">no title</span> - should generate a warning about hidden content.
+        </div>
+        <img 
+            src="https://maps.googleapis.com/maps/api/staticmap?center=London,UK&zoom=12&size=600x400&key=NO_API_KEY"
+            alt="Static map of London"
+            width="600"
+            height="400"
+            aria-hidden="true">
+        <p>Note: Static image maps are not inherently interactive and should be detected differently.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3d: Map in div with mixed signals (FAIL for interactive content)</h3>
+        <div class="test-info">
+            This div contains a <span class="issue-highlight">map with aria-hidden="true"</span> but also
+            <span class="issue-highlight">contains scrolling="yes"</span> indicating interactive content.
+        </div>
+        <div 
+            id="interactive-div-map" 
+            class="map-div" 
+            aria-hidden="true"
+            scrolling="yes"
+            style="width: 100%; height: 400px; overflow: auto;">
+            <p>Interactive map content (simulated) with scrolling behavior</p>
+            <div style="height: 800px; background: linear-gradient(to bottom, #f0f0f0, #a0a0a0);">
+                Map content area
+            </div>
+        </div>
+        <p>Note: This div with map-related class has aria-hidden but also contains scrollable content, which should be detected as interactive.</p>
+    </div>
+
+    <!-- Script to simulate map libraries being loaded -->
+    <script>
+        // Simulate the presence of map libraries
+        // This helps the touchpoint detect div-based maps
+        document.head.appendChild(document.createElement('script')).src = 'https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js';
+        document.head.appendChild(document.createElement('link')).href = 'https://unpkg.com/leaflet@1.8.0/dist/leaflet.css';
+    </script>
+
+    <h2>Testing Instructions</h2>
+    <ol>
+        <li>Open this page in Chrome</li>
+        <li>Use the Carnforth Web A11y extension to run the maps touchpoint test</li>
+        <li>Verify that the aria-hidden issues are properly categorized:
+            <ul>
+                <li>Test 3a: Should be reported as a FAIL (interactive Google Map with aria-hidden="true")</li>
+                <li>Test 3b: Should be reported as a WARNING (non-interactive map with aria-hidden="true")</li>
+                <li>Test 3c: Should be reported as a WARNING (static image map with aria-hidden="true")</li>
+                <li>Test 3d: Should be reported as a FAIL (div with interactive content and aria-hidden="true")</li>
+            </ul>
+        </li>
+    </ol>
+</body>
+</html>

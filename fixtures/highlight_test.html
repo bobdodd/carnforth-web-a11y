@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highlight.js Test Examples</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .code-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        pre {
+            margin: 0;
+            padding: 0;
+        }
+        code {
+            display: block;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+            overflow-x: auto;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <!-- Include highlight.js for testing -->
+    <link rel="stylesheet" href="../vendor/highlight/styles/github.min.css">
+    <script src="../vendor/highlight/highlight.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configure highlight.js
+            hljs.configure({
+                languages: ['html', 'xml'],
+                ignoreUnescapedHTML: true
+            });
+            
+            // Apply highlighting
+            document.querySelectorAll('code.language-html').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Highlight.js Test Examples</h1>
+    <p>This page contains various HTML code examples to test highlight.js integration in the Carnforth Web A11y extension.</p>
+
+    <div class="code-container">
+        <h2>Simple HTML Example</h2>
+        <div class="test-info">
+            Basic HTML with standard elements and attributes.
+        </div>
+        <pre><code class="language-html">&lt;div class="container"&gt;
+  &lt;h1&gt;Hello World&lt;/h1&gt;
+  &lt;p&gt;This is a paragraph with &lt;a href="https://example.com"&gt;a link&lt;/a&gt; inside.&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>Complex Nested HTML</h2>
+        <div class="test-info">
+            More complex HTML with deep nesting.
+        </div>
+        <pre><code class="language-html">&lt;div class="section" role="region" aria-label="User profile information"&gt;
+  &lt;header class="section__header"&gt;
+    &lt;h2 class="section__title"&gt;User Profile&lt;/h2&gt;
+    &lt;div class="section__actions"&gt;
+      &lt;button type="button" class="btn btn--edit" aria-label="Edit profile"&gt;
+        &lt;svg class="icon"&gt;&lt;use xlink:href="#edit-icon"&gt;&lt;/use&gt;&lt;/svg&gt;
+        Edit
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+  &lt;div class="section__content"&gt;
+    &lt;form id="profile-form" class="form"&gt;
+      &lt;div class="form__row"&gt;
+        &lt;label for="user-name" class="form__label"&gt;Name&lt;/label&gt;
+        &lt;input id="user-name" type="text" class="form__input" 
+               value="John Doe" required 
+               aria-describedby="name-help"&gt;
+        &lt;small id="name-help" class="form__help"&gt;Enter your full name as it appears on official documents.&lt;/small&gt;
+      &lt;/div&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>HTML with Comments</h2>
+        <div class="test-info">
+            HTML that includes comments.
+        </div>
+        <pre><code class="language-html">&lt;!-- Main navigation --&gt;
+&lt;nav class="main-nav" aria-label="Main navigation"&gt;
+  &lt;!-- Logo and site title --&gt;
+  &lt;div class="nav__brand"&gt;
+    &lt;a href="/"&gt;Site Title&lt;/a&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- Navigation links --&gt;
+  &lt;ul class="nav__menu"&gt;
+    &lt;li&gt;&lt;a href="/about"&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/services"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/contact"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>HTML with Special Characters</h2>
+        <div class="test-info">
+            HTML with special characters that need proper escaping.
+        </div>
+        <pre><code class="language-html">&lt;div class="product-info"&gt;
+  &lt;h3&gt;Widget &amp; Gadget&lt;/h3&gt;
+  &lt;p&gt;Price: $19.99 &lt;small&gt;(Save 20% &amp; get free shipping!)&lt;/small&gt;&lt;/p&gt;
+  &lt;div class="product-rating" data-rating="4.5"&gt;
+    &lt;span class="stars"&gt;★★★★☆&lt;/span&gt;
+    &lt;span class="count"&gt;150 reviews&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;button onclick="addToCart(123)" data-product-id="prod-123"&gt;
+    Add to Cart
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>Broken/Malformed HTML</h2>
+        <div class="test-info">
+            Malformed HTML that might cause parsing issues.
+        </div>
+        <pre><code class="language-html">&lt;div class="broken-container"
+  &lt;h3 id="missing-quote class="title">Broken HTML Example&lt;/h3&gt;
+  &lt;p>This HTML has various issues:&lt;p>
+  &lt;ul>
+    &lt;li>Missing closing tags
+    &lt;li>Unclosed attributes
+    &lt;div>Improperly nested elements&lt;/li>
+  &lt;/div>
+  &lt;!-- Unclosed comment
+&lt;/div&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>HTML with Self-Closing Tags</h2>
+        <div class="test-info">
+            HTML with self-closing tags in different formats.
+        </div>
+        <pre><code class="language-html">&lt;form action="/submit" method="post"&gt;
+  &lt;input type="text" name="username" required /&gt;
+  &lt;input type="email" name="email" required&gt;
+  &lt;input type="checkbox" name="subscribe" checked /&gt;
+  &lt;br&gt;
+  &lt;hr /&gt;
+  &lt;img src="profile.jpg" alt="User profile image"&gt;
+  &lt;input type="submit" value="Submit" /&gt;
+&lt;/form&gt;</code></pre>
+    </div>
+
+    <div class="code-container">
+        <h2>Accessibility-focused HTML</h2>
+        <div class="test-info">
+            HTML with many ARIA attributes and roles.
+        </div>
+        <pre><code class="language-html">&lt;div role="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-desc" aria-modal="true" class="modal"&gt;
+  &lt;div class="modal__header"&gt;
+    &lt;h2 id="dialog-title" class="modal__title"&gt;Confirm Action&lt;/h2&gt;
+    &lt;button type="button" class="modal__close" aria-label="Close dialog"&gt;×&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class="modal__body"&gt;
+    &lt;p id="dialog-desc"&gt;Are you sure you want to delete this item? This action cannot be undone.&lt;/p&gt;
+    &lt;div class="form-field"&gt;
+      &lt;input type="checkbox" id="dont-show-again" aria-describedby="checkbox-help"&gt;
+      &lt;label for="dont-show-again"&gt;Don't show this again&lt;/label&gt;
+      &lt;span id="checkbox-help" class="visually-hidden"&gt;If checked, this confirmation dialog will not be shown for future delete actions.&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="modal__footer"&gt;
+    &lt;button type="button" class="btn btn--secondary" aria-label="Cancel deletion"&gt;Cancel&lt;/button&gt;
+    &lt;button type="button" class="btn btn--danger" aria-label="Confirm deletion"&gt;Delete&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+</body>
+</html>

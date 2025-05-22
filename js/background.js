@@ -67,13 +67,20 @@ chrome.webNavigation.onCompleted.addListener(details => {
   const tabId = details.tabId;
   const port = devToolsConnections[tabId];
 
-  // If DevTools is connected to this tab, let it know the page has changed
-  if (port) {
-    port.postMessage({
-      action: 'pageChanged',
-      tabId: tabId,
-      url: details.url
-    });
+  // Only trigger on main frame navigations, ignore subframe/fragment changes
+  // This prevents scroll events that change only the URL fragment from triggering resets
+  if (details.frameId === 0 && details.transitionType !== 'fragment') {
+    // If DevTools is connected to this tab, let it know the page has changed
+    if (port) {
+      console.log("[Background] Detected real page navigation:", details.url);
+      port.postMessage({
+        action: 'pageChanged',
+        tabId: tabId,
+        url: details.url
+      });
+    }
+  } else {
+    console.log("[Background] Ignoring non-main frame or fragment navigation");
   }
 });
 

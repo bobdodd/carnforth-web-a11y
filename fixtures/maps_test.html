@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps Touchpoint Test Fixture</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        iframe, .map-div {
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 400px;
+            margin-top: 10px;
+        }
+        .map-div {
+            background-color: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maps Touchpoint Test Fixture</h1>
+    <p>This page contains various map implementations to test the maps touchpoint in the Carnforth Web A11y extension.</p>
+
+    <h2>Iframe-based Maps</h2>
+
+    <div class="map-container">
+        <h3>Test 1: Google Maps iframe with accessible name (proper implementation)</h3>
+        <div class="test-info">
+            This map has a <span class="good-highlight">proper title attribute</span> providing an accessible name.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2469.808404424489!2d-1.2366218843387576!3d51.754816996765804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4876c6a9ef8c485b%3A0xd2ff1883a001afed!2sUniversity%20of%20Oxford!5e0!3m2!1sen!2suk!4v1653559428777!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            title="Map showing the location of the University of Oxford"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 2: Google Maps iframe without accessible name</h3>
+        <div class="test-info">
+            This map has <span class="issue-highlight">no title, aria-label, or aria-labelledby</span> attribute.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2463.9834774988936!2d-0.14907498433553722!3d51.5194182606553!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761ad554c335c1%3A0xda2164b934c67c1a!2sRegent%27s%20Park!5e0!3m2!1sen!2suk!4v1653559504877!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 3: Google Maps iframe with aria-hidden="true"</h3>
+        <div class="test-info">
+            This map has <span class="issue-highlight">aria-hidden="true"</span> which hides it from assistive technology.
+        </div>
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.691016151895!2d-0.13662678434769933!3d51.50330226953295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487604ce3941eb1f%3A0x1a5342fdf089c627!2sWestminster%20Abbey!5e0!3m2!1sen!2suk!4v1653559562339!5m2!1sen!2suk"
+            width="600"
+            height="450"
+            style="border:0;"
+            aria-hidden="true"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <p>Note: Despite being hidden from screen readers with aria-hidden="true", this map is visually displayed to sighted users.</p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 4: Bing Maps iframe with aria-label</h3>
+        <div class="test-info">
+            This map uses <span class="good-highlight">aria-label</span> instead of title for its accessible name.
+        </div>
+        <!-- Simulated Bing Maps iframe with aria-label -->
+        <iframe 
+            id="bing-map"
+            src="about:blank"
+            width="600"
+            height="450"
+            style="border:0;"
+            aria-label="Bing Map showing downtown Seattle area"
+            allowfullscreen=""
+            loading="lazy">
+        </iframe>
+        <p><em>Note: This is a simulated Bing Maps iframe. In a real implementation, the src would point to Bing Maps.</em></p>
+    </div>
+
+    <h2>Div-based Maps</h2>
+
+    <div class="map-container">
+        <h3>Test 5: Mapbox-style div map with proper accessibility attributes</h3>
+        <div class="test-info">
+            This div-based map has <span class="good-highlight">role="application" and aria-label</span> attributes.
+        </div>
+        <div 
+            id="mapbox-map" 
+            class="mapbox-map" 
+            role="application" 
+            aria-label="Map showing Central Park, New York"
+            style="width: 100%; height: 400px;">
+            <div class="map-div">Simulated Mapbox Map</div>
+        </div>
+        <p><em>Note: This is a simulated Mapbox div. In a real implementation, this would contain the actual map.</em></p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 6: Leaflet-style div map without accessibility attributes</h3>
+        <div class="test-info">
+            This div-based map has <span class="issue-highlight">no role or accessible name</span>.
+        </div>
+        <div 
+            id="leaflet-map" 
+            class="leaflet-map"
+            style="width: 100%; height: 400px;">
+            <div class="map-div">Simulated Leaflet Map</div>
+        </div>
+        <p><em>Note: This is a simulated Leaflet div. In a real implementation, this would contain the actual map.</em></p>
+    </div>
+
+    <div class="map-container">
+        <h3>Test 7: Generic div with map in class name</h3>
+        <div class="test-info">
+            This div has "map" in its class name but <span class="issue-highlight">no role or accessible name</span>.
+        </div>
+        <div 
+            class="custom-map-container"
+            style="width: 100%; height: 400px;">
+            <div class="map-div">Custom Map Implementation</div>
+        </div>
+    </div>
+
+    <!-- Script to simulate map libraries being loaded -->
+    <script>
+        // Simulate the presence of map libraries
+        // This helps the touchpoint detect div-based maps
+        document.head.appendChild(document.createElement('script')).src = 'https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js';
+        document.head.appendChild(document.createElement('link')).href = 'https://unpkg.com/leaflet@1.8.0/dist/leaflet.css';
+    </script>
+
+    <h2>Testing Instructions</h2>
+    <ol>
+        <li>Open this page in Chrome</li>
+        <li>Use the Carnforth Web A11y extension to run the maps touchpoint test</li>
+        <li>Verify that the following issues are detected:
+            <ul>
+                <li>Google Maps iframe without accessible name (Test 2)</li>
+                <li>Google Maps iframe with aria-hidden="true" (Test 3)</li>
+                <li>Leaflet-style div map without accessibility attributes (Test 6)</li>
+                <li>Generic div with map in class name missing attributes (Test 7)</li>
+            </ul>
+        </li>
+        <li>Verify that the proper implementations (Tests 1, 4, and 5) do not produce warnings or errors</li>
+    </ol>
+
+    <p>Note: The maps touchpoint should detect the presence of map libraries and identify div-based maps accordingly.</p>
+</body>
+</html>
