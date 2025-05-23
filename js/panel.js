@@ -2180,7 +2180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate weighted violations (C)
     let C = 0;
-    Object.entries(criteriaViolations).forEach(([sc, details]) => {
+    Object.entries(criteriaViolations).forEach(([_, details]) => {
       // Base weight from highest impact
       let weight = 1; // Default to low
       if (details.impacts.length > 0) {
@@ -2265,13 +2265,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Count by WCAG level (only for failures)
-        if (issue.type === 'fail') {
-          touchpointCriteria.forEach(sc => {
-            const criterion = window.WCAGMapping.WCAG_SUCCESS_CRITERIA[sc];
-            if (criterion && criterion.level in levelCounts) {
-              levelCounts[criterion.level]++;
-            }
-          });
+        if (issue.type === 'fail' && issue.wcag && issue.wcag.level) {
+          if (issue.wcag.level in levelCounts) {
+            levelCounts[issue.wcag.level]++;
+          }
         }
       });
     });
@@ -2281,30 +2278,29 @@ document.addEventListener('DOMContentLoaded', function() {
       { label: 'High', value: impactCounts.high, color: '#d32f2f' },
       { label: 'Medium', value: impactCounts.medium, color: '#f57c00' },
       { label: 'Low', value: impactCounts.low, color: '#388e3c' }
-    ], 'Impact Level');
+    ]);
     
     // Draw type pie chart
     drawPieChart('type-chart', [
       { label: 'Fail', value: typeCounts.fail, color: '#b71c1c' },
       { label: 'Warning', value: typeCounts.warning, color: '#ff6f00' },
       { label: 'Info', value: typeCounts.info, color: '#1976d2' }
-    ], 'Issue Type');
+    ]);
     
     // Draw WCAG level bar chart
     drawBarChart('level-chart', [
       { label: 'Level A', value: levelCounts.A, color: '#b71c1c' },
       { label: 'Level AA', value: levelCounts.AA, color: '#ff6f00' },
       { label: 'Level AAA', value: levelCounts.AAA, color: '#388e3c' }
-    ], 'WCAG Level');
+    ]);
   }
 
   /**
    * Draw a pie chart on a canvas
    * @param {string} canvasId - ID of the canvas element
    * @param {Array} data - Array of {label, value, color}
-   * @param {string} title - Chart title
    */
-  function drawPieChart(canvasId, data, title) {
+  function drawPieChart(canvasId, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
@@ -2377,9 +2373,8 @@ document.addEventListener('DOMContentLoaded', function() {
    * Draw a bar chart on a canvas
    * @param {string} canvasId - ID of the canvas element
    * @param {Array} data - Array of {label, value, color}
-   * @param {string} title - Chart title
    */
-  function drawBarChart(canvasId, data, title) {
+  function drawBarChart(canvasId, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
