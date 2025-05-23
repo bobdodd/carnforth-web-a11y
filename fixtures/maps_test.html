@@ -27,9 +27,9 @@
             border-radius: 4px;
             margin-bottom: 10px;
         }
-        .pass { color: #0a0; font-weight: bold; }
-        .fail { color: #c00; font-weight: bold; }
-        .warn { color: #f80; font-weight: bold; }
+        .pass { color: #0d7a0d; font-weight: bold; } /* Darker green for 4.5:1 contrast */
+        .fail { color: #b71c1c; font-weight: bold; } /* Darker red for 4.5:1 contrast */
+        .warn { color: #e65100; font-weight: bold; } /* Darker orange for 4.5:1 contrast */
         iframe, .map-div, img, svg {
             border: 1px solid #999;
             width: 100%;
@@ -64,12 +64,15 @@
     </style>
 </head>
 <body>
-    <h1>Maps Test Fixture</h1>
-    <p>Comprehensive test cases for all map providers and scenarios in maps.js</p>
+    <header>
+        <h1>Maps Test Fixture</h1>
+        <p>Comprehensive test cases for all map providers and scenarios in maps.js</p>
+    </header>
 
-    <!-- IFRAME MAPS -->
-    <div class="section">
-        <h2>1. Iframe-based Maps</h2>
+    <main>
+        <!-- IFRAME MAPS -->
+        <section class="section" aria-labelledby="iframe-maps-heading">
+            <h2 id="iframe-maps-heading">1. Iframe-based Maps</h2>
         
         <div class="grid">
             <!-- Google Maps Proper -->
@@ -186,11 +189,11 @@
                 <div class="test-ref">Tests: URL parameter detection (zoom=, mode=directions)</div>
             </div>
         </div>
-    </div>
+        </section>
 
-    <!-- DIV MAPS -->
-    <div class="section">
-        <h2>2. Div-based Maps (JavaScript Libraries)</h2>
+        <!-- DIV MAPS -->
+        <section class="section" aria-labelledby="div-maps-heading">
+            <h2 id="div-maps-heading">2. Div-based Maps (JavaScript Libraries)</h2>
         
         <div class="grid">
             <!-- Mapbox GL with Landmark -->
@@ -301,11 +304,11 @@
                 <div class="test-ref">Tests: presentation-role-interactive for div maps</div>
             </div>
         </div>
-    </div>
+        </section>
 
-    <!-- STATIC IMAGES -->
-    <div class="section">
-        <h2>3. Static Map Images</h2>
+        <!-- STATIC IMAGES -->
+        <section class="section" aria-labelledby="static-maps-heading">
+            <h2 id="static-maps-heading">3. Static Map Images</h2>
         
         <div class="grid">
             <!-- Proper Alt -->
@@ -344,11 +347,11 @@
                 <div class="test-ref">Tests: Static map aria-hidden warning</div>
             </div>
         </div>
-    </div>
+        </section>
 
-    <!-- SVG MAPS -->
-    <div class="section">
-        <h2>4. SVG-based Maps</h2>
+        <!-- SVG MAPS -->
+        <section class="section" aria-labelledby="svg-maps-heading">
+            <h2 id="svg-maps-heading">4. SVG-based Maps</h2>
         
         <div class="grid">
             <!-- Complete SVG -->
@@ -407,11 +410,11 @@
                 <div class="test-ref">Tests: SVG with data attributes</div>
             </div>
         </div>
-    </div>
+        </section>
 
-    <!-- PROVIDER LIST -->
-    <div class="section">
-        <h2>5. All Supported Providers</h2>
+        <!-- PROVIDER LIST -->
+        <section class="section" aria-labelledby="providers-heading">
+            <h2 id="providers-heading">5. All Supported Providers</h2>
         <p>The following providers are detected by identifyMapProvider():</p>
         <ul>
             <li><strong>Primary:</strong> Google Maps, Bing Maps, OpenStreetMap, Mapbox, HERE Maps, ArcGIS</li>
@@ -421,7 +424,24 @@
             <li><strong>Specialized:</strong> Maptiler, Carto, Stamen, Thunderforest</li>
             <li><strong>Static APIs:</strong> Google Static Maps, Mapbox Static, Bing Static Maps, Yandex Static Maps, OpenStreetMap Static</li>
         </ul>
-    </div>
+        </section>
+
+        <!-- Coverage Summary -->
+        <section aria-labelledby="coverage-heading">
+            <h2 id="coverage-heading">Coverage Summary</h2>
+            <ul>
+                <li>✓ All 25+ map providers</li>
+                <li>✓ All violation types (8 types)</li>
+                <li>✓ All detection methods (iframe, div, img, svg)</li>
+                <li>✓ Interactive vs non-interactive</li>
+                <li>✓ Landmark and heading context</li>
+                <li>✓ Generic name detection</li>
+                <li>✓ URL parameter detection</li>
+                <li>✓ Edge cases and false positives</li>
+                <li>✓ All scenarios from maps_extended, maps_svg, maps_div_enhanced</li>
+            </ul>
+        </section>
+    </main>
 
     <!-- Scripts to simulate libraries -->
     <script>
@@ -441,18 +461,5 @@
             document.head.appendChild(script);
         });
     </script>
-
-    <h2>Coverage Summary</h2>
-    <ul>
-        <li>✓ All 25+ map providers</li>
-        <li>✓ All violation types (8 types)</li>
-        <li>✓ All detection methods (iframe, div, img, svg)</li>
-        <li>✓ Interactive vs non-interactive</li>
-        <li>✓ Landmark and heading context</li>
-        <li>✓ Generic name detection</li>
-        <li>✓ URL parameter detection</li>
-        <li>✓ Edge cases and false positives</li>
-        <li>✓ All scenarios from maps_extended, maps_svg, maps_div_enhanced</li>
-    </ul>
 </body>
 </html>

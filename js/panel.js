@@ -867,6 +867,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add the heading to the button
     disclosureBtn.appendChild(title);
     
+    // Add xpath to collapsed view if it exists
+    if (issue.xpath) {
+      const xpathPreview = document.createElement('div');
+      xpathPreview.className = 'xpath-preview';
+      xpathPreview.style.fontSize = '0.875rem';
+      xpathPreview.style.color = '#666';
+      xpathPreview.style.marginTop = '0.25rem';
+      xpathPreview.style.fontFamily = 'monospace';
+      xpathPreview.style.overflow = 'hidden';
+      xpathPreview.style.textOverflow = 'ellipsis';
+      xpathPreview.style.whiteSpace = 'nowrap';
+      xpathPreview.textContent = `XPath: ${issue.xpath}`;
+      disclosureBtn.appendChild(xpathPreview);
+    }
+    
     issueItem.appendChild(disclosureBtn);
 
     // Create issue details

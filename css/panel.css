@@ -404,6 +404,19 @@ main {
   flex-grow: 1;
 }
 
+/* XPath preview in collapsed view */
+.xpath-preview {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.25rem;
+  font-family: 'Consolas', 'Monaco', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  padding-left: 2.25rem; /* Align with title text after bullet */
+}
+
 .issue-details {
   padding-left: 2.25rem; /* 36px */
   display: none;
