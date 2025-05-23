@@ -199,6 +199,12 @@ const issueDocumentation = {
           before: '<div id="map-container"></div>',
           after: '<div id="map-container" role="application" aria-label="Store locator map for Chicago area"></div>',
           explanation: 'For div-based maps, use aria-label with an appropriate role'
+        },
+        {
+          type: 'img',
+          before: '<img src="static-map.png">',
+          after: '<img src="static-map.png" alt="Map showing driving directions from Chicago to Milwaukee via I-94">',
+          explanation: 'For static map images, use descriptive alt text'
         }
       ]
     },
@@ -229,6 +235,23 @@ const issueDocumentation = {
         'Mention the purpose: "Delivery area map"',
         'Add relevant context: "Hurricane evacuation routes map"',
         'Be specific but concise: "Campus building locations"'
+      ],
+      examples: [
+        {
+          before: '<iframe src="map.html" title="Map"></iframe>',
+          after: '<iframe src="map.html" title="Interactive map of Paris Metro system"></iframe>',
+          explanation: 'Specify what the map shows'
+        },
+        {
+          before: '<img src="map.png" alt="Map">',
+          after: '<img src="map.png" alt="Campus map showing building names and parking locations">',
+          explanation: 'Describe the map content and purpose'
+        },
+        {
+          before: '<div aria-label="Map"></div>',
+          after: '<div aria-label="Real-time traffic map for Los Angeles freeways"></div>',
+          explanation: 'Include type and location information'
+        }
       ]
     }
   },
@@ -347,31 +370,37 @@ const issueDocumentation = {
   
   'maps-presentation-role': {
     title: 'Map Has Presentation Role Removing Semantics',
-    overview: 'This interactive map has role="presentation" which removes its semantic meaning while keeping it keyboard accessible, creating a confusing experience.',
+    overview: 'This map has role="presentation" which removes its semantic meaning, making it confusing for screen reader users.',
     impact: {
       who: 'Screen reader users',
-      severity: 'Critical - Interactive content with no semantic context',
-      realWorld: 'Imagine using a touchscreen where all the buttons work but have no labels - you can tap them but have no idea what they do.'
+      severity: 'High - Content lacks semantic context',
+      realWorld: 'Imagine looking at a sign where all the text has been erased - you know something is there but have no idea what it is.'
     },
     whyItMatters: [
       'role="presentation" tells assistive technology to ignore the element',
-      'Interactive controls remain functional but lack context',
       'Screen readers cannot announce what the element is',
-      'Creates extreme confusion for non-visual users'
+      'Users miss important context about the content',
+      'May violate WCAG requirement for proper semantics'
     ],
     howToFix: {
       overview: 'Remove role="presentation" and add proper accessible names',
       steps: [
         'Remove the role="presentation" attribute entirely',
-        'Add a descriptive title or aria-label',
-        'For complex interactive maps, consider role="application"',
+        'For images: Add descriptive alt text',
+        'For iframes: Add descriptive title attribute',
+        'For divs: Add appropriate ARIA labels',
         'Test with a screen reader to verify proper announcements'
       ],
       examples: [
         {
-          before: '<iframe src="maps.google.com/..." role="presentation" title="Store locator"></iframe>',
-          after: '<iframe src="maps.google.com/..." title="Interactive store locator map for Chicago area"></iframe>',
-          explanation: 'Removing presentation role restores semantic meaning'
+          before: '<img src="map.png" role="presentation" alt="">',
+          after: '<img src="map.png" alt="Campus map showing building locations and parking areas">',
+          explanation: 'Removing presentation role and adding alt text restores semantic meaning'
+        },
+        {
+          before: '<iframe src="maps.google.com/..." role="presentation" title=""></iframe>',
+          after: '<iframe src="maps.google.com/..." title="Interactive map of office locations in Seattle area"></iframe>',
+          explanation: 'Proper title attribute provides context for the map'
         }
       ]
     },
@@ -382,32 +411,38 @@ const issueDocumentation = {
   },
   
   'maps-aria-hidden': {
-    title: 'Interactive Map Hidden from Assistive Technology',
-    overview: 'This interactive map is hidden from screen readers with aria-hidden="true", making it completely inaccessible to blind users.',
+    title: 'Map Hidden from Assistive Technology',
+    overview: 'This map is hidden from screen readers with aria-hidden="true", making it completely inaccessible to blind users.',
     impact: {
-      who: 'Screen reader users and keyboard users',
-      severity: 'Critical - Content completely inaccessible',
-      realWorld: 'It\'s like putting an "Employees Only" sign on the main entrance - legitimate users are blocked from accessing important functionality.'
+      who: 'Screen reader users',
+      severity: 'High - Content completely inaccessible',
+      realWorld: 'It\'s like putting an "Employees Only" sign on the main entrance - legitimate users are blocked from accessing important content.'
     },
     whyItMatters: [
       'aria-hidden="true" makes content invisible to screen readers',
-      'Interactive elements should never be hidden from assistive technology',
+      'Maps often contain important location or geographic information',
       'Violates fundamental accessibility principle of equal access',
-      'May prevent users from accessing critical information or functionality'
+      'May prevent users from accessing critical information'
     ],
     howToFix: {
-      overview: 'Remove aria-hidden="true" from interactive content',
+      overview: 'Remove aria-hidden="true" and provide proper alternative text',
       steps: [
         'Remove the aria-hidden="true" attribute',
-        'Add proper accessible name with title or aria-label',
-        'Ensure all controls within the map are accessible',
-        'Only use aria-hidden on decorative content'
+        'For images: Add descriptive alt text that conveys the map information',
+        'For iframes: Add descriptive title attribute',
+        'For complex maps: Consider providing text description of key locations',
+        'Only use aria-hidden on truly decorative content'
       ],
       examples: [
         {
-          before: '<iframe src="maps.google.com/..." aria-hidden="true" title="Office location"></iframe>',
-          after: '<iframe src="maps.google.com/..." title="Interactive map showing office location at 123 Main St"></iframe>',
-          explanation: 'Removing aria-hidden makes the map accessible to all users'
+          before: '<img src="static-maps.yandex.ru/..." aria-hidden="true" alt="">',
+          after: '<img src="static-maps.yandex.ru/..." alt="Map showing office location at 123 Main St, 2 blocks from Central Station">',
+          explanation: 'Removing aria-hidden and adding descriptive alt text makes the map information accessible'
+        },
+        {
+          before: '<iframe src="maps.google.com/..." aria-hidden="true" title="Map"></iframe>',
+          after: '<iframe src="maps.google.com/..." title="Interactive map of downtown Chicago showing restaurant locations"></iframe>',
+          explanation: 'Removing aria-hidden makes interactive maps accessible to all users'
         }
       ]
     },
