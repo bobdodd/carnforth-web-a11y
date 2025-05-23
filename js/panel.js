@@ -266,6 +266,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show filter bar
     filterBar.classList.remove('hidden');
     
+    // Show results summary console and calculate scores
+    const summaryConsole = document.querySelector('.results-summary-console');
+    if (summaryConsole) {
+      summaryConsole.classList.remove('hidden');
+      calculateAndDisplayScores(results);
+      createCharts(results);
+    }
+    
     // Initialize filter count
     const totalIssues = Object.keys(results)
       .filter(key => key !== '__summary')
@@ -683,6 +691,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Listen for score info button click
+  const scoreInfoButton = document.getElementById('score-info-button');
+  if (scoreInfoButton) {
+    scoreInfoButton.addEventListener('click', function() {
+      if (window.scoringDetails) {
+        const details = window.scoringDetails;
+        const message = `Accessibility Scoring Methodology:\n\n` +
+          `Applicable Success Criteria (A): ${details.applicableCriteria}\n` +
+          `Failed Success Criteria (B): ${details.failedCriteria}\n` +
+          `Raw Score: (A - B) / A = ${Math.round(details.rawScore)}%\n\n` +
+          `Weighted Violations (C): ${details.weightedViolations}\n` +
+          `Weighted Score: (A - C) / A = ${Math.round(details.weightedScore)}%\n\n` +
+          `The weighted score considers impact severity, WCAG level, and frequency of violations.\n` +
+          `See ACCESSIBILITY_SCORING.md for full methodology.`;
+        alert(message);
+      }
+    });
+  }
+
   // Filter functionality
   // Handle WCAG version filter buttons
   wcagVersionButtons.forEach(button => {
@@ -945,6 +972,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update filter count and announce to screen readers
     updateFilterResultsCount(totalFilteredIssues, totalOriginalIssues);
     announceFilterResults(totalFilteredIssues, totalOriginalIssues);
+    
+    // Recalculate scores with new filters
+    const summaryConsole = document.querySelector('.results-summary-console');
+    if (summaryConsole && !summaryConsole.classList.contains('hidden')) {
+      calculateAndDisplayScores(currentTestResults);
+    }
   }
 
   // Update the visible filter results count
@@ -2058,6 +2091,330 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     testStatus.textContent = summaryText;
+  }
+
+  /**
+   * Calculate and display accessibility scores
+   * @param {Object} results - Test results
+   */
+  function calculateAndDisplayScores(results) {
+    // Get current filter settings
+    const activeVersion = document.querySelector('[data-wcag-version][aria-pressed="true"]')?.dataset.wcagVersion || '2.2';
+    const activeLevels = Array.from(document.querySelectorAll('[data-wcag-level][aria-pressed="true"]'))
+      .map(btn => btn.dataset.wcagLevel)
+      .filter(level => level !== 'all');
+    
+    // If no levels selected, default to A and AA
+    if (activeLevels.length === 0) {
+      activeLevels.push('A', 'AA');
+    }
+    
+    // Track which success criteria were violated and not applicable
+    const violatedCriteria = new Set();
+    const notApplicableCriteria = new Set();
+    const criteriaViolations = {}; // Map of SC to violation details
+    
+    // Analyze results to find violations and applicable criteria
+    Object.entries(results).forEach(([touchpoint, data]) => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointCriteria = window.WCAGMapping.TOUCHPOINT_WCAG_MAPPING[touchpoint] || [];
+      const issues = data.issues || [];
+      
+      // Check if touchpoint found no elements to test
+      const hasNoElementsInfo = issues.some(issue => 
+        issue.type === 'info' && 
+        (issue.title.includes('No') || issue.title.includes('no elements'))
+      );
+      
+      if (hasNoElementsInfo) {
+        // Mark all criteria for this touchpoint as not applicable
+        touchpointCriteria.forEach(sc => notApplicableCriteria.add(sc));
+      } else {
+        // Check for failures
+        const failures = issues.filter(issue => issue.type === 'fail');
+        
+        if (failures.length > 0) {
+          touchpointCriteria.forEach(sc => {
+            const criterion = window.WCAGMapping.WCAG_SUCCESS_CRITERIA[sc];
+            if (criterion && 
+                activeLevels.includes(criterion.level) &&
+                window.WCAGMapping.isVersionCompatible(criterion.version, activeVersion)) {
+              violatedCriteria.add(sc);
+              
+              // Track violation details for weighted scoring
+              if (!criteriaViolations[sc]) {
+                criteriaViolations[sc] = {
+                  level: criterion.level,
+                  impacts: [],
+                  count: 0
+                };
+              }
+              
+              // Add impact levels from failures
+              failures.forEach(failure => {
+                criteriaViolations[sc].count++;
+                if (failure.impact) {
+                  const impactLevel = failure.impact.level || failure.impact;
+                  criteriaViolations[sc].impacts.push(impactLevel);
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+    
+    // Get applicable success criteria (A)
+    const applicableCriteria = window.WCAGMapping.getApplicableSuccessCriteria(
+      activeVersion, 
+      activeLevels, 
+      notApplicableCriteria
+    );
+    
+    const A = applicableCriteria.size;
+    const B = violatedCriteria.size;
+    
+    // Calculate Raw Page Score
+    const rawScore = A > 0 ? ((A - B) / A) * 100 : 100;
+    
+    // Calculate weighted violations (C)
+    let C = 0;
+    Object.entries(criteriaViolations).forEach(([sc, details]) => {
+      // Base weight from highest impact
+      let weight = 1; // Default to low
+      if (details.impacts.length > 0) {
+        const hasHigh = details.impacts.some(i => i === 'high');
+        const hasMedium = details.impacts.some(i => i === 'medium');
+        
+        if (hasHigh) weight = 3;
+        else if (hasMedium) weight = 2;
+      }
+      
+      // Add level weight
+      if (details.level === 'A') weight += 1;
+      
+      // Add frequency weight
+      if (details.count > 1) weight += 1;
+      
+      C += weight;
+    });
+    
+    // Calculate Weighted Score
+    const weightedScore = A > 0 ? Math.max(0, ((A - C) / A) * 100) : 100;
+    
+    // Display scores
+    const rawScoreElement = document.getElementById('raw-score');
+    const weightedScoreElement = document.getElementById('weighted-score');
+    
+    if (rawScoreElement) {
+      rawScoreElement.textContent = `${Math.round(rawScore)}%`;
+      rawScoreElement.className = 'score-value';
+      if (rawScore >= 90) rawScoreElement.classList.add('good');
+      else if (rawScore >= 70) rawScoreElement.classList.add('fair');
+      else rawScoreElement.classList.add('poor');
+    }
+    
+    if (weightedScoreElement) {
+      weightedScoreElement.textContent = `${Math.round(weightedScore)}%`;
+      weightedScoreElement.className = 'score-value';
+      if (weightedScore >= 70) weightedScoreElement.classList.add('good');
+      else if (weightedScore >= 40) weightedScoreElement.classList.add('fair');
+      else weightedScoreElement.classList.add('poor');
+    }
+    
+    // Store scoring details for info button
+    window.scoringDetails = {
+      applicableCriteria: A,
+      failedCriteria: B,
+      weightedViolations: C,
+      rawScore: rawScore,
+      weightedScore: weightedScore,
+      criteriaViolations: criteriaViolations
+    };
+  }
+
+  /**
+   * Create charts for the results summary
+   * @param {Object} results - Test results
+   */
+  function createCharts(results) {
+    // Count issues by impact, type, and WCAG level
+    const impactCounts = { high: 0, medium: 0, low: 0 };
+    const typeCounts = { fail: 0, warning: 0, info: 0 };
+    const levelCounts = { A: 0, AA: 0, AAA: 0 };
+    
+    Object.entries(results).forEach(([touchpoint, data]) => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointCriteria = window.WCAGMapping.TOUCHPOINT_WCAG_MAPPING[touchpoint] || [];
+      const issues = data.issues || [];
+      
+      issues.forEach(issue => {
+        // Count by type
+        if (issue.type in typeCounts) {
+          typeCounts[issue.type]++;
+        }
+        
+        // Count by impact
+        if (issue.impact) {
+          const impactLevel = issue.impact.level || issue.impact;
+          if (impactLevel in impactCounts) {
+            impactCounts[impactLevel]++;
+          }
+        }
+        
+        // Count by WCAG level (only for failures)
+        if (issue.type === 'fail') {
+          touchpointCriteria.forEach(sc => {
+            const criterion = window.WCAGMapping.WCAG_SUCCESS_CRITERIA[sc];
+            if (criterion && criterion.level in levelCounts) {
+              levelCounts[criterion.level]++;
+            }
+          });
+        }
+      });
+    });
+    
+    // Draw impact pie chart
+    drawPieChart('impact-chart', [
+      { label: 'High', value: impactCounts.high, color: '#d32f2f' },
+      { label: 'Medium', value: impactCounts.medium, color: '#f57c00' },
+      { label: 'Low', value: impactCounts.low, color: '#388e3c' }
+    ], 'Impact Level');
+    
+    // Draw type pie chart
+    drawPieChart('type-chart', [
+      { label: 'Fail', value: typeCounts.fail, color: '#b71c1c' },
+      { label: 'Warning', value: typeCounts.warning, color: '#ff6f00' },
+      { label: 'Info', value: typeCounts.info, color: '#1976d2' }
+    ], 'Issue Type');
+    
+    // Draw WCAG level bar chart
+    drawBarChart('level-chart', [
+      { label: 'Level A', value: levelCounts.A, color: '#b71c1c' },
+      { label: 'Level AA', value: levelCounts.AA, color: '#ff6f00' },
+      { label: 'Level AAA', value: levelCounts.AAA, color: '#388e3c' }
+    ], 'WCAG Level');
+  }
+
+  /**
+   * Draw a pie chart on a canvas
+   * @param {string} canvasId - ID of the canvas element
+   * @param {Array} data - Array of {label, value, color}
+   * @param {string} title - Chart title
+   */
+  function drawPieChart(canvasId, data, title) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Calculate total
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    if (total === 0) {
+      // Draw "No data" message
+      ctx.fillStyle = '#666';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('No data', centerX, centerY);
+      return;
+    }
+    
+    // Draw pie slices
+    let currentAngle = -Math.PI / 2; // Start at top
+    data.forEach(item => {
+      if (item.value === 0) return;
+      
+      const sliceAngle = (item.value / total) * 2 * Math.PI;
+      
+      // Draw slice
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+      ctx.lineTo(centerX, centerY);
+      ctx.fillStyle = item.color;
+      ctx.fill();
+      
+      // Draw label
+      const labelAngle = currentAngle + sliceAngle / 2;
+      const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+      const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(item.value.toString(), labelX, labelY);
+      
+      currentAngle += sliceAngle;
+    });
+    
+    // Add legend below chart
+    ctx.fillStyle = '#333';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'left';
+    let legendY = height - 10;
+    data.forEach((item, index) => {
+      if (item.value > 0) {
+        const legendX = 10 + (index * 60);
+        ctx.fillStyle = item.color;
+        ctx.fillRect(legendX, legendY - 8, 10, 10);
+        ctx.fillStyle = '#333';
+        ctx.fillText(item.label, legendX + 15, legendY - 3);
+      }
+    });
+  }
+
+  /**
+   * Draw a bar chart on a canvas
+   * @param {string} canvasId - ID of the canvas element
+   * @param {Array} data - Array of {label, value, color}
+   * @param {string} title - Chart title
+   */
+  function drawBarChart(canvasId, data, title) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 40;
+    const barWidth = (width - padding * 2) / data.length - 10;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Find max value
+    const maxValue = Math.max(...data.map(d => d.value), 1);
+    
+    // Draw bars
+    data.forEach((item, index) => {
+      const barX = padding + index * (barWidth + 10);
+      const barHeight = (item.value / maxValue) * (height - padding * 2);
+      const barY = height - padding - barHeight;
+      
+      // Draw bar
+      ctx.fillStyle = item.color;
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      
+      // Draw value on top
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.value.toString(), barX + barWidth / 2, barY - 5);
+      
+      // Draw label
+      ctx.font = '11px Arial';
+      ctx.fillText(item.label, barX + barWidth / 2, height - padding + 15);
+    });
   }
   
   /**

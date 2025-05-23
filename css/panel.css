@@ -743,6 +743,121 @@ main {
   font-weight: 500;
 }
 
+/* Results Summary Console */
+.results-summary-console {
+  background-color: #f9f9f9;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--padding-large);
+  margin-bottom: var(--margin-large);
+}
+
+.results-summary-console.hidden {
+  display: none;
+}
+
+/* Scores Section */
+.scores-section {
+  margin-bottom: var(--margin-large);
+}
+
+.score-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  padding: var(--padding-large);
+  position: relative;
+}
+
+.score-card h3 {
+  margin-top: 0;
+  margin-bottom: var(--margin-medium);
+  color: var(--text-color);
+  font-size: 1.2rem;
+}
+
+.score-display {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: var(--margin-large);
+}
+
+.score-item {
+  text-align: center;
+}
+
+.score-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: var(--margin-small);
+}
+
+.score-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.score-value.good {
+  color: #2e7d32;
+}
+
+.score-value.fair {
+  color: #f57c00;
+}
+
+.score-value.poor {
+  color: #d32f2f;
+}
+
+.score-info-button {
+  position: absolute;
+  top: var(--padding-medium);
+  right: var(--padding-medium);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  border: 1px solid #bdbdbd;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.score-info-button:hover {
+  background-color: #d0d0d0;
+}
+
+/* Charts Section */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--margin-large);
+}
+
+.chart-container {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--border-radius);
+  padding: var(--padding-medium);
+  text-align: center;
+}
+
+.chart-container h3 {
+  margin-top: 0;
+  margin-bottom: var(--margin-medium);
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.chart-container canvas {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Impact level badges */
 .impact-level {
   display: inline-block;

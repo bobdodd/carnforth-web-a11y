@@ -45,6 +45,39 @@
     <button id="export-html" class="export-button" disabled>Export as HTML</button>
   </div>
 
+  <div class="results-summary-console hidden">
+    <div class="scores-section">
+      <div class="score-card">
+        <h3>Accessibility Scores</h3>
+        <div class="score-display">
+          <div class="score-item">
+            <span class="score-label">Raw Score</span>
+            <span class="score-value" id="raw-score">--</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">Weighted Score</span>
+            <span class="score-value" id="weighted-score">--</span>
+          </div>
+        </div>
+        <button class="score-info-button" id="score-info-button" aria-label="Learn about scoring methodology">?</button>
+      </div>
+    </div>
+    <div class="charts-section">
+      <div class="chart-container">
+        <h3>Issues by Impact</h3>
+        <canvas id="impact-chart" width="200" height="200"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Issues by Type</h3>
+        <canvas id="type-chart" width="200" height="200"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Issues by WCAG Level</h3>
+        <canvas id="level-chart" width="300" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
   <div class="filter-bar hidden">
     <div class="filter-controls">
       <div class="filter-group">
@@ -231,6 +264,7 @@
   <script src="../js/accordion.js"></script>
   <script src="../js/highlight.js"></script>
   <script src="../js/test-runner.js"></script>
+  <script src="../js/wcag-mapping.js"></script>
   <script src="../js/panel.js"></script>
 </body>
 </html>
