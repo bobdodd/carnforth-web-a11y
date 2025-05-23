@@ -2033,7 +2033,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         // Add each issue
-        sortedIssues.forEach((issue, index) => {
+        sortedIssues.forEach((issue) => {
           htmlTemplate += `
         <div class="issue">
           <div class="issue-header">
