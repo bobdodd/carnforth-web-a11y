@@ -222,12 +222,12 @@ function getLocalResults() {
   
   // List of touchpoints
   const touchpoints = [
-    'accessible_name', 'animation', 'color_contrast', 'color_use', 
-    'dialogs', 'electronic_documents', 'event_handling', 
+    'accessible_name', 'animation', 'audio', 'color_contrast', 
+    'color_use', 'dialogs', 'electronic_documents', 'event_handling', 
     'floating_content', 'focus_management', 'fonts', 'forms',
     'headings', 'images', 'landmarks', 'language', 'lists',
     'maps', 'read_more', 'tabindex', 'title_attribute',
-    'tables', 'timers', 'videos'
+    'tables', 'timers', 'touch_and_gestures', 'videos'
   ];
   
   // Create placeholder results for most touchpoints

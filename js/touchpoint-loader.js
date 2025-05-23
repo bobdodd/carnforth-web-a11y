@@ -13,12 +13,12 @@ if (typeof window.__CARNFORTH_TOUCHPOINT_LOADER_LOADED !== 'undefined') {
   
   // List of all touchpoints we need to load (uncomment as they're implemented)
   const touchpoints = [
-    'accessible_name', 'animation', 'color_contrast', 'color_use', 
-    'dialogs', 'electronic_documents', 'event_handling', 
+    'accessible_name', 'animation', 'audio', 'color_contrast', 
+    'color_use', 'dialogs', 'electronic_documents', 'event_handling', 
     'floating_content', 'focus_management', 'fonts', 'forms',
     'headings', 'images', 'landmarks', 'language', 'lists',
     'maps', 'read_more', 'tabindex', 'title_attribute',
-    'tables', 'timers', 'videos'
+    'tables', 'timers', 'touch_and_gestures', 'videos'
   ];
 
 // Send message to injected script

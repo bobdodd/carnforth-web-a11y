@@ -7,12 +7,12 @@ let currentTestResults = null;
 
 // The list of touchpoints to run - defined before DOMContentLoaded
 const touchpoints = [
-  'accessible_name', 'animation', 'color_contrast', 'color_use', 
-  'dialogs', 'electronic_documents', 'event_handling', 
+  'accessible_name', 'animation', 'audio', 'color_contrast', 
+  'color_use', 'dialogs', 'electronic_documents', 'event_handling', 
   'floating_content', 'focus_management', 'fonts', 'forms',
   'headings', 'images', 'landmarks', 'language', 'lists',
   'maps', 'read_more', 'tabindex', 'title_attribute',
-  'tables', 'timers', 'videos'
+  'tables', 'timers', 'touch_and_gestures', 'videos'
 ];
 
 document.addEventListener('DOMContentLoaded', function() {

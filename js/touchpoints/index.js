@@ -6,6 +6,7 @@
 // Import all touchpoint modules
 import accessibleName from './accessible_name.js';
 import animation from './animation.js';
+import audio from './audio.js';
 import colorContrast from './color_contrast.js';
 import colorUse from './color_use.js';
 import dialogs from './dialogs.js';
@@ -26,12 +27,14 @@ import tabindex from './tabindex.js';
 import titleAttribute from './title_attribute.js';
 import tables from './tables.js';
 import timers from './timers.js';
+import touchAndGestures from './touch_and_gestures.js';
 import videos from './videos.js';
 
 // Map of touchpoint names to touchpoint modules
 const touchpoints = {
   accessible_name: accessibleName,
   animation: animation,
+  audio: audio,
   color_contrast: colorContrast,
   color_use: colorUse,
   dialogs: dialogs,
@@ -52,6 +55,7 @@ const touchpoints = {
   title_attribute: titleAttribute,
   tables: tables,
   timers: timers,
+  touch_and_gestures: touchAndGestures,
   videos: videos
 };
 
@@ -90,6 +94,7 @@ export async function runTouchpointTest(touchpointName) {
 export {
   accessibleName,
   animation,
+  audio,
   colorContrast,
   colorUse,
   dialogs,
@@ -110,6 +115,7 @@ export {
   titleAttribute,
   tables,
   timers,
+  touchAndGestures,
   videos
 };
 
