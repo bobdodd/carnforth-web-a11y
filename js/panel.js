@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultWcagLevels: ['A', 'AA', 'AAA'],
     defaultIssueTypes: ['fail', 'warning', 'info'],
     selectedTouchpoints: [...touchpoints], // All touchpoints by default
-    accordionDefault: 'closed'
+    accordionDefault: 'closed',
+    groupByRegionDefault: false // Group by region off by default
   };
 
   // Initialize to default state
@@ -238,9 +239,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store results for export
     currentTestResults = results;
     
-    // Display results in UI
+    // Set the group by region checkbox based on preference
+    if (groupByRegionCheckbox) {
+      groupByRegionCheckbox.checked = preferences.groupByRegionDefault;
+    }
+    
+    // Display results in UI based on preference
     console.log('Displaying results in UI');
-    displayResults(results);
+    if (preferences.groupByRegionDefault) {
+      displayResultsGroupedByRegion(results);
+    } else {
+      displayResults(results);
+    }
     updateSummary(results);
     
     // Update button states
@@ -3562,6 +3572,12 @@ document.addEventListener('DOMContentLoaded', function() {
       accordionRadio.checked = true;
     }
     
+    // Update group by region checkbox
+    const groupByRegionCheckbox = document.getElementById('pref-group-by-region');
+    if (groupByRegionCheckbox) {
+      groupByRegionCheckbox.checked = preferences.groupByRegionDefault;
+    }
+    
     // Update select all touchpoints checkbox
     const selectAllCheckbox = document.getElementById('pref-select-all-touchpoints');
     if (selectAllCheckbox) {
@@ -3606,6 +3622,12 @@ document.addEventListener('DOMContentLoaded', function() {
       preferences.accordionDefault = accordionRadio.value;
     }
     
+    // Get group by region default
+    const groupByRegionCheckbox = document.getElementById('pref-group-by-region');
+    if (groupByRegionCheckbox) {
+      preferences.groupByRegionDefault = groupByRegionCheckbox.checked;
+    }
+    
     // Save preferences
     savePreferences().then(() => {
       // Apply new preferences to current filters if no test is running
@@ -3623,7 +3645,8 @@ document.addEventListener('DOMContentLoaded', function() {
       defaultWcagLevels: ['A', 'AA', 'AAA'],
       defaultIssueTypes: ['fail', 'warning', 'info'],
       selectedTouchpoints: [...touchpoints],
-      accordionDefault: 'closed'
+      accordionDefault: 'closed',
+      groupByRegionDefault: false
     };
     
     // Update form
