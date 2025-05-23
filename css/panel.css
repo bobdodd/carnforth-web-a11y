@@ -1133,3 +1133,33 @@ main {
   margin-bottom: 0.25em;
   color: var(--color-text-primary);
 }
+
+/* WCAG Reference formatting */
+.wcag-info {
+  line-height: 1.6;
+}
+
+.wcag-principle,
+.wcag-guideline,
+.wcag-criterion,
+.wcag-criterion-label {
+  margin-bottom: 0.5em;
+}
+
+.wcag-principle strong,
+.wcag-guideline strong,
+.wcag-criterion strong,
+.wcag-criterion-label strong {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.wcag-criteria-list {
+  margin: 0 0 0.5em 1.5em;
+  padding: 0;
+  list-style-type: disc;
+}
+
+.wcag-criteria-list li {
+  margin-bottom: 0.25em;
+}

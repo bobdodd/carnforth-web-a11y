@@ -1032,24 +1032,59 @@ document.addEventListener('DOMContentLoaded', function() {
       wcagSection.appendChild(wcagTitle);
 
       const wcagInfo = document.createElement('div');
-      let wcagText = '';
+      wcagInfo.className = 'wcag-info';
       
       if (issue.wcag.principle) {
-        wcagText += `Principle: ${issue.wcag.principle}\n`;
+        const principleDiv = document.createElement('div');
+        principleDiv.className = 'wcag-principle';
+        principleDiv.innerHTML = '<strong>Principle:</strong> ' + issue.wcag.principle;
+        wcagInfo.appendChild(principleDiv);
       }
       
       if (issue.wcag.guideline) {
-        wcagText += `Guideline: ${issue.wcag.guideline}\n`;
+        const guidelineDiv = document.createElement('div');
+        guidelineDiv.className = 'wcag-guideline';
+        guidelineDiv.innerHTML = '<strong>Guideline:</strong> ' + issue.wcag.guideline;
+        wcagInfo.appendChild(guidelineDiv);
       }
       
       if (issue.wcag.successCriterion) {
-        wcagText += `Success Criterion: ${issue.wcag.successCriterion}`;
-        if (issue.wcag.level) {
-          wcagText += ` (Level ${issue.wcag.level})`;
+        // Check if there are multiple success criteria (comma-separated)
+        const criteria = issue.wcag.successCriterion.split(',').map(c => c.trim());
+        
+        if (criteria.length === 1) {
+          // Single criterion
+          const criterionDiv = document.createElement('div');
+          criterionDiv.className = 'wcag-criterion';
+          let criterionText = '<strong>Success Criterion:</strong> ' + issue.wcag.successCriterion;
+          if (issue.wcag.level) {
+            criterionText += ` (Level ${issue.wcag.level})`;
+          }
+          criterionDiv.innerHTML = criterionText;
+          wcagInfo.appendChild(criterionDiv);
+        } else {
+          // Multiple criteria
+          const criteriaLabel = document.createElement('div');
+          criteriaLabel.className = 'wcag-criterion-label';
+          criteriaLabel.innerHTML = '<strong>Success Criteria:</strong>';
+          wcagInfo.appendChild(criteriaLabel);
+          
+          const criteriaList = document.createElement('ul');
+          criteriaList.className = 'wcag-criteria-list';
+          
+          criteria.forEach(criterion => {
+            const li = document.createElement('li');
+            li.textContent = criterion;
+            if (issue.wcag.level) {
+              li.textContent += ` (Level ${issue.wcag.level})`;
+            }
+            criteriaList.appendChild(li);
+          });
+          
+          wcagInfo.appendChild(criteriaList);
         }
       }
       
-      wcagInfo.textContent = wcagText;
       wcagSection.appendChild(wcagInfo);
       
       details.appendChild(wcagSection);
