@@ -1526,19 +1526,28 @@ document.addEventListener('DOMContentLoaded', function() {
    * @returns {object|null} - The documentation object or null
    */
   function getTouchpointDocumentation(touchpoint) {
-    // Basic documentation for maps touchpoint (expand as needed)
+    // Full documentation for maps touchpoint (expand as needed)
     const basicDocs = {
       maps: {
+        title: 'Maps Touchpoint',
+        overview: 'Evaluates digital maps for proper accessibility attributes and alternative content.',
         whatItTests: [
           'Iframe-based embedded maps (Google Maps, OpenStreetMap, etc.)',
           'JavaScript-rendered div maps (Mapbox GL, Leaflet, etc.)',
+          'SVG maps and data visualizations',
           'Static map images',
           'Proper labeling with title, aria-label, or aria-labelledby',
-          'Touch target sizes for map controls'
+          'Detection of maps hidden from assistive technology',
+          'Interactive vs non-interactive map classification',
+          'Landmark and heading context for div maps',
+          'Generic or non-descriptive names',
+          'Touch target sizes for map controls (zoom, pan, etc.)'
         ],
         wcagCriteria: [
           { criterion: '1.1.1 Non-text Content', level: 'A', description: 'Maps need text alternatives' },
+          { criterion: '1.3.1 Info and Relationships', level: 'A', description: 'Map structure must be programmatically determinable' },
           { criterion: '2.4.6 Headings and Labels', level: 'AA', description: 'Maps need descriptive labels' },
+          { criterion: '4.1.2 Name, Role, Value', level: 'A', description: 'Interactive maps must have proper ARIA attributes' },
           { criterion: '2.5.5 Target Size (Enhanced)', level: 'AAA', description: 'Touch targets should be at least 44x44 pixels' },
           { criterion: '2.5.8 Target Size (Minimum)', level: 'AA', description: 'Touch targets must be at least 24x24 pixels' }
         ],
@@ -1546,14 +1555,65 @@ document.addEventListener('DOMContentLoaded', function() {
           'Missing accessible names (title, aria-label)',
           'Using aria-hidden="true" on interactive maps',
           'Generic names like "Map" without context',
-          'Map controls with insufficient touch target size'
+          'Div-based maps without proper ARIA roles',
+          'Missing alt text on static map images',
+          'Map controls (zoom buttons, etc.) with insufficient touch target size'
         ],
         bestPractices: [
           'Always provide a descriptive title or aria-label that explains what the map shows',
-          'Include the location or purpose in the accessible name',
+          'Include the location or purpose in the accessible name (e.g., "Map of downtown Chicago office locations")',
+          'Add a screen reader-only heading (h4) before maps to make them easily skippable',
+          'Structure content with proper headings: main location (h3), map (sr-only h4), key information (h4)',
+          'For div-based maps, use role="application" for interactive maps or role="img" for static ones',
           'Ensure all map controls are keyboard accessible',
-          'Provide alternative ways to access map information (tables, text descriptions)'
-        ]
+          'Provide alternative ways to access map information (tables, text descriptions)',
+          'Never use aria-hidden="true" on interactive content',
+          'Ensure map controls have adequate touch target sizes (minimum 24x24px, ideally 44x44px)',
+          'Use padding to increase touch target size without changing visual appearance'
+        ],
+        examples: {
+          good: [
+            {
+              code: `<section>
+  <h3>Our Office Location</h3>
+  <h4 class="sr-only">Interactive map of our office</h4>
+  <iframe 
+    src="https://maps.google.com/..." 
+    title="Interactive map showing office location at 123 Main St, Chicago"
+    width="600" 
+    height="450">
+  </iframe>
+  <h4>Key Information</h4>
+  <ul>
+    <li>Address: 123 Main St, Chicago, IL 60601</li>
+    <li>Phone: (555) 123-4567</li>
+    <li>Parking: Available in the building</li>
+  </ul>
+</section>`,
+              explanation: 'Proper heading structure with screen reader-only h4 allows users to skip the map. Descriptive title includes specific location information.'
+            }
+          ],
+          bad: [
+            {
+              code: `<iframe 
+  src="https://maps.google.com/..." 
+  width="600" 
+  height="450">
+</iframe>`,
+              explanation: 'Missing title attribute means screen reader users have no context about what the map shows.'
+            },
+            {
+              code: `<iframe 
+  src="https://maps.google.com/..." 
+  title="Map"
+  aria-hidden="true"
+  width="600" 
+  height="450">
+</iframe>`,
+              explanation: 'Generic title provides no useful information. aria-hidden="true" makes the interactive map completely inaccessible to screen reader users.'
+            }
+          ]
+        }
       }
     };
     
@@ -2054,6 +2114,27 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 0.25rem;
     }
     
+    /* Code examples */
+    .code-example {
+      margin: 1rem 0;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 0.25rem;
+      padding: 1rem;
+    }
+    
+    .code-example pre {
+      margin: 0 0 0.5rem 0;
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .code-example p {
+      margin: 0;
+      font-style: italic;
+      color: #666;
+    }
+    
     /* Windows High Contrast Mode support */
     @media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
       /* Reset all colors to system colors in high contrast mode */
@@ -2184,6 +2265,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </ul>
         </li>
         <li><a href="#about-carnforth"><span class="section-number">3</span>About Carnforth Web A11y</a></li>
+        <li><a href="#about-touchpoints"><span class="section-number">4</span>About Touchpoints</a></li>
       </ul>
     </nav>
   </section>
@@ -2258,60 +2340,6 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="touchpoint-body">
         <div class="touchpoint-description">${touchpointData.description}</div>`;
-        
-        // Add touchpoint documentation if available
-        const doc = getTouchpointDocumentation(touchpoint);
-        if (doc) {
-          htmlTemplate += `
-        <div class="touchpoint-doc">
-          <h4><span class="section-number">2.${sectionIndex}.1</span>About This Test</h4>`;
-          
-          if (doc.whatItTests && doc.whatItTests.length > 0) {
-            htmlTemplate += `
-          <p><strong>What it tests:</strong></p>
-          <ul>`;
-            doc.whatItTests.forEach(test => {
-              htmlTemplate += `<li>${escapeHtml(test)}</li>`;
-            });
-            htmlTemplate += `</ul>`;
-          }
-          
-          if (doc.wcagCriteria && doc.wcagCriteria.length > 0) {
-            htmlTemplate += `
-          <p><strong>WCAG Criteria:</strong></p>
-          <ul>`;
-            doc.wcagCriteria.forEach(criteria => {
-              htmlTemplate += `<li><strong>${escapeHtml(criteria.criterion)}</strong> (Level ${escapeHtml(criteria.level)}): ${escapeHtml(criteria.description)}</li>`;
-            });
-            htmlTemplate += `</ul>`;
-          }
-          
-          if (doc.commonIssues && doc.commonIssues.length > 0) {
-            htmlTemplate += `
-          <p><strong>Common Issues:</strong></p>
-          <ul>`;
-            doc.commonIssues.forEach(issue => {
-              htmlTemplate += `<li>${escapeHtml(issue)}</li>`;
-            });
-            htmlTemplate += `</ul>`;
-          }
-          
-          if (doc.bestPractices && doc.bestPractices.length > 0) {
-            htmlTemplate += `
-          <p><strong>Best Practices:</strong></p>
-          <ul>`;
-            doc.bestPractices.forEach(practice => {
-              htmlTemplate += `<li>${escapeHtml(practice)}</li>`;
-            });
-            htmlTemplate += `</ul>`;
-          }
-          
-          htmlTemplate += `
-        </div>`;
-        }
-        
-        htmlTemplate += `
-        <h4><span class="section-number">2.${sectionIndex}.2</span>Issues Found</h4>`;
         
         // First, group issues by type
         const issuesByType = {
@@ -2594,6 +2622,113 @@ document.addEventListener('DOMContentLoaded', function() {
         <li><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility" target="_blank" rel="noopener noreferrer">MDN Accessibility Documentation</a></li>
       </ul>
     </div>
+  </section>
+  
+  <section aria-labelledby="about-touchpoints">
+    <h2 id="about-touchpoints"><span class="section-number">4.</span>About Touchpoints</h2>
+    <p>Touchpoints are individual accessibility tests that focus on specific aspects of web accessibility. Each touchpoint checks for compliance with one or more WCAG success criteria.</p>`;
+    
+    // Add documentation for each implemented touchpoint
+    let touchpointDocIndex = 1;
+    const implementedTouchpoints = ['maps']; // Add more as they are implemented
+    
+    implementedTouchpoints.forEach(touchpoint => {
+      const doc = getTouchpointDocumentation(touchpoint);
+      if (doc) {
+        const displayName = touchpoint
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, l => l.toUpperCase());
+        
+        htmlTemplate += `
+    
+    <div class="touchpoint-doc">
+      <h3><span class="section-number">4.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
+      <p>${escapeHtml(doc.overview)}</p>`;
+      
+      if (doc.whatItTests && doc.whatItTests.length > 0) {
+        htmlTemplate += `
+      <h4><span class="section-number">4.${touchpointDocIndex}.1</span>What it Tests</h4>
+      <ul>`;
+        doc.whatItTests.forEach(test => {
+          htmlTemplate += `
+        <li>${escapeHtml(test)}</li>`;
+        });
+        htmlTemplate += `
+      </ul>`;
+      }
+      
+      if (doc.wcagCriteria && doc.wcagCriteria.length > 0) {
+        htmlTemplate += `
+      <h4><span class="section-number">4.${touchpointDocIndex}.2</span>WCAG Success Criteria</h4>
+      <ul>`;
+        doc.wcagCriteria.forEach(criteria => {
+          htmlTemplate += `
+        <li><strong>${escapeHtml(criteria.criterion)}</strong> (Level ${escapeHtml(criteria.level)}) - ${escapeHtml(criteria.description)}</li>`;
+        });
+        htmlTemplate += `
+      </ul>`;
+      }
+      
+      if (doc.commonIssues && doc.commonIssues.length > 0) {
+        htmlTemplate += `
+      <h4><span class="section-number">4.${touchpointDocIndex}.3</span>Common Issues</h4>
+      <ul>`;
+        doc.commonIssues.forEach(issue => {
+          htmlTemplate += `
+        <li>${escapeHtml(issue)}</li>`;
+        });
+        htmlTemplate += `
+      </ul>`;
+      }
+      
+      if (doc.bestPractices && doc.bestPractices.length > 0) {
+        htmlTemplate += `
+      <h4><span class="section-number">4.${touchpointDocIndex}.4</span>Best Practices</h4>
+      <ul>`;
+        doc.bestPractices.forEach(practice => {
+          htmlTemplate += `
+        <li>${escapeHtml(practice)}</li>`;
+        });
+        htmlTemplate += `
+      </ul>`;
+      }
+      
+      if (doc.examples) {
+        htmlTemplate += `
+      <h4><span class="section-number">4.${touchpointDocIndex}.5</span>Code Examples</h4>`;
+        
+        if (doc.examples.good && doc.examples.good.length > 0) {
+          htmlTemplate += `
+      <h5>Good Examples</h5>`;
+          doc.examples.good.forEach((example, idx) => {
+            htmlTemplate += `
+      <div class="code-example">
+        <pre>${escapeHtml(example.code)}</pre>
+        <p><em>${escapeHtml(example.explanation)}</em></p>
+      </div>`;
+          });
+        }
+        
+        if (doc.examples.bad && doc.examples.bad.length > 0) {
+          htmlTemplate += `
+      <h5>Bad Examples</h5>`;
+          doc.examples.bad.forEach((example, idx) => {
+            htmlTemplate += `
+      <div class="code-example">
+        <pre>${escapeHtml(example.code)}</pre>
+        <p><em>${escapeHtml(example.explanation)}</em></p>
+      </div>`;
+          });
+        }
+      }
+      
+      htmlTemplate += `
+    </div>`;
+      touchpointDocIndex++;
+      }
+    });
+    
+    htmlTemplate += `
   </section>
   
   </main>
