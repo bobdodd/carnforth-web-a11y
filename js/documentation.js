@@ -493,7 +493,7 @@ function createModal() {
   
   const closeButton = document.createElement('button');
   closeButton.className = 'modal-close';
-  closeButton.innerHTML = '&times;';
+  closeButton.textContent = '×';
   closeButton.setAttribute('aria-label', 'Close documentation');
   closeButton.onclick = closeDocumentationModal;
   
