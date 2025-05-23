@@ -150,19 +150,18 @@ document.addEventListener('DOMContentLoaded', function() {
         preferences = { ...preferences, ...stored.carnforthPreferences };
         
         // Migrate old format: defaultWcagVersions array to defaultWcagVersion string
-        if (Array.isArray(preferences.defaultWcagVersions) && !preferences.defaultWcagVersion) {
+        const storedPrefs = stored.carnforthPreferences as any;
+        if (Array.isArray(storedPrefs.defaultWcagVersions) && !storedPrefs.defaultWcagVersion) {
           // Use the highest version from the array, or default to 2.2
-          if (preferences.defaultWcagVersions.includes('2.2')) {
+          if (storedPrefs.defaultWcagVersions.includes('2.2')) {
             preferences.defaultWcagVersion = '2.2';
-          } else if (preferences.defaultWcagVersions.includes('2.1')) {
+          } else if (storedPrefs.defaultWcagVersions.includes('2.1')) {
             preferences.defaultWcagVersion = '2.1';
-          } else if (preferences.defaultWcagVersions.includes('2.0')) {
+          } else if (storedPrefs.defaultWcagVersions.includes('2.0')) {
             preferences.defaultWcagVersion = '2.0';
           } else {
             preferences.defaultWcagVersion = '2.2';
           }
-          // Remove old property
-          delete preferences.defaultWcagVersions;
           // Save migrated preferences
           await savePreferences();
         }
@@ -919,7 +918,8 @@ document.addEventListener('DOMContentLoaded', function() {
       resultsContainer.innerHTML = '<p class="results-message">No issues match the current filters.</p>';
     }
 
-    // Announce to screen readers
+    // Update filter count and announce to screen readers
+    updateFilterResultsCount(totalFilteredIssues, totalOriginalIssues);
     announceFilterResults(totalFilteredIssues, totalOriginalIssues);
   }
 
