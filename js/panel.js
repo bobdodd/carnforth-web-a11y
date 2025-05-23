@@ -5,6 +5,16 @@
 // Store test results globally to be accessed by export functions
 let currentTestResults = null;
 
+// The list of touchpoints to run - defined before DOMContentLoaded
+const touchpoints = [
+  'accessible_name', 'animation', 'color_contrast', 'color_use', 
+  'dialogs', 'electronic_documents', 'event_handling', 
+  'floating_content', 'focus_management', 'fonts', 'forms',
+  'headings', 'images', 'landmarks', 'language', 'lists',
+  'maps', 'read_more', 'tabindex', 'title_attribute',
+  'tables', 'timers', 'videos'
+];
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log("[Panel] DOMContentLoaded event fired");
   const startTestButton = document.getElementById('start-test');
@@ -278,16 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
       resetUI();
     }
   });
-
-  // The list of touchpoints to run
-  const touchpoints = [
-    'accessible_name', 'animation', 'color_contrast', 'color_use', 
-    'dialogs', 'electronic_documents', 'event_handling', 
-    'floating_content', 'focus_management', 'fonts', 'forms',
-    'headings', 'images', 'landmarks', 'language', 'lists',
-    'maps', 'read_more', 'tabindex', 'title_attribute',
-    'tables', 'timers', 'videos'
-  ];
 
   /**
    * Load and execute a touchpoint test directly in the DevTools panel
