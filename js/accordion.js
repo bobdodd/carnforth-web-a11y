@@ -110,9 +110,8 @@ function toggleAccordion() {
         }
       }
       
-      // Move focus to the content region after expanding
-      // This helps screen readers navigate into the content
-      content.focus();
+      // Don't move focus when accordion expands - let user control focus
+      // content.focus();
     } else {
       // Remove tabindex when collapsing to avoid extra tab stops
       content.removeAttribute('tabindex');
