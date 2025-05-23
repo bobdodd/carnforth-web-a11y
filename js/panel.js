@@ -844,20 +844,27 @@ document.addEventListener('DOMContentLoaded', function() {
     title.className = 'issue-title';
     title.id = `issue-title-${touchpoint}-${index}`;
     
-    // Add type indicator inside the heading
+    // Create container for bullet and info button
+    const indicatorContainer = document.createElement('div');
+    indicatorContainer.className = 'issue-indicator';
+    
+    // Add type indicator
     const bullet = document.createElement('span');
     bullet.className = `issue-bullet ${issue.type}`;
     bullet.textContent = issue.type === 'fail' ? 'F' : issue.type === 'warning' ? 'W' : 'I';
     // Hide the bullet letter from screen readers as we have the semantic label
     bullet.setAttribute('aria-hidden', 'true');
     
+    // Add bullet to container
+    indicatorContainer.appendChild(bullet);
+    
     // Create a screen reader text that announces the type
     const srType = document.createElement('span');
     srType.className = 'issue-type-label';
     srType.textContent = issue.type === 'fail' ? 'Fail: ' : issue.type === 'warning' ? 'Warning: ' : 'Info: ';
     
-    // Append the bullet and type label to the title
-    title.appendChild(bullet);
+    // Append the indicator container to the title
+    title.appendChild(indicatorContainer);
     
     // Check if we have documentation for this issue type and add info button right after bullet
     if (window.CarnforthDocumentation && window.CarnforthDocumentation.createIssueInfoButton) {
@@ -873,6 +880,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (issue.title.includes('has generic accessible name') || 
                    issue.title.includes('has generic alternative text')) {
           issueKey = 'generic-map-name';
+        } else if (issue.title.includes('role="presentation"')) {
+          issueKey = 'maps-presentation-role';
+        } else if (issue.title.includes('aria-hidden')) {
+          issueKey = 'maps-aria-hidden';
         }
       } else if (touchpoint === 'tabindex') {
         if (issue.title.includes('Positive tabindex')) {
@@ -886,24 +897,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      // Debug logging
-      console.log('[Panel] Issue info button check:', {
-        touchpoint,
-        title: issue.title,
-        issueKey,
-        hasDocumentation: issueKey ? !!window.CarnforthDocumentation.issueDocumentation[issueKey] : false
-      });
-      
       // If we have a matching documentation key, add the info button
       if (issueKey && window.CarnforthDocumentation.issueDocumentation[issueKey]) {
         const infoButton = window.CarnforthDocumentation.createIssueInfoButton(touchpoint, issueKey, issue);
-        title.appendChild(infoButton);
+        indicatorContainer.appendChild(infoButton);
       }
-    } else {
-      console.log('[Panel] Documentation system not available:', {
-        hasCarnforthDocumentation: !!window.CarnforthDocumentation,
-        hasCreateIssueInfoButton: !!(window.CarnforthDocumentation && window.CarnforthDocumentation.createIssueInfoButton)
-      });
     }
     
     title.appendChild(srType);

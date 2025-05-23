@@ -331,9 +331,17 @@ main {
 .issue-title {
   margin: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-size: var(--base-font-size);
   font-weight: 600;
+}
+
+/* Container for bullet and info button */
+.issue-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: var(--margin-small);
 }
 
 .issue-type-label {
@@ -376,15 +384,13 @@ main {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--margin-small);
   font-size: var(--base-font-size);
   font-weight: bold;
   color: white;
   flex-shrink: 0; /* Prevent shrinking when in flex container */
-  vertical-align: middle;
 }
 
 .issue-bullet.fail {
@@ -677,12 +683,11 @@ main {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 0.25rem;
+  margin-top: 0.25rem;
   flex-shrink: 0;
-  vertical-align: middle;
 }
 
 .issue-info-button:hover {

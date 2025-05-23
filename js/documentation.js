@@ -343,6 +343,78 @@ const issueDocumentation = {
         }
       ]
     }
+  },
+  
+  'maps-presentation-role': {
+    title: 'Map Has Presentation Role Removing Semantics',
+    overview: 'This interactive map has role="presentation" which removes its semantic meaning while keeping it keyboard accessible, creating a confusing experience.',
+    impact: {
+      who: 'Screen reader users',
+      severity: 'Critical - Interactive content with no semantic context',
+      realWorld: 'Imagine using a touchscreen where all the buttons work but have no labels - you can tap them but have no idea what they do.'
+    },
+    whyItMatters: [
+      'role="presentation" tells assistive technology to ignore the element',
+      'Interactive controls remain functional but lack context',
+      'Screen readers cannot announce what the element is',
+      'Creates extreme confusion for non-visual users'
+    ],
+    howToFix: {
+      overview: 'Remove role="presentation" and add proper accessible names',
+      steps: [
+        'Remove the role="presentation" attribute entirely',
+        'Add a descriptive title or aria-label',
+        'For complex interactive maps, consider role="application"',
+        'Test with a screen reader to verify proper announcements'
+      ],
+      examples: [
+        {
+          before: '<iframe src="maps.google.com/..." role="presentation" title="Store locator"></iframe>',
+          after: '<iframe src="maps.google.com/..." title="Interactive store locator map for Chicago area"></iframe>',
+          explanation: 'Removing presentation role restores semantic meaning'
+        }
+      ]
+    },
+    resources: [
+      { title: 'ARIA Presentation Role', url: 'https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/presentation_role' },
+      { title: 'WCAG 4.1.2 Name, Role, Value', url: 'https://www.w3.org/WAI/WCAG21/Understanding/name-role-value.html' }
+    ]
+  },
+  
+  'maps-aria-hidden': {
+    title: 'Interactive Map Hidden from Assistive Technology',
+    overview: 'This interactive map is hidden from screen readers with aria-hidden="true", making it completely inaccessible to blind users.',
+    impact: {
+      who: 'Screen reader users and keyboard users',
+      severity: 'Critical - Content completely inaccessible',
+      realWorld: 'It\'s like putting an "Employees Only" sign on the main entrance - legitimate users are blocked from accessing important functionality.'
+    },
+    whyItMatters: [
+      'aria-hidden="true" makes content invisible to screen readers',
+      'Interactive elements should never be hidden from assistive technology',
+      'Violates fundamental accessibility principle of equal access',
+      'May prevent users from accessing critical information or functionality'
+    ],
+    howToFix: {
+      overview: 'Remove aria-hidden="true" from interactive content',
+      steps: [
+        'Remove the aria-hidden="true" attribute',
+        'Add proper accessible name with title or aria-label',
+        'Ensure all controls within the map are accessible',
+        'Only use aria-hidden on decorative content'
+      ],
+      examples: [
+        {
+          before: '<iframe src="maps.google.com/..." aria-hidden="true" title="Office location"></iframe>',
+          after: '<iframe src="maps.google.com/..." title="Interactive map showing office location at 123 Main St"></iframe>',
+          explanation: 'Removing aria-hidden makes the map accessible to all users'
+        }
+      ]
+    },
+    resources: [
+      { title: 'Using aria-hidden', url: 'https://www.w3.org/WAI/WCAG21/Techniques/aria/ARIA7' },
+      { title: 'Hiding Content Properly', url: 'https://webaim.org/techniques/css/invisiblecontent/' }
+    ]
   }
   
   // Add more issue-specific documentation as needed
