@@ -1699,7 +1699,7 @@ window.test_maps = async function() {
             principle: 'Perceivable, Operable',
             guideline: '1.3 Adaptable, 2.1 Keyboard Accessible',
             successCriterion: '1.3.1 Info and Relationships, 2.1.1 Keyboard',
-            level: 'A'  // A = essential, AA = recommended, AAA = enhanced,
+            level: 'A',  // A = essential, AA = recommended, AAA = enhanced
             version: '2.0'
           },
           
