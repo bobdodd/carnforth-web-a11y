@@ -1,515 +1,830 @@
-# Touchpoint Development Guide
-
-This guide walks through creating accessibility touchpoint tests for the Carnforth Web A11y Chrome extension. Use the maps touchpoint as your reference implementation.
+# Touchpoint Development Guide for Carnforth Web A11y
 
 ## Table of Contents
-
-1. [Understanding Touchpoints](#understanding-touchpoints)
-2. [Anatomy of a Touchpoint](#anatomy-of-a-touchpoint)
-3. [Step-by-Step Implementation](#step-by-step-implementation)
+1. [Introduction](#introduction)
+2. [Architecture Overview](#architecture-overview)
+3. [Step-by-Step Tutorial](#step-by-step-tutorial)
 4. [Detection Strategies](#detection-strategies)
-5. [Issue Categorization](#issue-categorization)
-6. [WCAG Mapping](#wcag-mapping)
-7. [Writing Effective Remediation](#writing-effective-remediation)
-8. [Common Patterns](#common-patterns)
-9. [Testing Your Touchpoint](#testing-your-touchpoint)
-10. [Debugging Tips](#debugging-tips)
+5. [Chrome Extension Gotchas](#chrome-extension-gotchas)
+6. [WCAG Mapping Guidelines](#wcag-mapping-guidelines)
+7. [Testing Approaches](#testing-approaches)
+8. [Code Patterns Library](#code-patterns-library)
+9. [Common Pitfalls](#common-pitfalls)
+10. [Best Practices](#best-practices)
 
-## Understanding Touchpoints
+## Introduction
 
-A touchpoint is a focused accessibility test that examines one specific aspect of web accessibility. Each touchpoint:
+This guide provides comprehensive instructions for developing touchpoints in the Carnforth Web A11y Chrome extension. Each touchpoint is an independent accessibility test that examines specific aspects of web content. The maps.js touchpoint serves as our reference implementation, demonstrating all key patterns and approaches.
 
-- Tests a single accessibility concern (e.g., maps, headings, images)
-- Returns standardized results
-- Provides actionable remediation guidance
-- Maps issues to WCAG criteria
+### What is a Touchpoint?
 
-## Anatomy of a Touchpoint
+A touchpoint is a modular accessibility test that:
+- Detects specific types of web content (e.g., maps, forms, videos)
+- Evaluates their accessibility according to WCAG guidelines
+- Reports violations with severity levels and remediation guidance
+- Runs independently without affecting other tests
 
-Every touchpoint follows this structure:
+## Architecture Overview
+
+### System Architecture
+
+```
+Chrome Extension Context
+├── DevTools Panel
+│   ├── panel.html (UI)
+│   ├── panel.js (Controller)
+│   └── panel.css (Styles)
+├── Content Script
+│   └── content.js (Page injection)
+└── Touchpoints
+    ├── maps.js
+    ├── forms.js (to be created)
+    ├── videos.js (to be created)
+    └── ... (22 more touchpoints)
+```
+
+### Execution Flow
+
+1. **User triggers test** from DevTools panel
+2. **Panel.js injects content script** into inspected page
+3. **Content script loads touchpoint** JavaScript file
+4. **Touchpoint function executes** in page context
+5. **Results returned** via message passing
+6. **Panel displays results** with export options
+
+### Key Architectural Decisions
+
+1. **Script Injection**: Touchpoints run in the page context (not extension context) to access DOM directly
+2. **Isolation**: Each touchpoint is a separate file to maintain modularity
+3. **Async Pattern**: All touchpoints use async functions for consistency
+4. **Message Passing**: Chrome's message API handles cross-context communication
+
+## Step-by-Step Tutorial
+
+### Step 1: Create the Touchpoint File
+
+Create a new file in `/js/touchpoints/` directory:
 
 ```javascript
-/**
- * [Name] Touchpoint - Brief description
- * 
- * Detailed explanation of what this tests and why it matters
- * 
- * WHAT THIS TESTS:
- * - Bullet points of specific checks
- * 
- * WCAG COVERAGE:
- * - Relevant success criteria
- */
-window.test_[touchpoint_name] = async function() {
+// forms.js
+window.test_forms = async function() {
+  console.log("=============================================");
+  console.log("FORMS TOUCHPOINT TEST STARTED");
+  console.log("=============================================");
+  
   try {
-    // 1. Analysis function that runs in page context
-    function analyze[TouchpointName]() {
-      // Detection logic
-      // Issue identification
-      // Result compilation
+    console.log("[Forms] Starting forms test...");
+    
+    // Main analysis function
+    function analyzeFormAccessibility() {
+      // Your detection and analysis logic here
+      
+      const results = {
+        forms: [],        // All detected forms
+        violations: [],   // Accessibility issues
+        summary: {        // Aggregate statistics
+          totalForms: 0,
+          formsWithoutLabels: 0,
+          // Add relevant metrics
+        }
+      };
+      
+      // Detection and analysis logic...
+      
       return results;
     }
     
-    // 2. Execute analysis
-    const results = await executeInPageContext(analyze[TouchpointName]);
+    // Execute analysis
+    const results = analyzeFormAccessibility();
+    console.log("[Forms] Analysis complete:", results);
     
-    // 3. Transform results into issues
-    const issues = processResults(results);
-    
-    // 4. Return standardized format
     return {
-      description: 'What this touchpoint evaluates',
-      issues: issues
+      success: true,
+      touchpointName: "Forms",
+      results: results
     };
     
   } catch (error) {
-    // 5. Error handling
+    console.error("[Forms] Critical error:", error);
     return {
-      description: 'What this touchpoint evaluates',
-      issues: [{
-        type: 'error',
-        title: 'Error running test',
-        description: error.message
-      }]
+      success: false,
+      touchpointName: "Forms",
+      error: error.message,
+      results: null
     };
   }
 };
 ```
 
-## Step-by-Step Implementation
+### Step 2: Register the Touchpoint
 
-### Step 1: Create Your Touchpoint File
-
-1. Copy `touchpoint-template.js` to `js/touchpoints/[name].js`
-2. Replace all placeholder values:
-   - `TOUCHPOINT_NAME` → your touchpoint name (e.g., `headings`)
-   - `TOUCHPOINT_DESCRIPTION` → brief description
-   - `TOUCHPOINT_DESCRIPTION_LONG` → detailed description
-
-### Step 2: Define What to Detect
-
-Identify the elements or patterns you need to find:
+Add your touchpoint to the registry in `panel.js`:
 
 ```javascript
-// Example: Finding all headings
-const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-
-// Example: Finding elements with specific attributes
-const elementsWithTabindex = Array.from(document.querySelectorAll('[tabindex]'));
-
-// Example: Finding elements by multiple criteria
-const interactiveElements = Array.from(document.querySelectorAll('button, a, input, select, textarea'))
-  .filter(el => !el.hasAttribute('disabled'));
+const touchpoints = [
+  { id: 'maps', name: 'Maps', enabled: true },
+  { id: 'forms', name: 'Forms', enabled: true }, // Add your new touchpoint
+  // ... other touchpoints
+];
 ```
 
 ### Step 3: Implement Detection Logic
 
-Use multiple strategies to increase accuracy:
+Use multiple strategies to identify target elements:
 
 ```javascript
 // Strategy 1: Direct element selection
-const directMatches = document.querySelectorAll('iframe[src*="map"]');
+const forms = Array.from(document.querySelectorAll('form'));
 
-// Strategy 2: Attribute checking
-const attributeMatches = Array.from(document.querySelectorAll('div'))
-  .filter(div => {
-    const className = div.className.toLowerCase();
-    return className.includes('map') && !className.includes('sitemap');
+// Strategy 2: ARIA role detection
+const ariaForms = Array.from(document.querySelectorAll('[role="form"]'));
+
+// Strategy 3: Heuristic detection (for implicit forms)
+const implicitForms = Array.from(document.querySelectorAll('div, section'))
+  .filter(container => {
+    // Check for form-like characteristics
+    const hasInputs = container.querySelector('input, select, textarea');
+    const hasSubmit = container.querySelector('[type="submit"], button');
+    return hasInputs && hasSubmit;
   });
 
-// Strategy 3: Content analysis
-const contentMatches = Array.from(document.querySelectorAll('img'))
-  .filter(img => {
-    const alt = img.alt.toLowerCase();
-    return alt.includes('map of') || alt.includes('location');
-  });
-
-// Combine strategies
-const allMatches = [...directMatches, ...attributeMatches, ...contentMatches];
+// Combine and deduplicate results
+const allForms = [...new Set([...forms, ...ariaForms, ...implicitForms])];
 ```
 
-### Step 4: Evaluate for Accessibility Issues
+### Step 4: Analyze Accessibility
 
-Check each element against accessibility criteria:
+Evaluate each detected element against WCAG criteria:
 
 ```javascript
-elements.forEach(element => {
-  // Check 1: Does it have an accessible name?
-  const hasAccessibleName = !!(
-    element.getAttribute('aria-label') ||
-    element.getAttribute('aria-labelledby') ||
-    element.getAttribute('title') ||
-    element.textContent.trim()
-  );
+allForms.forEach(form => {
+  const violations = [];
   
-  // Check 2: Is it properly marked up?
-  const hasProperRole = element.getAttribute('role') === 'expectedRole';
+  // Check for form labeling
+  const inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    const hasLabel = input.labels?.length > 0 || 
+                    input.getAttribute('aria-label') ||
+                    input.getAttribute('aria-labelledby');
+    
+    if (!hasLabel) {
+      violations.push({
+        type: 'missing-label',
+        element: input,
+        wcag: '3.3.2',
+        severity: 'fail'
+      });
+    }
+  });
   
-  // Check 3: Are there any anti-patterns?
-  const hasProblematicAttribute = element.hasAttribute('aria-hidden');
-  
-  // Record violations
-  if (!hasAccessibleName) {
-    violations.push({
-      type: 'missing-name',
-      element: element,
-      // ... other details
-    });
-  }
+  // Store results
+  results.forms.push({
+    element: form,
+    violations: violations
+  });
 });
+```
+
+### Step 5: Format Results
+
+Structure your results for the reporting system:
+
+```javascript
+results.violations = results.forms.flatMap(form => 
+  form.violations.map(violation => ({
+    type: violation.type,
+    wcag: violation.wcag,
+    severity: violation.severity,
+    selector: getCssSelector(violation.element),
+    xpath: getFullXPath(violation.element),
+    html: violation.element.outerHTML,
+    remediation: getRemediationGuidance(violation.type)
+  }))
+);
 ```
 
 ## Detection Strategies
 
-### 1. Element Type Detection
+### 1. Multi-Signal Detection
+
+From maps.js, we learn to use multiple signals to increase accuracy:
 
 ```javascript
-// Simple: Look for specific elements
-const maps = document.querySelectorAll('iframe[src*="maps"]');
-
-// Advanced: Multiple element types
-const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6, [role="heading"]');
-```
-
-### 2. Attribute Pattern Matching
-
-```javascript
-// Check for presence of attributes
-const hasAttribute = element.hasAttribute('aria-label');
-
-// Check attribute values
-const isHidden = element.getAttribute('aria-hidden') === 'true';
-
-// Check multiple attributes
-const hasAnyLabel = element.hasAttribute('aria-label') || 
-                   element.hasAttribute('aria-labelledby') ||
-                   element.hasAttribute('title');
-```
-
-### 3. Content Analysis
-
-```javascript
-// Text content checking
-const hasVisibleText = element.textContent.trim().length > 0;
-
-// Check for specific patterns
-const looksLikePhoneNumber = /\d{3}[-.]?\d{3}[-.]?\d{4}/.test(element.textContent);
-
-// Check child elements
-const hasInteractiveChildren = element.querySelector('button, a, input') !== null;
-```
-
-### 4. Computed Style Checking
-
-```javascript
-// Check if element is visible
-const style = window.getComputedStyle(element);
-const isVisible = style.display !== 'none' && 
-                 style.visibility !== 'hidden' &&
-                 style.opacity !== '0';
-
-// Check dimensions
-const hasSize = parseInt(style.width) > 0 && parseInt(style.height) > 0;
-```
-
-### 5. Context Analysis
-
-```javascript
-// Check parent elements
-const isInNav = element.closest('nav') !== null;
-
-// Check siblings
-const hasLabelSibling = element.previousElementSibling?.tagName === 'LABEL';
-
-// Check document structure
-const isMainHeading = element.tagName === 'H1' && 
-                     element === document.querySelector('main h1');
-```
-
-## Issue Categorization
-
-### Issue Types
-
-- **`fail`**: WCAG violations that must be fixed
-- **`warning`**: Best practices or potential issues
-- **`info`**: Informational findings
-
-### Severity Levels
-
-Determine severity based on user impact:
-
-- **Critical**: Blocks access to content or functionality
-- **High**: Significantly impairs user experience
-- **Medium**: Creates difficulty but workarounds exist
-- **Low**: Minor inconvenience
-
-### Example Categorization
-
-```javascript
-// Critical: Complete barrier
-if (interactiveElement.hasAttribute('aria-hidden')) {
-  issues.push({
-    type: 'fail',
-    severity: 'Critical',
-    title: 'Interactive element hidden from screen readers'
-  });
-}
-
-// High: Major difficulty
-if (!formInput.hasAttribute('label') && !formInput.hasAttribute('aria-label')) {
-  issues.push({
-    type: 'fail',
-    severity: 'High',
-    title: 'Form input missing label'
-  });
-}
-
-// Medium: Usability issue
-if (link.textContent.trim() === 'click here') {
-  issues.push({
-    type: 'warning',
-    severity: 'Medium',
-    title: 'Link text not descriptive'
-  });
-}
-```
-
-## WCAG Mapping
-
-### Understanding WCAG Structure
-
-- **Principles**: Perceivable, Operable, Understandable, Robust
-- **Guidelines**: Broad goals under each principle
-- **Success Criteria**: Specific, testable requirements
-- **Levels**: A (minimum), AA (recommended), AAA (enhanced)
-
-### Common Mappings
-
-| Issue Type | Likely WCAG Criteria |
-|------------|---------------------|
-| Missing alt text | 1.1.1 Non-text Content (A) |
-| Missing form labels | 1.3.1 Info and Relationships (A), 4.1.2 Name, Role, Value (A) |
-| Keyboard traps | 2.1.2 No Keyboard Trap (A) |
-| Missing headings | 1.3.1 Info and Relationships (A), 2.4.6 Headings and Labels (AA) |
-| Low contrast | 1.4.3 Contrast Minimum (AA) |
-| Missing skip links | 2.4.1 Bypass Blocks (A) |
-
-### Example WCAG Object
-
-```javascript
-wcag: {
-  principle: 'Perceivable',
-  guideline: '1.1 Text Alternatives',
-  successCriterion: '1.1.1 Non-text Content',
-  level: 'A'
-}
-```
-
-## Writing Effective Remediation
-
-### Principles
-
-1. **Be Specific**: Don't just say "add alt text" - explain what it should contain
-2. **Provide Options**: Multiple approaches when applicable
-3. **Include Context**: Why the fix matters
-4. **Make it Actionable**: Step-by-step when needed
-
-### Remediation Template
-
-```javascript
-remediation: [
-  'Primary solution - the most straightforward fix',
-  'Alternative approach - when the primary isn't feasible',
-  'Best practice enhancement - going beyond minimum compliance',
-  'Testing step - how to verify the fix works'
-]
-```
-
-### Example: Good Remediation
-
-```javascript
-// Good - Specific and actionable
-remediation: [
-  'Add a descriptive title attribute to the map iframe (e.g., "Map showing office location at 123 Main St")',
-  'Alternatively, use aria-label if the title attribute conflicts with other functionality',
-  'For complex maps, also provide a text description of key information near the map',
-  'Test with a screen reader to ensure the map purpose is announced clearly'
-]
-
-// Bad - Too vague
-remediation: [
-  'Add appropriate attributes',
-  'Make it accessible',
-  'Follow WCAG guidelines'
-]
-```
-
-## Common Patterns
-
-### Pattern: Element Collection and Filtering
-
-```javascript
-// Collect all candidates
-const allElements = Array.from(document.querySelectorAll('selector'));
-
-// Filter for relevant ones
-const relevantElements = allElements.filter(element => {
-  // Multiple conditions
-  return condition1 && condition2 && !exclusion;
-});
-```
-
-### Pattern: Accessible Name Computation
-
-```javascript
-function getAccessibleName(element) {
-  // Priority order per WCAG
-  return element.getAttribute('aria-labelledby') ||
-         element.getAttribute('aria-label') ||
-         element.getAttribute('title') ||
-         element.textContent.trim() ||
-         '';
-}
-```
-
-### Pattern: Safe Attribute Access
-
-```javascript
-// Defensive programming for reliability
-const attribute = element.getAttribute('name') || '';
-const hasAttribute = element.hasAttribute('name');
-const attributeLower = attribute.toLowerCase();
-```
-
-### Pattern: XPath Generation
-
-```javascript
-function getXPath(element) {
-  // Reliable fallback when CSS selectors fail
-  // See maps.js for full implementation
-  return generateFullXPath(element);
-}
-```
-
-### Pattern: Issue Deduplication
-
-```javascript
-// Track processed elements
-const processed = new Set();
-
-elements.forEach(element => {
-  const key = element.id || getXPath(element);
+function isDivBasedMap(div) {
+  // Signal 1: Class/ID indicators
+  const classAndId = (div.className + ' ' + div.id).toLowerCase();
+  const hasMapIndicator = ['map', 'gmap', 'leaflet'].some(term => 
+    classAndId.includes(term)
+  );
   
-  if (!processed.has(key)) {
-    processed.add(key);
-    // Process element
+  // Signal 2: Data attributes
+  const hasMapDataAttributes = Array.from(div.attributes)
+    .some(attr => attr.name.includes('map') || attr.name.includes('geo'));
+  
+  // Signal 3: Visual characteristics
+  const style = window.getComputedStyle(div);
+  const hasMapStyling = style.position === 'relative' && 
+                       parseInt(style.height) > 100;
+  
+  // Signal 4: Child elements
+  const hasMapChildren = div.querySelector('.marker, .zoom, .control');
+  
+  // Combine signals (need at least 2 for confidence)
+  const signals = [hasMapIndicator, hasMapDataAttributes, hasMapStyling, hasMapChildren];
+  return signals.filter(Boolean).length >= 2;
+}
+```
+
+### 2. Provider-Specific Detection
+
+Identify specific implementations for better guidance:
+
+```javascript
+function identifyProvider(element) {
+  const indicators = {
+    'Google': ['gm-', 'google.com/maps', '.gm-style'],
+    'Mapbox': ['mapbox', 'mapboxgl', 'api.mapbox.com'],
+    'Leaflet': ['leaflet', '.leaflet-container'],
+    // Add more providers
+  };
+  
+  for (const [provider, patterns] of Object.entries(indicators)) {
+    if (patterns.some(pattern => elementMatchesPattern(element, pattern))) {
+      return provider;
+    }
+  }
+  
+  return 'Unknown Provider';
+}
+```
+
+### 3. Interactive Element Detection
+
+Comprehensive scanning for focusable elements:
+
+```javascript
+function scanForFocusableElements(container) {
+  // Semantic HTML elements
+  const focusableSelectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[contenteditable="true"]'
+  ];
+  
+  // ARIA interactive roles
+  const interactiveRoles = [
+    '[role="button"]',
+    '[role="link"]',
+    '[role="checkbox"]',
+    '[role="radio"]',
+    '[role="tab"]'
+  ];
+  
+  // Tabindex elements
+  const tabindexSelectors = [
+    '[tabindex]:not([tabindex="-1"])',
+    '[tabindex="0"]'
+  ];
+  
+  const allSelectors = [...focusableSelectors, ...interactiveRoles, ...tabindexSelectors];
+  const focusableElements = container.querySelectorAll(allSelectors.join(', '));
+  
+  return {
+    hasFocusableElements: focusableElements.length > 0,
+    count: focusableElements.length,
+    elements: Array.from(focusableElements)
+  };
+}
+```
+
+### 4. Context Detection
+
+Find structural context (landmarks, headings):
+
+```javascript
+function checkLandmarkContext(element) {
+  const landmarkRoles = ['region', 'main', 'navigation', 'complementary'];
+  const landmarkElements = { 'main': 'main', 'nav': 'navigation', 'aside': 'complementary' };
+  
+  let current = element;
+  while (current && current !== document.body) {
+    // Check ARIA landmarks
+    const role = current.getAttribute('role');
+    if (role && landmarkRoles.includes(role)) {
+      return { hasLandmark: true, type: role };
+    }
+    
+    // Check HTML5 landmarks
+    const tagName = current.tagName.toLowerCase();
+    if (landmarkElements[tagName]) {
+      return { hasLandmark: true, type: landmarkElements[tagName] };
+    }
+    
+    current = current.parentElement;
+  }
+  
+  return { hasLandmark: false };
+}
+```
+
+## Chrome Extension Gotchas
+
+### 1. Context Isolation
+
+Chrome extensions run in isolated contexts. You cannot directly access the page's JavaScript objects:
+
+```javascript
+// ❌ Won't work - different context
+const pageVariable = window.somePageVariable;
+
+// ✅ Works - DOM is shared
+const element = document.querySelector('.map');
+```
+
+### 2. Cross-Origin Restrictions
+
+Cannot access iframe content from different origins:
+
+```javascript
+function checkIframeContent(iframe) {
+  try {
+    // This will throw for cross-origin iframes
+    const doc = iframe.contentDocument;
+    return doc.querySelector('.interactive');
+  } catch (e) {
+    // Fallback to heuristic detection
+    return checkForInteractiveHeuristics(iframe);
+  }
+}
+```
+
+### 3. Script Injection Pattern
+
+Must inject scripts to run in page context:
+
+```javascript
+// In content.js
+function injectScript(file) {
+  const script = document.createElement('script');
+  script.src = chrome.runtime.getURL(file);
+  script.onload = function() { this.remove(); };
+  (document.head || document.documentElement).appendChild(script);
+}
+```
+
+### 4. Message Passing
+
+Communication between contexts requires message passing:
+
+```javascript
+// In touchpoint (page context)
+window.postMessage({
+  type: 'TOUCHPOINT_RESULT',
+  data: results
+}, '*');
+
+// In content script
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'TOUCHPOINT_RESULT') {
+    chrome.runtime.sendMessage(event.data);
   }
 });
 ```
 
-## Testing Your Touchpoint
+### 5. Async Execution
 
-### 1. Create Test Fixtures
-
-Create an HTML file in `/fixtures/[touchpoint]_test.html`:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>[Touchpoint] Test Cases</title>
-</head>
-<body>
-    <h1>[Touchpoint] Test Cases</h1>
-    
-    <!-- Test Case 1: Valid implementation -->
-    <div class="test-case">
-        <h2>✓ Correct Implementation</h2>
-        <!-- Your correct example -->
-    </div>
-    
-    <!-- Test Case 2: Common mistake -->
-    <div class="test-case">
-        <h2>✗ Missing Accessibility Attribute</h2>
-        <!-- Your problematic example -->
-    </div>
-    
-    <!-- Add more test cases -->
-</body>
-</html>
-```
-
-### 2. Test Locally
-
-1. Open the test fixture in Chrome
-2. Open DevTools → Carnforth Web A11y panel
-3. Run your touchpoint test
-4. Verify all issues are detected correctly
-
-### 3. Test Edge Cases
-
-Always test:
-- Elements with no attributes
-- Elements with empty attributes (`aria-label=""`)
-- Hidden elements (`display: none`, `visibility: hidden`)
-- Dynamically generated content
-- Nested structures
-- Special characters in attributes
-
-## Debugging Tips
-
-### 1. Console Logging
+All touchpoints must handle async operations:
 
 ```javascript
-// Add debug logging during development
-console.log(`[${touchpointName}] Found ${elements.length} elements`);
-console.log(`[${touchpointName}] Element details:`, {
-  tag: element.tagName,
-  attributes: Array.from(element.attributes).map(a => `${a.name}="${a.value}"`)
-});
-```
+window.test_async = async function() {
+  // Wait for dynamic content
+  await waitForElement('.lazy-loaded-map');
+  
+  // Perform analysis
+  const results = analyzeContent();
+  
+  return results;
+};
 
-### 2. Validate Selectors
-
-```javascript
-// Test your selectors in browser console first
-document.querySelectorAll('your-selector'); // Should return expected elements
-```
-
-### 3. Handle Errors Gracefully
-
-```javascript
-try {
-  // Risky operation
-  const result = element.someMethod();
-} catch (error) {
-  console.error(`[${touchpointName}] Error:`, error);
-  // Continue processing other elements
+function waitForElement(selector, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const element = document.querySelector(selector);
+    if (element) return resolve(element);
+    
+    const observer = new MutationObserver((mutations, obs) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        obs.disconnect();
+        resolve(element);
+      }
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => { observer.disconnect(); reject(); }, timeout);
+  });
 }
 ```
 
-### 4. Use Chrome DevTools
+## WCAG Mapping Guidelines
 
-- Elements panel: Inspect element properties
-- Console: Test selectors and functions
-- Network: Check if resources loaded
-- Accessibility panel: Verify accessibility tree
+### Severity Levels
 
-### 5. Common Issues and Solutions
+1. **FAIL**: Clear WCAG violations that prevent access
+2. **WARNING**: Potential issues or suboptimal implementations
+3. **INFO**: Best practice recommendations
 
-| Problem | Solution |
-|---------|----------|
-| Elements not found | Check if content is dynamically loaded |
-| Selector too broad | Add exclusions or more specific criteria |
-| False positives | Refine detection logic with additional checks |
-| Performance issues | Limit scope or optimize selectors |
+### Common WCAG Mappings
 
-## Next Steps
+| Issue Type | WCAG Criterion | Level | Severity |
+|------------|----------------|-------|----------|
+| Missing accessible name | 4.1.2 Name, Role, Value | A | FAIL |
+| Interactive content with aria-hidden | 1.3.1 Info and Relationships | A | FAIL |
+| Missing alt text | 1.1.1 Non-text Content | A | FAIL |
+| Keyboard trap | 2.1.2 No Keyboard Trap | A | FAIL |
+| Missing labels | 3.3.2 Labels or Instructions | A | FAIL |
+| Low contrast | 1.4.3 Contrast (Minimum) | AA | WARNING |
+| Missing landmarks | 1.3.1 Info and Relationships | A | WARNING |
 
-1. Implement your touchpoint following this guide
-2. Create comprehensive test fixtures
-3. Test thoroughly with real websites
-4. Document any unique patterns you discover
-5. Share your learnings for future touchpoints
+### Mapping Decision Process
 
-Remember: The goal is to help developers create more accessible websites by providing clear, actionable feedback. Your touchpoint is a teaching tool as much as it is a testing tool.
+```javascript
+function mapToWCAG(violation) {
+  const mappings = {
+    'missing-accessible-name': {
+      wcag: '4.1.2',
+      level: 'A',
+      severity: 'fail',
+      title: 'Name, Role, Value'
+    },
+    'aria-hidden-interactive': {
+      wcag: '1.3.1',
+      level: 'A', 
+      severity: 'fail',
+      title: 'Info and Relationships'
+    },
+    'generic-name': {
+      wcag: '2.4.6',
+      level: 'AA',
+      severity: 'warning',
+      title: 'Headings and Labels'
+    }
+  };
+  
+  return mappings[violation.type] || {
+    wcag: '4.1.1',
+    level: 'A',
+    severity: 'warning',
+    title: 'Parsing'
+  };
+}
+```
+
+## Testing Approaches
+
+### 1. Unit Testing Pattern
+
+Test individual detection functions:
+
+```javascript
+// In test file
+describe('Map Detection', () => {
+  it('should detect iframe maps', () => {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://maps.google.com/embed';
+    document.body.appendChild(iframe);
+    
+    const maps = detectIframeMaps();
+    expect(maps).toHaveLength(1);
+    expect(maps[0].provider).toBe('Google Maps');
+  });
+});
+```
+
+### 2. Fixture-Based Testing
+
+Create test HTML files for each scenario:
+
+```html
+<!-- fixtures/maps/missing-title.html -->
+<iframe src="https://maps.google.com/embed" 
+        width="600" 
+        height="400">
+</iframe>
+
+<!-- Expected violation: missing-accessible-name -->
+```
+
+### 3. Integration Testing
+
+Test complete touchpoint execution:
+
+```javascript
+async function testTouchpoint() {
+  // Load test page
+  await page.goto('fixtures/maps/test-page.html');
+  
+  // Execute touchpoint
+  const results = await page.evaluate(() => window.test_maps());
+  
+  // Verify results
+  expect(results.success).toBe(true);
+  expect(results.results.violations).toHaveLength(3);
+}
+```
+
+### 4. Manual Testing Checklist
+
+- [ ] Test with screen readers (NVDA, JAWS, VoiceOver)
+- [ ] Test keyboard navigation
+- [ ] Test with browser zoom (200%, 400%)
+- [ ] Test in different browsers
+- [ ] Test with slow network
+- [ ] Test with JavaScript disabled (graceful degradation)
+
+## Code Patterns Library
+
+### 1. XPath Generation
+
+Reliable element identification:
+
+```javascript
+function getFullXPath(element) {
+  if (!element) return '';
+  
+  function getElementIdx(el) {
+    let count = 1;
+    for (let sib = el.previousSibling; sib; sib = sib.previousSibling) {
+      if (sib.nodeType === 1 && sib.tagName === el.tagName) count++;
+    }
+    return count;
+  }
+  
+  let path = '';
+  while (element && element.nodeType === 1) {
+    const idx = getElementIdx(element);
+    const tagName = element.tagName.toLowerCase();
+    path = `/${tagName}[${idx}]${path}`;
+    element = element.parentNode;
+  }
+  return path;
+}
+```
+
+### 2. CSS Selector Generation
+
+Prefer IDs when available:
+
+```javascript
+function getCssSelector(element) {
+  if (element.id) return `#${element.id}`;
+  
+  if (element.className) {
+    const classes = element.className.split(' ')
+      .filter(c => c && !c.includes(':'))
+      .map(c => `.${c}`)
+      .join('');
+    if (classes) return element.tagName.toLowerCase() + classes;
+  }
+  
+  return getFullXPath(element);
+}
+```
+
+### 3. Safe Attribute Access
+
+Handle missing attributes gracefully:
+
+```javascript
+function getSafeAttribute(element, attr) {
+  try {
+    return element.getAttribute(attr) || '';
+  } catch (e) {
+    return '';
+  }
+}
+```
+
+### 4. Results Structure
+
+Consistent result formatting:
+
+```javascript
+function formatViolation(type, element, additionalInfo = {}) {
+  return {
+    type: type,
+    severity: getSeverity(type),
+    wcag: getWCAGMapping(type),
+    selector: getCssSelector(element),
+    xpath: getFullXPath(element),
+    html: element.outerHTML.substring(0, 500),
+    remediation: getRemediation(type),
+    ...additionalInfo
+  };
+}
+```
+
+### 5. Error Handling
+
+Graceful degradation:
+
+```javascript
+function safeExecute(fn, fallback = null) {
+  try {
+    return fn();
+  } catch (error) {
+    console.error('[Touchpoint] Error:', error);
+    return fallback;
+  }
+}
+```
+
+## Common Pitfalls
+
+### 1. Over-Detection
+
+**Problem**: Detecting too many false positives
+
+```javascript
+// ❌ Too broad
+const maps = document.querySelectorAll('[class*="map"]');
+// This catches: "sitemap", "bitmap", "mapping", etc.
+
+// ✅ More specific
+const maps = Array.from(document.querySelectorAll('[class*="map"]'))
+  .filter(el => !el.className.includes('sitemap'));
+```
+
+### 2. Missing Edge Cases
+
+**Problem**: Not handling dynamic content
+
+```javascript
+// ❌ Only checks initial state
+const maps = document.querySelectorAll('.map');
+
+// ✅ Handles dynamic content
+function detectMaps() {
+  // Initial detection
+  let maps = Array.from(document.querySelectorAll('.map'));
+  
+  // Watch for new maps
+  const observer = new MutationObserver(() => {
+    const newMaps = document.querySelectorAll('.map:not([data-analyzed])');
+    newMaps.forEach(map => {
+      map.setAttribute('data-analyzed', 'true');
+      analyzeMap(map);
+    });
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+```
+
+### 3. Context Loss
+
+**Problem**: Losing context in async operations
+
+```javascript
+// ❌ Context lost
+elements.forEach(async (el) => {
+  const result = await analyzeElement(el);
+  results.push(result); // Race condition!
+});
+
+// ✅ Maintain context
+const results = await Promise.all(
+  elements.map(el => analyzeElement(el))
+);
+```
+
+### 4. Performance Issues
+
+**Problem**: Inefficient DOM queries
+
+```javascript
+// ❌ Multiple queries
+function checkElement(el) {
+  const hasLabel = document.querySelector(`label[for="${el.id}"]`);
+  const hasAria = el.getAttribute('aria-label');
+  const hasTitle = el.getAttribute('title');
+}
+
+// ✅ Batched queries
+function checkElements(elements) {
+  const labels = new Map();
+  document.querySelectorAll('label[for]').forEach(label => {
+    labels.set(label.getAttribute('for'), label);
+  });
+  
+  elements.forEach(el => {
+    const hasLabel = labels.has(el.id);
+    const hasAria = el.getAttribute('aria-label');
+    // ...
+  });
+}
+```
+
+### 5. Incomplete Remediation
+
+**Problem**: Vague fix instructions
+
+```javascript
+// ❌ Too vague
+remediation: "Add accessible name"
+
+// ✅ Specific and actionable
+remediation: `Add a title attribute to the iframe element. For example:
+<iframe src="${src}" title="Interactive map showing office location">
+The title should describe what the map shows, not just say "map".`
+```
+
+## Best Practices
+
+### 1. Educational Comments
+
+Every complex logic should teach:
+
+```javascript
+// Educational: Chrome's Same-Origin Policy prevents iframe content access
+// We must use indirect methods to determine interactivity
+// This demonstrates working within browser security constraints
+```
+
+### 2. Progressive Enhancement
+
+Start simple, add complexity:
+
+```javascript
+// Level 1: Basic detection
+const forms = document.querySelectorAll('form');
+
+// Level 2: Include ARIA forms
+const allForms = document.querySelectorAll('form, [role="form"]');
+
+// Level 3: Heuristic detection for implicit forms
+// ... (advanced logic)
+```
+
+### 3. Defensive Programming
+
+Assume everything can fail:
+
+```javascript
+function analyzeElement(element) {
+  if (!element || !element.nodeType) return null;
+  
+  const results = {
+    // Safe defaults
+    hasAccessibleName: false,
+    violations: []
+  };
+  
+  try {
+    // Analysis logic
+  } catch (error) {
+    console.error('Analysis failed:', error);
+    return results; // Return partial results
+  }
+}
+```
+
+### 4. Clear Naming
+
+Use descriptive names:
+
+```javascript
+// ❌ Unclear
+function check(el) {
+  return el.getAttribute('aria-hidden') === 'true';
+}
+
+// ✅ Clear intent
+function isHiddenFromAssistiveTechnology(element) {
+  return element.getAttribute('aria-hidden') === 'true';
+}
+```
+
+### 5. Modular Functions
+
+Keep functions focused:
+
+```javascript
+// Each function does one thing well
+function detectMaps() { /* ... */ }
+function analyzeMap(map) { /* ... */ }
+function checkAccessibleName(element) { /* ... */ }
+function generateRemediation(violation) { /* ... */ }
+```
+
+## Conclusion
+
+Creating touchpoints for Carnforth Web A11y requires balancing technical implementation with educational value. Every line of code should serve both purposes: detecting accessibility issues AND teaching developers how to build better testing tools.
+
+Remember the project's mission: this is an educational tool first, testing tool second. Your code should be clear, well-commented, and demonstrate best practices in both accessibility testing and Chrome extension development.
+
+When in doubt, refer to maps.js as the gold standard implementation. It demonstrates all the patterns, handles edge cases, and includes comprehensive educational comments.
+
+Happy coding, and remember: we're creating tools that make the web more accessible for everyone! 🌟

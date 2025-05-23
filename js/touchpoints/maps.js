@@ -75,6 +75,8 @@ window.test_maps = async function() {
         
         // Common providers and their URL patterns
         // Order matters: check more specific patterns first
+        
+        // Major Western providers
         if (srcLower.includes('google.com/maps')) return 'Google Maps';
         if (srcLower.includes('bing.com/maps')) return 'Bing Maps';
         if (srcLower.includes('openstreetmap.org')) return 'OpenStreetMap';
@@ -85,6 +87,23 @@ window.test_maps = async function() {
         if (srcLower.includes('here.com')) return 'HERE Maps';
         if (srcLower.includes('tomtom.com')) return 'TomTom';
         if (srcLower.includes('maps.apple.com')) return 'Apple Maps';
+        
+        // Asian providers (high priority - significant global usage)
+        if (srcLower.includes('map.baidu.com') || srcLower.includes('api.map.baidu.com')) return 'Baidu Maps';
+        if (srcLower.includes('amap.com') || srcLower.includes('webapi.amap.com')) return 'Amap';
+        if (srcLower.includes('map.naver.com') || srcLower.includes('openapi.naver.com')) return 'Naver Maps';
+        if (srcLower.includes('map.kakao.com') || srcLower.includes('dapi.kakao.com')) return 'Kakao Maps';
+        
+        // Regional/specialized providers
+        if (srcLower.includes('2gis.com') || srcLower.includes('maps.2gis.com')) return '2GIS';
+        if (srcLower.includes('mapy.cz') || srcLower.includes('api.mapy.cz')) return 'Mapy.cz';
+        if (srcLower.includes('maptiler.com') || srcLower.includes('api.maptiler.com')) return 'Maptiler';
+        if (srcLower.includes('viamichelin.com')) return 'ViaMichelin';
+        if (srcLower.includes('ordnancesurvey.co.uk') || srcLower.includes('api.os.uk')) return 'Ordnance Survey';
+        if (srcLower.includes('yandex') && srcLower.includes('maps')) return 'Yandex Maps';
+        if (srcLower.includes('geoportail.gouv.fr')) return 'IGN Géoportail';
+        if (srcLower.includes('sygic.com')) return 'Sygic';
+        if (srcLower.includes('carto.com') || srcLower.includes('cartodb')) return 'Carto';
         
         // Always provide a fallback for unknown providers
         return 'Unknown Map Provider';
@@ -115,6 +134,7 @@ window.test_maps = async function() {
         // We check for various URL patterns that indicate map content
         // Note: 'map' alone could match non-map content, so we also check specific providers
         return src.includes('map') || 
+               // Western providers
                src.includes('maps.google') ||
                src.includes('maps.bing') ||
                src.includes('openstreetmap') ||
@@ -122,7 +142,21 @@ window.test_maps = async function() {
                src.includes('mapbox') ||
                src.includes('arcgis') ||
                src.includes('here.com') ||
-               src.includes('tomtom');
+               src.includes('tomtom') ||
+               src.includes('maps.apple') ||
+               // Asian providers
+               src.includes('map.baidu') ||
+               src.includes('amap.com') ||
+               src.includes('map.naver') ||
+               src.includes('map.kakao') ||
+               // Additional providers  
+               src.includes('2gis') ||
+               src.includes('mapy.cz') ||
+               src.includes('maptiler') ||
+               src.includes('yandex.com/maps') ||
+               src.includes('viamichelin') ||
+               src.includes('ordnancesurvey') ||
+               src.includes('carto.com');
       });
 
       // Pattern: Enhanced Focusable Element Detection
@@ -255,6 +289,7 @@ window.test_maps = async function() {
           // Known interactive map providers based on their standard implementations
           // These providers typically offer pan, zoom, and click interactions
           const interactiveProviders = [
+            // Major Western providers
             'google.com/maps',      // Google Maps embeds are interactive by default
             'bing.com/maps',        // Bing Maps provides interactive controls
             'openstreetmap.org',    // OSM embeds include navigation
@@ -263,7 +298,20 @@ window.test_maps = async function() {
             'mapbox.com',           // Mapbox GL JS maps
             'arcgis.com',           // Esri ArcGIS web maps
             'here.com',             // HERE Maps platform
-            'tomtom.com'            // TomTom web maps
+            'tomtom.com',           // TomTom web maps
+            
+            // Asian providers - these are typically interactive
+            'map.baidu.com',        // Baidu Maps (China)
+            'amap.com',             // Amap/Gaode (China)
+            'map.naver.com',        // Naver Maps (Korea)
+            'map.kakao.com',        // Kakao Maps (Korea)
+            
+            // Additional interactive providers
+            '2gis.com',             // 2GIS (Russia/CIS)
+            'mapy.cz',              // Mapy.cz (Czech Republic)
+            'maptiler.com',         // Maptiler cloud maps
+            'yandex.com/maps',      // Yandex Maps
+            'carto.com'             // Carto visualization platform
           ];
           
           const src = iframe.src || '';
@@ -670,6 +718,15 @@ window.test_maps = async function() {
         if (src.includes('static-maps.yandex')) provider = 'Yandex Maps';
         if (src.includes('dev.virtualearth.net')) provider = 'Bing Maps Static';
         
+        // Additional static map providers
+        if (src.includes('restapi.amap.com/v3/staticmap')) provider = 'Amap Static';
+        if (src.includes('map.baidu.com/staticimage')) provider = 'Baidu Static Maps';
+        if (src.includes('naveropenapi.apigw.ntruss.com/map-static')) provider = 'Naver Static Maps';
+        if (src.includes('map.staticmap.kakao.com')) provider = 'Kakao Static Maps';
+        if (src.includes('static.2gis.com')) provider = '2GIS Static';
+        if (src.includes('api.mapy.cz/staticmap')) provider = 'Mapy.cz Static';
+        if (src.includes('api.maptiler.com/static')) provider = 'Maptiler Static';
+        
         // An image has an accessible name if it has alt text, aria-label, or aria-labelledby
         const hasAccessibleName = !!(alt || ariaLabel || ariaLabelledby);
         
@@ -739,6 +796,7 @@ window.test_maps = async function() {
       function identifyDivMapProvider(div) {
         // First check the page for known map library scripts
         const pageScripts = {
+          // Major Western providers
           'Mapbox': document.querySelector('script[src*="mapbox-gl"], script[src*="mapbox.js"]') !== null,
           'Leaflet': document.querySelector('script[src*="leaflet"], link[href*="leaflet"]') !== null,
           'Google Maps': document.querySelector('script[src*="maps.google"], script[src*="googleapis.com/maps"]') !== null,
@@ -748,7 +806,20 @@ window.test_maps = async function() {
           'Mapfit': document.querySelector('script[src*="mapfit"]') !== null,
           'TomTom': document.querySelector('script[src*="tomtom"], script[src*="api.tomtom.com"]') !== null,
           'Bing Maps': document.querySelector('script[src*="bing"], script[src*="virtualearth"]') !== null,
-          'Carto': document.querySelector('script[src*="carto"], link[href*="carto"]') !== null
+          'Carto': document.querySelector('script[src*="carto"], link[href*="carto"]') !== null,
+          
+          // Asian providers
+          'Baidu Maps': document.querySelector('script[src*="api.map.baidu.com"]') !== null,
+          'Amap': document.querySelector('script[src*="webapi.amap.com/maps"]') !== null,
+          'Naver Maps': document.querySelector('script[src*="openapi.map.naver.com"]') !== null,
+          'Kakao Maps': document.querySelector('script[src*="dapi.kakao.com"]') !== null,
+          
+          // Additional providers
+          '2GIS': document.querySelector('script[src*="maps.api.2gis.ru"]') !== null,
+          'Mapy.cz': document.querySelector('script[src*="api.mapy.cz"]') !== null,
+          'Maptiler': document.querySelector('script[src*="cdn.maptiler.com"]') !== null,
+          'Yandex Maps': document.querySelector('script[src*="api-maps.yandex.ru"]') !== null,
+          'Ordnance Survey': document.querySelector('script[src*="api.os.uk"]') !== null
         };
         
         // Then check the div itself for library-specific classes
@@ -756,6 +827,7 @@ window.test_maps = async function() {
         const divId = div.id ? div.id.toLowerCase() : '';
         
         // Look for specific provider signatures in the div
+        // Western providers
         if (divClasses.includes('mapbox') || divClasses.includes('mapboxgl') || divId.includes('mapbox')) return 'Mapbox';
         if (divClasses.includes('leaflet') || div.querySelector('.leaflet')) return 'Leaflet';
         if (divClasses.includes('gm-') || div.querySelector('.gm-style') || divId.includes('googlemap')) return 'Google Maps';
@@ -765,6 +837,18 @@ window.test_maps = async function() {
         if (divClasses.includes('tomtom') || divId.includes('tomtom')) return 'TomTom';
         if (divClasses.includes('bing') || divId.includes('bing')) return 'Bing Maps';
         if (divClasses.includes('carto') || divId.includes('carto')) return 'Carto';
+        
+        // Asian providers
+        if (divClasses.includes('baidu') || divClasses.includes('bmap') || divId.includes('baidu')) return 'Baidu Maps';
+        if (divClasses.includes('amap') || divId.includes('amap')) return 'Amap';
+        if (divClasses.includes('naver') || divId.includes('naver')) return 'Naver Maps';
+        if (divClasses.includes('kakao') || divId.includes('kakao')) return 'Kakao Maps';
+        
+        // Additional providers
+        if (divClasses.includes('2gis') || divId.includes('2gis')) return '2GIS';
+        if (divClasses.includes('mapy-cz') || divId.includes('mapy')) return 'Mapy.cz';
+        if (divClasses.includes('maptiler') || divId.includes('maptiler')) return 'Maptiler';
+        if (divClasses.includes('yandex') || divId.includes('yandex')) return 'Yandex Maps';
         
         // If no specific class indicators, check for map attribution elements which often indicate the provider
         const attribution = div.querySelector('.mapbox-attribution, .leaflet-attribution, .ol-attribution, .gmnoprint, .gm-style-cc');

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Maps Test Fixture - All Providers & Scenarios</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        iframe, .map-div, img, svg {
+            border: 1px solid #ddd;
+            width: 100%;
+            height: 400px;
+            margin-top: 10px;
+        }
+        .map-div {
+            background-color: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+            position: relative;
+        }
+        .test-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .issue-highlight {
+            background-color: #fff0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #c00;
+            font-weight: bold;
+        }
+        .good-highlight {
+            background-color: #f0fff0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0a0;
+            font-weight: bold;
+        }
+        .test-ref {
+            background-color: #f5f5f5;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: #666;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .provider-section {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Maps Test Fixture</h1>
+    <p>This page contains test cases for all map providers and scenarios referenced in maps.js. Each test case is linked to the specific detection logic and WCAG criteria it tests.</p>
+
+    <!-- IFRAME-BASED MAPS SECTION -->
+    <div class="provider-section">
+        <h2>1. Iframe-based Maps (All Providers)</h2>
+        
+        <div class="grid-container">
+            <!-- Google Maps -->
+            <div class="map-container">
+                <h3>Google Maps - Proper Implementation</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Has title attribute with descriptive text
+                </div>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2469.808404424489!2d-1.2366218843387576!3d51.754816996765804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4876c6a9ef8c485b%3A0xd2ff1883a001afed!2sUniversity%20of%20Oxford!5e0!3m2!1sen!2suk!4v1653559428777!5m2!1sen!2suk"
+                    width="600"
+                    height="450"
+                    title="Interactive map showing the University of Oxford campus location"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "Google Maps", hasAccessibleName check</div>
+            </div>
+
+            <!-- Google Maps - Missing Title -->
+            <div class="map-container">
+                <h3>Google Maps - Missing Accessible Name</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Missing title, aria-label, or aria-labelledby
+                </div>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2463.9834774988936!2d-0.14907498433553722!3d51.5194182606553!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761ad554c335c1%3A0xda2164b934c67c1a!2sRegent%27s%20Park!5e0!3m2!1sen!2suk!4v1653559504877!5m2!1sen!2suk"
+                    width="600"
+                    height="450"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy">
+                </iframe>
+                <div class="test-ref">Tests: missing-accessible-name violation → WCAG 4.1.2</div>
+            </div>
+
+            <!-- Google Maps - Generic Name -->
+            <div class="map-container">
+                <h3>Google Maps - Generic Name</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Title is generic "map" - not descriptive
+                </div>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.691016151895!2d-0.13662678434769933!3d51.50330226953295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487604ce3941eb1f%3A0x1a5342fdf089c627!2sWestminster%20Abbey!5e0!3m2!1sen!2suk!4v1653559562339!5m2!1sen!2suk"
+                    width="600"
+                    height="450"
+                    title="Map"
+                    style="border:0;"
+                    allowfullscreen="">
+                </iframe>
+                <div class="test-ref">Tests: isGenericName() function, generic-name violation → WCAG 2.4.6</div>
+            </div>
+
+            <!-- Google Maps - Interactive with aria-hidden -->
+            <div class="map-container">
+                <h3>Google Maps - Interactive with aria-hidden="true"</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Interactive map hidden from AT (creates keyboard trap)
+                </div>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.291837082219!2d-0.15855488423002344!3d51.509865379635776!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761b330a2fcdb7%3A0x24df04c19de6f2ef!2sBuckingham%20Palace!5e0!3m2!1sen!2suk!4v1653559643924!5m2!1sen!2suk"
+                    width="600"
+                    height="450"
+                    title="Interactive map of Buckingham Palace"
+                    style="border:0;"
+                    aria-hidden="true"
+                    allowfullscreen=""
+                    loading="lazy">
+                </iframe>
+                <div class="test-ref">Tests: checkForInteractiveContent() + aria-hidden check → aria-hidden-interactive violation → WCAG 1.3.1</div>
+            </div>
+
+            <!-- Google Maps - role="presentation" on Interactive -->
+            <div class="map-container">
+                <h3>Google Maps - Interactive with role="presentation"</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Interactive map with presentation role removes semantics
+                </div>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2482.097734477064!2d-0.07615768422908522!3d51.528724279638015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48761cb68969df39%3A0xf2e0b74a0c5ca901!2sTower%20Bridge!5e0!3m2!1sen!2suk!4v1653559714190!5m2!1sen!2suk"
+                    width="600"
+                    height="450"
+                    title="Interactive map of Tower Bridge"
+                    role="presentation"
+                    style="border:0;"
+                    allowfullscreen="">
+                </iframe>
+                <div class="test-ref">Tests: presentation-role-interactive violation → WCAG 4.1.2</div>
+            </div>
+
+            <!-- Bing Maps (Simulated) -->
+            <div class="map-container">
+                <h3>Bing Maps - With aria-label</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Uses aria-label for accessible name
+                </div>
+                <iframe 
+                    src="https://bing.com/maps/embed/sample"
+                    width="600"
+                    height="450"
+                    style="border:0;"
+                    aria-label="Bing Maps showing downtown Seattle waterfront and Pike Place Market"
+                    allowfullscreen="">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "Bing Maps", aria-label detection</div>
+            </div>
+
+            <!-- OpenStreetMap -->
+            <div class="map-container">
+                <h3>OpenStreetMap - Proper Implementation</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Has descriptive title
+                </div>
+                <iframe 
+                    src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1419%2C51.5002%2C-0.1319%2C51.5052&layer=mapnik"
+                    width="600"
+                    height="450"
+                    title="OpenStreetMap showing Big Ben and Westminster area in London"
+                    style="border:1px solid black">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "OpenStreetMap", interactive provider detection</div>
+            </div>
+
+            <!-- Mapbox (Simulated) -->
+            <div class="map-container">
+                <h3>Mapbox - Missing Accessible Name</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: No accessible name provided
+                </div>
+                <iframe 
+                    src="https://api.mapbox.com/embed/v1/place/sample"
+                    width="600"
+                    height="450"
+                    style="border:0;">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "Mapbox", missing-accessible-name violation</div>
+            </div>
+
+            <!-- ArcGIS -->
+            <div class="map-container">
+                <h3>ArcGIS - With aria-labelledby</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Uses aria-labelledby to reference heading
+                </div>
+                <h4 id="arcgis-map-title">ArcGIS Map: Global Temperature Anomalies 2023</h4>
+                <iframe 
+                    src="https://arcgis.com/apps/embed/sample"
+                    width="600"
+                    height="450"
+                    aria-labelledby="arcgis-map-title"
+                    style="border:0;">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "ArcGIS", aria-labelledby detection</div>
+            </div>
+
+            <!-- HERE Maps -->
+            <div class="map-container">
+                <h3>HERE Maps - Non-interactive with aria-hidden</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Non-interactive map hidden from AT
+                </div>
+                <iframe 
+                    src="https://here.com/maps/embed/static"
+                    width="600"
+                    height="450"
+                    title="HERE Maps traffic view"
+                    aria-hidden="true"
+                    style="border:0;">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "HERE Maps", aria-hidden non-interactive warning</div>
+            </div>
+
+            <!-- TomTom -->
+            <div class="map-container">
+                <h3>TomTom - Interactive Detection</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Properly labeled interactive map
+                </div>
+                <iframe 
+                    src="https://tomtom.com/maps/embed?zoom=12"
+                    width="600"
+                    height="450"
+                    title="TomTom navigation map of Amsterdam city center"
+                    style="border:0;"
+                    allowfullscreen="">
+                </iframe>
+                <div class="test-ref">Tests: URL parameter detection (zoom=), interactive heuristics</div>
+            </div>
+
+            <!-- Waze -->
+            <div class="map-container">
+                <h3>Waze - Live Traffic Map</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Live traffic map with proper title
+                </div>
+                <iframe 
+                    src="https://waze.com/live-map/embed"
+                    width="600"
+                    height="450"
+                    title="Waze live traffic conditions for San Francisco Bay Area"
+                    style="border:0;"
+                    allowfullscreen="">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "Waze", interactive provider list</div>
+            </div>
+
+            <!-- Apple Maps (Simulated) -->
+            <div class="map-container">
+                <h3>Apple Maps - Proper Implementation</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Apple Maps with descriptive title
+                </div>
+                <iframe 
+                    src="https://maps.apple.com/embed/sample"
+                    width="600"
+                    height="450"
+                    title="Apple Maps showing Cupertino Apple Park campus"
+                    style="border:0;">
+                </iframe>
+                <div class="test-ref">Tests: identifyMapProvider() → "Apple Maps"</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DIV-BASED MAPS SECTION -->
+    <div class="provider-section">
+        <h2>2. Div-based Maps (JavaScript Libraries)</h2>
+        
+        <div class="grid-container">
+            <!-- Mapbox GL -->
+            <div class="map-container">
+                <h3>Mapbox GL - Within Landmark</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Has role="region" landmark with aria-label
+                </div>
+                <div role="region" aria-label="Interactive Mapbox map section">
+                    <div id="mapbox-gl-map" class="mapboxgl-map" style="width: 100%; height: 400px;">
+                        <div class="map-div">Mapbox GL Map</div>
+                        <div class="mapboxgl-control-container">
+                            <button class="mapboxgl-ctrl-zoom-in" type="button" aria-label="Zoom in"></button>
+                            <button class="mapboxgl-ctrl-zoom-out" type="button" aria-label="Zoom out"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: checkLandmarkContext() → hasLandmark: true, scanForFocusableElements()</div>
+            </div>
+
+            <!-- Leaflet -->
+            <div class="map-container">
+                <h3>Leaflet - With Heading Only</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Has heading but no landmark
+                </div>
+                <h4>Hiking Trails Map</h4>
+                <div id="leaflet-map" class="leaflet-container leaflet-fade-anim" style="width: 100%; height: 400px;">
+                    <div class="map-div">Leaflet Map</div>
+                    <div class="leaflet-control-zoom">
+                        <a class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
+                        <a class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: findAssociatedHeading() → hasHeading: true, div-map-heading-only warning</div>
+            </div>
+
+            <!-- Google Maps JS -->
+            <div class="map-container">
+                <h3>Google Maps JavaScript API - No Structure</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: No landmark or heading context
+                </div>
+                <div id="google-map-js" class="gm-style" style="width: 100%; height: 400px;">
+                    <div class="map-div">Google Maps JS</div>
+                    <div class="gmnoprint">
+                        <button class="gm-control-active">Zoom in</button>
+                        <button class="gm-control-active">Zoom out</button>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: div-map-no-structure violation, identifyDivMapProvider() → "Google Maps"</div>
+            </div>
+
+            <!-- OpenLayers -->
+            <div class="map-container">
+                <h3>OpenLayers - Interactive with aria-hidden</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Interactive div map with aria-hidden
+                </div>
+                <div id="ol-map" class="ol-viewport" aria-hidden="true" style="width: 100%; height: 400px;">
+                    <div class="map-div">OpenLayers Map</div>
+                    <div class="ol-control">
+                        <button type="button" tabindex="0">Zoom in</button>
+                        <button type="button" tabindex="0">Zoom out</button>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: isInteractiveDivMap() → true, aria-hidden-interactive violation</div>
+            </div>
+
+            <!-- ArcGIS JS -->
+            <div class="map-container">
+                <h3>ArcGIS JavaScript API - role="presentation" on Interactive</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Interactive map with presentation role
+                </div>
+                <div id="arcgis-js-map" class="esri-view" role="presentation" style="width: 100%; height: 400px;">
+                    <div class="map-div">ArcGIS JS Map</div>
+                    <div class="esri-ui">
+                        <div role="button" tabindex="0">Zoom widget</div>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: presentation-role-interactive violation for div maps</div>
+            </div>
+
+            <!-- HERE Maps JS -->
+            <div class="map-container">
+                <h3>HERE Maps JS - Proper Implementation</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Within main landmark with descriptive heading
+                </div>
+                <main>
+                    <h3>HERE Maps: Real-time Traffic Flow</h3>
+                    <div id="here-map-js" class="here-map" style="width: 100%; height: 400px;">
+                        <div class="map-div">HERE Maps JS</div>
+                    </div>
+                </main>
+                <div class="test-ref">Tests: checkLandmarkContext() → "main", identifyDivMapProvider() → "HERE Maps"</div>
+            </div>
+
+            <!-- Carto -->
+            <div class="map-container">
+                <h3>Carto - Data Visualization Map</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Has role="img" with aria-label for static visualization
+                </div>
+                <div id="carto-map" class="carto-map" role="img" aria-label="Population density visualization map of Europe" style="width: 100%; height: 400px;">
+                    <div class="map-div">Carto Visualization</div>
+                </div>
+                <div class="test-ref">Tests: identifyDivMapProvider() → "Carto", proper ARIA for non-interactive map</div>
+            </div>
+
+            <!-- Canvas-based Map -->
+            <div class="map-container">
+                <h3>Canvas-based Vector Map</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Generic canvas map with heading only
+                </div>
+                <h4>Custom Canvas Map Renderer</h4>
+                <div id="canvas-map" class="vector-map" style="width: 100%; height: 400px;">
+                    <canvas width="800" height="400" tabindex="0"></canvas>
+                </div>
+                <div class="test-ref">Tests: Canvas detection in div, "Vector Map (Canvas-based)" provider</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATIC MAP IMAGES SECTION -->
+    <div class="provider-section">
+        <h2>3. Static Map Images</h2>
+        
+        <div class="grid-container">
+            <!-- Google Static Maps -->
+            <div class="map-container">
+                <h3>Google Static Maps - Proper Alt Text</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Descriptive alt text
+                </div>
+                <img src="https://maps.googleapis.com/maps/api/staticmap?center=Brooklyn+Bridge,New+York,NY&zoom=13&size=600x400&maptype=roadmap&markers=color:red%7Clabel:B%7C40.702,-74.015&key=YOUR_API_KEY"
+                     alt="Map showing Brooklyn Bridge area in New York with a red marker at the bridge location"
+                     width="600"
+                     height="400">
+                <div class="test-ref">Tests: Static map detection, identifyMapProvider() → "Google Static Maps"</div>
+            </div>
+
+            <!-- Mapbox Static -->
+            <div class="map-container">
+                <h3>Mapbox Static Images - Generic Alt Text</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Alt text is generic "Map"
+                </div>
+                <img src="https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-122.4194,37.7749,10,0/600x400?access_token=YOUR_TOKEN"
+                     alt="Map"
+                     width="600"
+                     height="400">
+                <div class="test-ref">Tests: static-map-generic-alt violation, isGenericName() for images</div>
+            </div>
+
+            <!-- Bing Static Maps -->
+            <div class="map-container">
+                <h3>Bing Maps Static - Missing Alt Text</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: No alt text provided
+                </div>
+                <img src="https://dev.virtualearth.net/REST/v1/Imagery/Map/Road/47.6062,-122.3321/12?mapSize=600,400&key=YOUR_KEY"
+                     width="600"
+                     height="400">
+                <div class="test-ref">Tests: static-map-missing-alt violation → WCAG 1.1.1</div>
+            </div>
+
+            <!-- Yandex Maps -->
+            <div class="map-container">
+                <h3>Yandex Maps Static - With aria-hidden</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Static map hidden from AT
+                </div>
+                <img src="https://static-maps.yandex.ru/1.x/?ll=37.6156,55.7522&size=600,400&z=10&l=map"
+                     alt="Map of Moscow city center"
+                     aria-hidden="true"
+                     width="600"
+                     height="400">
+                <div class="test-ref">Tests: identifyMapProvider() → "Yandex Maps", static map aria-hidden warning</div>
+            </div>
+
+            <!-- OpenStreetMap Static -->
+            <div class="map-container">
+                <h3>OpenStreetMap Static Export</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Proper implementation with descriptive alt
+                </div>
+                <img src="https://staticmap.openstreetmap.de/staticmap.php?center=48.8566,2.3522&zoom=12&size=600x400&maptype=mapnik"
+                     alt="OpenStreetMap showing central Paris including the Eiffel Tower area and Seine River"
+                     width="600"
+                     height="400">
+                <div class="test-ref">Tests: identifyMapProvider() → "OpenStreetMap Static"</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG MAPS SECTION -->
+    <div class="provider-section">
+        <h2>4. SVG-based Maps</h2>
+        
+        <div class="grid-container">
+            <!-- Proper SVG -->
+            <div class="map-container">
+                <h3>SVG Map - Complete Accessibility</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Has role="img", title, desc, and aria-label
+                </div>
+                <svg viewBox="0 0 800 400" role="img" aria-label="Interactive map of European Union member states">
+                    <title>EU Member States Map</title>
+                    <desc>A political map showing all 27 EU member states with interactive regions</desc>
+                    <g id="eu-countries">
+                        <path d="M 200 100 L 300 100 L 300 150 L 200 150 Z" fill="#003399" id="france" tabindex="0" role="button" aria-label="France">
+                            <title>France</title>
+                        </path>
+                        <path d="M 310 100 L 410 100 L 410 150 L 310 150 Z" fill="#003399" id="germany" tabindex="0" role="button" aria-label="Germany">
+                            <title>Germany</title>
+                        </path>
+                    </g>
+                </svg>
+                <div class="test-ref">Tests: SVG map detection with proper accessibility</div>
+            </div>
+
+            <!-- Missing role -->
+            <div class="map-container">
+                <h3>SVG Map - Missing role="img"</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">WARNING</span>: Has title but missing role
+                </div>
+                <svg viewBox="0 0 800 400">
+                    <title>Asia Pacific Region Map</title>
+                    <g id="apac-countries">
+                        <path d="M 200 100 L 300 100 L 300 200 L 200 200 Z" fill="#ff6b6b" id="china"></path>
+                        <path d="M 350 150 L 400 150 L 400 200 L 350 200 Z" fill="#ff6b6b" id="japan"></path>
+                    </g>
+                </svg>
+                <div class="test-ref">Tests: SVG missing role detection</div>
+            </div>
+
+            <!-- Interactive SVG with aria-hidden -->
+            <div class="map-container">
+                <h3>SVG Map - Interactive with aria-hidden</h3>
+                <div class="test-info">
+                    <span class="issue-highlight">FAIL</span>: Focusable elements with aria-hidden="true"
+                </div>
+                <svg viewBox="0 0 800 400" aria-hidden="true">
+                    <title>Interactive US States Map</title>
+                    <g id="us-states">
+                        <rect x="100" y="100" width="100" height="80" fill="#4ecdc4" tabindex="0" onclick="alert('California')">
+                            <title>California</title>
+                        </rect>
+                        <rect x="210" y="100" width="80" height="80" fill="#4ecdc4" tabindex="0" onclick="alert('Nevada')">
+                            <title>Nevada</title>
+                        </rect>
+                    </g>
+                </svg>
+                <div class="test-ref">Tests: Interactive SVG detection, aria-hidden-interactive violation</div>
+            </div>
+
+            <!-- D3.js Style Map -->
+            <div class="map-container">
+                <h3>D3.js Choropleth Map</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Proper structure with data attributes
+                </div>
+                <svg viewBox="0 0 800 400" role="img" aria-label="COVID-19 cases by country choropleth map">
+                    <title>Global COVID-19 Cases Visualization</title>
+                    <g id="choropleth" data-map="true" data-geo="world">
+                        <path d="M 100 100 L 200 100 L 200 150 L 100 150 Z" fill="#fee0d2" data-country="low-cases"></path>
+                        <path d="M 210 100 L 310 100 L 310 150 L 210 150 Z" fill="#fc9272" data-country="medium-cases"></path>
+                        <path d="M 320 100 L 420 100 L 420 150 L 320 150 Z" fill="#de2d26" data-country="high-cases"></path>
+                    </g>
+                </svg>
+                <div class="test-ref">Tests: SVG with data attributes detection, hasGeoPaths check</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDGE CASES SECTION -->
+    <div class="provider-section">
+        <h2>5. Edge Cases and Additional Providers</h2>
+        
+        <div class="grid-container">
+            <!-- Mapfit -->
+            <div class="map-container">
+                <h3>Mapfit - Newer Provider</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Tests detection of less common provider
+                </div>
+                <div id="mapfit-map" class="mapfit-map" role="application" aria-label="Mapfit street-level map">
+                    <div class="map-div">Mapfit Map</div>
+                </div>
+                <div class="test-ref">Tests: identifyDivMapProvider() → "Mapfit" (from script detection)</div>
+            </div>
+
+            <!-- Mixed Signals -->
+            <div class="map-container">
+                <h3>Ambiguous Map Detection</h3>
+                <div class="test-info">
+                    Test multi-signal detection with conflicting indicators
+                </div>
+                <div class="custom-mapping-tool" style="width: 100%; height: 400px; position: relative;">
+                    <div class="map-div">Should NOT be detected as map (sitemap class)</div>
+                </div>
+                <div class="test-ref">Tests: isDivBasedMap() exclusion list (sitemap, roadmap, etc.)</div>
+            </div>
+
+            <!-- URL Parameter Detection -->
+            <div class="map-container">
+                <h3>URL Parameters Indicating Interactivity</h3>
+                <div class="test-info">
+                    <span class="good-highlight">PASS</span>: Tests parameter-based interaction detection
+                </div>
+                <iframe src="https://custom-map-provider.com/embed?zoom=15&lat=40.7128&lng=-74.0060&mode=directions&layer=traffic"
+                        width="600"
+                        height="400"
+                        title="Custom map with directions from Times Square to Central Park">
+                </iframe>
+                <div class="test-ref">Tests: URL parameter detection (zoom=, mode=directions, layer=)</div>
+            </div>
+
+            <!-- Blank/Empty Iframe -->
+            <div class="map-container">
+                <h3>Empty Iframe - Edge Case</h3>
+                <div class="test-info">
+                    Should not be detected as interactive
+                </div>
+                <iframe src="about:blank"
+                        width="600"
+                        height="400"
+                        title="Placeholder for dynamic map content"
+                        aria-hidden="true">
+                </iframe>
+                <div class="test-ref">Tests: isBlankPage check in checkForInteractiveContent()</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADDITIONAL PROVIDERS TO CONSIDER -->
+    <div class="provider-section">
+        <h2>6. Additional Map Providers to Consider Adding</h2>
+        
+        <div class="map-container">
+            <h3>Providers Not Currently in maps.js</h3>
+            <div class="test-info">
+                These providers might be worth adding to the detection logic:
+            </div>
+            <ul>
+                <li><strong>Baidu Maps</strong> - Popular in China (maps.baidu.com)</li>
+                <li><strong>Naver Maps</strong> - Popular in South Korea (map.naver.com)</li>
+                <li><strong>Kakao Maps</strong> - Popular in South Korea (map.kakao.com)</li>
+                <li><strong>2GIS</strong> - Popular in Russia/CIS (2gis.com)</li>
+                <li><strong>Mapy.cz</strong> - Popular in Czech Republic (mapy.cz)</li>
+                <li><strong>ViaMichelin</strong> - European route planner (viamichelin.com)</li>
+                <li><strong>Maptiler</strong> - Cloud maps platform (maptiler.com)</li>
+                <li><strong>Thunderforest</strong> - OpenStreetMap styles (thunderforest.com)</li>
+                <li><strong>Stamen</strong> - Artistic map tiles (stamen.com)</li>
+                <li><strong>Ordnance Survey</strong> - UK mapping (ordnancesurvey.co.uk)</li>
+                <li><strong>IGN</strong> - French national mapping (geoportail.gouv.fr)</li>
+                <li><strong>Sygic</strong> - Navigation maps (sygic.com)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts to simulate libraries -->
+    <script>
+        // Simulate various map libraries being loaded
+        const mockScripts = [
+            { src: 'https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js' },
+            { src: 'https://unpkg.com/leaflet@1.8.0/dist/leaflet.js' },
+            { src: 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY' },
+            { src: 'https://js.api.here.com/v3/3.1/mapsjs-core.js' },
+            { src: 'https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.15.0/maps/maps-web.min.js' },
+            { src: 'https://cdn.jsdelivr.net/npm/ol@v6.14.1/dist/ol.js' },
+            { src: 'https://js.arcgis.com/4.23/' },
+            { src: 'https://d3js.org/d3.v7.min.js' },
+            { src: 'https://unpkg.com/mapfit@3.0.0/dist/mapfit.js' },
+            { src: 'https://unpkg.com/carto.js@4.2.2/dist/public/carto.min.js' }
+        ];
+        
+        mockScripts.forEach(script => {
+            const scriptEl = document.createElement('script');
+            scriptEl.src = script.src;
+            document.head.appendChild(scriptEl);
+        });
+        
+        // Simulate CSS libraries
+        const mockStyles = [
+            { href: 'https://unpkg.com/leaflet@1.8.0/dist/leaflet.css' },
+            { href: 'https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css' },
+            { href: 'https://js.api.here.com/v3/3.1/mapsjs-ui.css' }
+        ];
+        
+        mockStyles.forEach(style => {
+            const linkEl = document.createElement('link');
+            linkEl.rel = 'stylesheet';
+            linkEl.href = style.href;
+            document.head.appendChild(linkEl);
+        });
+    </script>
+
+    <h2>Testing Summary</h2>
+    <p>This comprehensive fixture tests:</p>
+    <ul>
+        <li>✓ All currently detected providers (13 providers)</li>
+        <li>✓ All violation types (8 types)</li>
+        <li>✓ All detection methods (iframe, div, img, svg)</li>
+        <li>✓ Interactive vs non-interactive detection</li>
+        <li>✓ Landmark and heading context detection</li>
+        <li>✓ Generic name detection</li>
+        <li>✓ URL parameter-based detection</li>
+        <li>✓ Edge cases (empty iframes, ambiguous elements)</li>
+    </ul>
+    
+    <p><strong>Note:</strong> Each test case references the specific function or logic in maps.js that it tests, making it easy to trace issues back to the source code.</p>
+</body>
+</html>
