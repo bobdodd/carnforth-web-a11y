@@ -870,8 +870,8 @@ document.addEventListener('DOMContentLoaded', function() {
             issue.title.includes('missing accessibility attributes') ||
             issue.title.includes('missing alternative text')) {
           issueKey = 'maps-no-accessible-name';
-        } else if (issue.title.includes('generic accessible name') || 
-                   issue.title.includes('generic alternative text')) {
+        } else if (issue.title.includes('has generic accessible name') || 
+                   issue.title.includes('has generic alternative text')) {
           issueKey = 'generic-map-name';
         }
       } else if (touchpoint === 'tabindex') {
@@ -886,11 +886,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
+      // Debug logging
+      console.log('[Panel] Issue info button check:', {
+        touchpoint,
+        title: issue.title,
+        issueKey,
+        hasDocumentation: issueKey ? !!window.CarnforthDocumentation.issueDocumentation[issueKey] : false
+      });
+      
       // If we have a matching documentation key, add the info button
       if (issueKey && window.CarnforthDocumentation.issueDocumentation[issueKey]) {
         const infoButton = window.CarnforthDocumentation.createIssueInfoButton(touchpoint, issueKey, issue);
         title.appendChild(infoButton);
       }
+    } else {
+      console.log('[Panel] Documentation system not available:', {
+        hasCarnforthDocumentation: !!window.CarnforthDocumentation,
+        hasCreateIssueInfoButton: !!(window.CarnforthDocumentation && window.CarnforthDocumentation.createIssueInfoButton)
+      });
     }
     
     title.appendChild(srType);

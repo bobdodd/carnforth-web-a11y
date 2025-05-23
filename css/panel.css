@@ -376,14 +376,15 @@ main {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--margin-medium);
+  margin-right: var(--margin-small);
   font-size: var(--base-font-size);
   font-weight: bold;
   color: white;
   flex-shrink: 0; /* Prevent shrinking when in flex container */
+  vertical-align: middle;
 }
 
 .issue-bullet.fail {
