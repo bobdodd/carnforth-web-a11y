@@ -766,6 +766,12 @@ document.addEventListener('DOMContentLoaded', function() {
     spacer.className = 'accordion-spacer';
     header.appendChild(spacer);
     
+    // Add help button if documentation system is available
+    if (window.CarnforthDocumentation && window.CarnforthDocumentation.createHelpButton) {
+      const helpButton = window.CarnforthDocumentation.createHelpButton(touchpoint);
+      header.appendChild(helpButton);
+    }
+    
     accordion.appendChild(header);
 
     // Create accordion content

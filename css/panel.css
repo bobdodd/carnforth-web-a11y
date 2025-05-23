@@ -621,6 +621,220 @@ main {
   border: 0;
 }
 
+/* Help button styles */
+.help-button {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--info-bg-color);
+  color: white;
+  border: 2px solid var(--info-bg-color);
+  font-size: 0.875rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--margin-small);
+  flex-shrink: 0;
+}
+
+.help-button:hover {
+  background-color: #1565c0;
+  border-color: #1565c0;
+  transform: scale(1.1);
+}
+
+.help-button:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+/* Modal styles */
+.carnforth-modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+}
+
+.modal-content {
+  background-color: var(--background-color);
+  margin: 5% auto;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-medium);
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--padding-large);
+  border-bottom: 1px solid var(--border-color);
+  background-color: #f5f5f5;
+  border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: var(--large-font-size);
+  color: var(--text-color);
+}
+
+.modal-close {
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-color);
+  border-radius: var(--border-radius-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: #e0e0e0;
+  color: var(--fail-color);
+}
+
+.modal-close:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+.modal-body {
+  padding: var(--padding-large);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-body section {
+  margin-bottom: var(--margin-xlarge);
+}
+
+.modal-body h3 {
+  font-size: var(--medium-font-size);
+  margin-bottom: var(--margin-medium);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--padding-small);
+}
+
+.modal-body h4 {
+  font-size: var(--base-font-size);
+  margin-bottom: var(--margin-small);
+  color: var(--text-color);
+}
+
+.modal-body ul {
+  padding-left: var(--padding-large);
+  margin-bottom: var(--margin-medium);
+}
+
+.modal-body li {
+  margin-bottom: var(--margin-small);
+  line-height: 1.6;
+}
+
+/* Criteria description styling */
+.criteria-description {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: normal;
+}
+
+/* Examples container */
+.examples-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--margin-large);
+  margin-top: var(--margin-medium);
+}
+
+@media (max-width: 768px) {
+  .examples-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.good-examples h4,
+.bad-examples h4 {
+  color: var(--text-color);
+  margin-bottom: var(--margin-medium);
+}
+
+.example {
+  margin-bottom: var(--margin-large);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  padding: var(--padding-medium);
+  background-color: #f8f8f8;
+}
+
+.example pre {
+  margin: 0;
+  overflow-x: auto;
+  background-color: #f1f1f1;
+  padding: var(--padding-medium);
+  border-radius: var(--border-radius-small);
+  border: 1px solid #e0e0e0;
+}
+
+.example code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.example-explanation {
+  margin-top: var(--margin-medium);
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+}
+
+/* Resources links */
+.modal-body a {
+  color: var(--info-color);
+  text-decoration: none;
+}
+
+.modal-body a:hover {
+  text-decoration: underline;
+}
+
+.modal-body a:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
 /* Windows High Contrast Mode support */
 @media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
   /* Use system colors in high contrast mode */
@@ -650,7 +864,39 @@ main {
   
   /* Ensure buttons have proper borders */
   .primary-button,
-  .export-button {
+  .export-button,
+  .help-button {
+    border: 1px solid CanvasText;
+  }
+  
+  /* Help button in high contrast */
+  .help-button {
+    background-color: Canvas;
+    color: CanvasText;
+    border: 2px solid CanvasText;
+  }
+  
+  /* Modal in high contrast */
+  .carnforth-modal {
+    background-color: Canvas;
+  }
+  
+  .modal-content {
+    background-color: Canvas;
+    border: 2px solid CanvasText;
+  }
+  
+  .modal-header {
+    background-color: Canvas;
+    border-color: CanvasText;
+  }
+  
+  .modal-close {
+    color: CanvasText;
+  }
+  
+  .modal-close:hover {
+    background-color: Canvas;
     border: 1px solid CanvasText;
   }
   
@@ -733,7 +979,9 @@ main {
   .issue-selector, 
   .issue-xpath, 
   .issue-html, 
-  .issue-fixed-html {
+  .issue-fixed-html,
+  .example,
+  .example pre {
     background-color: Canvas;
     border-color: CanvasText;
   }

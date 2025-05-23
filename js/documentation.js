@@ -103,6 +103,67 @@ const touchpointDocumentation = {
       'Avoid redundant phrases like "link to" or "button for"',
       'Test with a screen reader to verify names make sense'
     ]
+  },
+  
+  tabindex: {
+    title: 'Tabindex Touchpoint',
+    overview: 'Evaluates the proper use of tabindex attributes to ensure keyboard navigation follows a logical order.',
+    whatItTests: [
+      'Detection of positive tabindex values (tabindex > 0)',
+      'Identification of elements removed from tab order (tabindex="-1")',
+      'Non-interactive elements with tabindex="0"',
+      'Interactive elements unnecessarily assigned tabindex',
+      'Missing keyboard accessibility for custom interactive elements'
+    ],
+    wcagCriteria: [
+      { criterion: '2.1.1 Keyboard', level: 'A', description: 'All functionality must be keyboard accessible' },
+      { criterion: '2.4.3 Focus Order', level: 'A', description: 'Focus order must be logical and meaningful' },
+      { criterion: '3.2.2 On Input', level: 'A', description: 'Focus changes should not cause unexpected context changes' }
+    ],
+    commonIssues: [
+      'Using positive tabindex values which disrupt natural focus order',
+      'Interactive elements with tabindex="-1" that cannot be keyboard accessed',
+      'Non-interactive elements like divs/spans with tabindex making them focusable',
+      'Custom controls missing proper keyboard support'
+    ],
+    bestPractices: [
+      'Avoid positive tabindex values - use DOM order for focus sequence',
+      'Only use tabindex="-1" for elements that will receive focus programmatically',
+      'Interactive elements rarely need explicit tabindex',
+      'Ensure custom controls are fully keyboard accessible',
+      'Test keyboard navigation without a mouse'
+    ]
+  },
+  
+  focus_management: {
+    title: 'Focus Management Touchpoint',
+    overview: 'Ensures proper focus management for dynamic content and single-page applications.',
+    whatItTests: [
+      'Focus moves appropriately when content changes',
+      'Modal dialogs trap focus correctly',
+      'Focus returns to trigger element when dialogs close',
+      'Skip links and bypass blocks work correctly',
+      'Focus is visible for all interactive elements'
+    ],
+    wcagCriteria: [
+      { criterion: '2.4.3 Focus Order', level: 'A', description: 'Navigation sequences must be logical' },
+      { criterion: '2.4.7 Focus Visible', level: 'AA', description: 'Keyboard focus indicator must be visible' },
+      { criterion: '2.4.1 Bypass Blocks', level: 'A', description: 'Mechanisms to skip repeated content' }
+    ],
+    commonIssues: [
+      'Focus not moving to new content in SPAs',
+      'Modal dialogs allowing focus to escape',
+      'Focus lost when content is removed',
+      'Missing or low contrast focus indicators',
+      'Skip links that don\'t work'
+    ],
+    bestPractices: [
+      'Move focus to new content when routes change in SPAs',
+      'Implement focus trapping for modal dialogs',
+      'Return focus to trigger element when closing overlays',
+      'Ensure all interactive elements have visible focus indicators',
+      'Test focus management with keyboard only'
+    ]
   }
   
   // Add more touchpoint documentation as needed
