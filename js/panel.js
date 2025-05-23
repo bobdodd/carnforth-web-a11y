@@ -833,6 +833,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const issueItem = document.createElement('li');
     issueItem.className = 'issue-item';
     
+    // Create a container for the disclosure button and info button
+    const issueHeader = document.createElement('div');
+    issueHeader.className = 'issue-header-container';
+    
     // Create disclosure button that will contain the heading
     const disclosureBtn = document.createElement('button');
     disclosureBtn.className = 'issue-disclosure-btn';
@@ -867,6 +871,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add the heading to the button
     disclosureBtn.appendChild(title);
     
+    // Add disclosure button to header container
+    issueHeader.appendChild(disclosureBtn);
+    
+    // Check if we have documentation for this issue type
+    if (window.CarnforthDocumentation && window.CarnforthDocumentation.createIssueInfoButton) {
+      // Determine issue key based on touchpoint and issue title
+      let issueKey = null;
+      
+      // Map common issue patterns to documentation keys
+      if (touchpoint === 'maps') {
+        if (issue.title.includes('missing accessible name')) {
+          issueKey = 'maps-no-accessible-name';
+        } else if (issue.title.includes('generic name')) {
+          issueKey = 'generic-map-name';
+        }
+      } else if (touchpoint === 'tabindex') {
+        if (issue.title.includes('Positive tabindex')) {
+          issueKey = 'positive-tabindex';
+        } else if (issue.title.includes('Non-interactive element') && issue.title.includes('tabindex="0"')) {
+          issueKey = 'tabindex-on-non-interactive';
+        }
+      } else if (touchpoint === 'accessible_name') {
+        if (issue.title.includes('no accessible name')) {
+          issueKey = 'no-accessible-name';
+        }
+      }
+      
+      // If we have a matching documentation key, add the info button
+      if (issueKey && window.CarnforthDocumentation.issueDocumentation[issueKey]) {
+        const infoButton = window.CarnforthDocumentation.createIssueInfoButton(touchpoint, issueKey, issue);
+        issueHeader.appendChild(infoButton);
+      }
+    }
+    
     // Add xpath to collapsed view if it exists
     if (issue.xpath) {
       const xpathPreview = document.createElement('div');
@@ -882,7 +920,8 @@ document.addEventListener('DOMContentLoaded', function() {
       disclosureBtn.appendChild(xpathPreview);
     }
     
-    issueItem.appendChild(disclosureBtn);
+    // Add the header container to the list item
+    issueItem.appendChild(issueHeader);
 
     // Create issue details
     const details = document.createElement('div');

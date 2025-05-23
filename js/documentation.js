@@ -169,14 +169,206 @@ const touchpointDocumentation = {
   // Add more touchpoint documentation as needed
 };
 
+// Issue-specific documentation for common violation types
+const issueDocumentation = {
+  'maps-no-accessible-name': {
+    title: 'Map Missing Accessible Name',
+    overview: 'This map element lacks a descriptive name that screen reader users can understand.',
+    impact: {
+      who: 'Users who rely on screen readers to understand page content',
+      severity: 'High - Screen reader users cannot understand what the map represents',
+      realWorld: 'Imagine trying to navigate a website blindfolded. Without a descriptive name, you would have no idea what this map shows - is it directions to a store, a weather map, or something else entirely?'
+    },
+    whyItMatters: [
+      'Screen readers announce "frame" or "application" without context',
+      'Users cannot determine if the map content is relevant to their needs',
+      'Navigation becomes frustrating when purposes are unclear',
+      'May violate legal accessibility requirements'
+    ],
+    howToFix: {
+      overview: 'Add a descriptive title or aria-label that explains what the map shows',
+      examples: [
+        {
+          type: 'iframe',
+          before: '<iframe src="https://maps.google.com/..."></iframe>',
+          after: '<iframe src="https://maps.google.com/..." title="Interactive map showing office location at 123 Main Street"></iframe>',
+          explanation: 'The title attribute provides the accessible name for iframes'
+        },
+        {
+          type: 'div',
+          before: '<div id="map-container"></div>',
+          after: '<div id="map-container" role="application" aria-label="Store locator map for Chicago area"></div>',
+          explanation: 'For div-based maps, use aria-label with an appropriate role'
+        }
+      ]
+    },
+    resources: [
+      { title: 'WebAIM: Creating Accessible Frames', url: 'https://webaim.org/techniques/frames/' },
+      { title: 'MDN: ARIA Labels and Descriptions', url: 'https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-label' }
+    ]
+  },
+  
+  'generic-map-name': {
+    title: 'Map Has Generic Name',
+    overview: 'This map uses a generic name like "Map" that doesn\'t provide meaningful context.',
+    impact: {
+      who: 'All users, but especially those using assistive technologies',
+      severity: 'Medium - Users can identify it\'s a map but not its purpose',
+      realWorld: 'It\'s like labeling every door in a building as just "Door" - technically correct but not helpful for finding what you need.'
+    },
+    whyItMatters: [
+      'Users need to understand the map\'s purpose before interacting with it',
+      'Generic names make it hard to distinguish between multiple maps',
+      'Screen reader users hear repetitive, unhelpful announcements',
+      'Reduces efficiency for all users navigating the page'
+    ],
+    howToFix: {
+      overview: 'Replace generic names with descriptive ones that include location, purpose, or content',
+      tips: [
+        'Include the location: "Map of downtown Seattle"',
+        'Mention the purpose: "Delivery area map"',
+        'Add relevant context: "Hurricane evacuation routes map"',
+        'Be specific but concise: "Campus building locations"'
+      ]
+    }
+  },
+  
+  'positive-tabindex': {
+    title: 'Positive Tabindex Disrupts Focus Order',
+    overview: 'Using positive tabindex values forces a specific tab order that often confuses keyboard users.',
+    impact: {
+      who: 'Keyboard users, including those with motor disabilities',
+      severity: 'High - Creates unpredictable navigation patterns',
+      realWorld: 'Imagine reading a book where you\'re forced to jump to page 47 after page 2, then back to page 3. That\'s what positive tabindex does to keyboard navigation.'
+    },
+    whyItMatters: [
+      'Natural reading order (top-to-bottom, left-to-right) is intuitive',
+      'Positive values create unexpected jumps in focus order',
+      'Maintenance becomes difficult as the page evolves',
+      'Users may miss important interactive elements'
+    ],
+    howToFix: {
+      overview: 'Remove positive tabindex values and use proper DOM order instead',
+      steps: [
+        'Remove all positive tabindex values',
+        'Rearrange HTML to match desired focus order',
+        'Use CSS for visual positioning if needed',
+        'Only use tabindex="0" or tabindex="-1" when necessary'
+      ],
+      examples: [
+        {
+          before: '<button tabindex="3">Submit</button>\n<input tabindex="1" type="text">\n<button tabindex="2">Cancel</button>',
+          after: '<input type="text">\n<button>Cancel</button>\n<button>Submit</button>',
+          explanation: 'Arrange elements in DOM to match logical order'
+        }
+      ]
+    }
+  },
+  
+  'no-accessible-name': {
+    title: 'Interactive Element Missing Accessible Name',
+    overview: 'This interactive element has no accessible name, making it impossible for screen reader users to understand its purpose.',
+    impact: {
+      who: 'Screen reader users and voice control users',
+      severity: 'Critical - Users cannot interact with unnamed elements',
+      realWorld: 'It\'s like having a button with no label - you can see it\'s clickable but have no idea what it does.'
+    },
+    whyItMatters: [
+      'Screen readers announce elements by their accessible names',
+      'Voice control users need names to activate controls',
+      'Unnamed elements create barriers to interaction',
+      'Users may activate the wrong control by mistake'
+    ],
+    howToFix: {
+      overview: 'Add an accessible name using appropriate techniques based on the element type',
+      examples: [
+        {
+          type: 'Button',
+          before: '<button><img src="save.png"></button>',
+          after: '<button aria-label="Save document"><img src="save.png" alt=""></button>',
+          explanation: 'Use aria-label for buttons with only icons'
+        },
+        {
+          type: 'Link',
+          before: '<a href="/profile"><img src="user.png"></a>',
+          after: '<a href="/profile"><img src="user.png" alt="User profile"></a>',
+          explanation: 'Alt text on images provides the link text'
+        },
+        {
+          type: 'Form input',
+          before: '<input type="text" placeholder="Email">',
+          after: '<label for="email">Email</label>\n<input type="text" id="email" placeholder="email@example.com">',
+          explanation: 'Always use proper labels for form inputs'
+        }
+      ]
+    },
+    resources: [
+      { title: 'WebAIM: Labels and Accessible Names', url: 'https://webaim.org/articles/label-name/' },
+      { title: 'WCAG Technique: Providing accessible names', url: 'https://www.w3.org/WAI/WCAG21/Techniques/general/G131' }
+    ]
+  },
+  
+  'tabindex-on-non-interactive': {
+    title: 'Non-Interactive Element Made Focusable',
+    overview: 'This non-interactive element has tabindex="0", making it keyboard focusable even though it has no interactive behavior.',
+    impact: {
+      who: 'Keyboard users',
+      severity: 'Medium - Creates confusing navigation experience',
+      realWorld: 'Imagine if every paragraph on a page was a tab stop - you\'d have to press Tab dozens of times to reach the button you want.'
+    },
+    whyItMatters: [
+      'Adds unnecessary tab stops, slowing keyboard navigation',
+      'Confuses users when focused elements do nothing',
+      'May indicate missing interactive functionality',
+      'Makes pages harder to navigate efficiently'
+    ],
+    howToFix: {
+      overview: 'Remove tabindex from non-interactive elements or make them properly interactive',
+      steps: [
+        'Determine if the element should be interactive',
+        'If not interactive, remove tabindex attribute',
+        'If it should be interactive, add proper role and keyboard handlers',
+        'Consider using semantic HTML instead of div/span with tabindex'
+      ],
+      examples: [
+        {
+          before: '<div tabindex="0">Important notice</div>',
+          after: '<div>Important notice</div>',
+          explanation: 'Static content doesn\'t need to be focusable'
+        },
+        {
+          before: '<div tabindex="0" onclick="doSomething()">Click me</div>',
+          after: '<button onclick="doSomething()">Click me</button>',
+          explanation: 'Use semantic elements for interactive content'
+        }
+      ]
+    }
+  }
+  
+  // Add more issue-specific documentation as needed
+};
+
 /**
  * Opens documentation in a modal dialog
  * @param {string} touchpointId - The touchpoint identifier
+ * @param {Object} options - Additional options for the modal
+ * @param {string} options.issueKey - Specific issue key for issue documentation
+ * @param {Object} options.issueData - Issue data to provide context
  */
-function openDocumentationModal(touchpointId) {
-  const doc = touchpointDocumentation[touchpointId];
-  if (!doc) {
-    console.warn(`No documentation found for touchpoint: ${touchpointId}`);
+function openDocumentationModal(touchpointId, options = {}) {
+  let doc;
+  let modalTitle;
+  
+  if (options.issueKey && issueDocumentation[options.issueKey]) {
+    // Issue-specific documentation
+    doc = issueDocumentation[options.issueKey];
+    modalTitle = 'Issue Details';
+  } else if (touchpointDocumentation[touchpointId]) {
+    // Touchpoint documentation
+    doc = touchpointDocumentation[touchpointId];
+    modalTitle = 'Touchpoint Documentation';
+  } else {
+    console.warn(`No documentation found for: ${options.issueKey || touchpointId}`);
     return;
   }
   
@@ -188,7 +380,11 @@ function openDocumentationModal(touchpointId) {
   }
   
   // Populate modal content
-  populateModal(modal, doc, touchpointId);
+  if (options.issueKey) {
+    populateIssueModal(modal, doc, options);
+  } else {
+    populateTouchpointModal(modal, doc, touchpointId);
+  }
   
   // Show modal
   modal.style.display = 'block';
@@ -261,9 +457,9 @@ function createModal() {
 }
 
 /**
- * Populates the modal with documentation content
+ * Populates the modal with touchpoint documentation content
  */
-function populateModal(modal, doc, touchpointId) {
+function populateTouchpointModal(modal, doc, touchpointId) {
   const title = modal.querySelector('.modal-title');
   const body = modal.querySelector('.modal-body');
   
@@ -370,6 +566,119 @@ function populateModal(modal, doc, touchpointId) {
 }
 
 /**
+ * Populates the modal with issue-specific documentation content
+ */
+function populateIssueModal(modal, doc, options) {
+  const title = modal.querySelector('.modal-title');
+  const body = modal.querySelector('.modal-body');
+  
+  title.textContent = doc.title;
+  
+  // Clear previous content
+  body.innerHTML = '';
+  
+  // Overview section
+  const overviewSection = document.createElement('section');
+  overviewSection.innerHTML = `
+    <h3>What's the Problem?</h3>
+    <p>${doc.overview}</p>
+  `;
+  body.appendChild(overviewSection);
+  
+  // Impact section
+  if (doc.impact) {
+    const impactSection = document.createElement('section');
+    impactSection.innerHTML = `
+      <h3>Who Does This Affect?</h3>
+      <div class="impact-details">
+        <p><strong>Affected Users:</strong> ${doc.impact.who}</p>
+        <p><strong>Severity:</strong> ${doc.impact.severity}</p>
+        ${doc.impact.realWorld ? `<p class="real-world-example"><em>${doc.impact.realWorld}</em></p>` : ''}
+      </div>
+    `;
+    body.appendChild(impactSection);
+  }
+  
+  // Why it matters
+  if (doc.whyItMatters) {
+    const whySection = document.createElement('section');
+    whySection.innerHTML = `
+      <h3>Why This Matters</h3>
+      <ul>
+        ${doc.whyItMatters.map(reason => `<li>${reason}</li>`).join('')}
+      </ul>
+    `;
+    body.appendChild(whySection);
+  }
+  
+  // How to fix
+  if (doc.howToFix) {
+    const fixSection = document.createElement('section');
+    let fixContent = `<h3>How to Fix This Issue</h3>`;
+    
+    if (doc.howToFix.overview) {
+      fixContent += `<p>${doc.howToFix.overview}</p>`;
+    }
+    
+    if (doc.howToFix.steps) {
+      fixContent += `
+        <ol class="fix-steps">
+          ${doc.howToFix.steps.map(step => `<li>${step}</li>`).join('')}
+        </ol>
+      `;
+    }
+    
+    if (doc.howToFix.tips) {
+      fixContent += `
+        <h4>Tips:</h4>
+        <ul>
+          ${doc.howToFix.tips.map(tip => `<li>${tip}</li>`).join('')}
+        </ul>
+      `;
+    }
+    
+    if (doc.howToFix.examples) {
+      fixContent += `<h4>Code Examples:</h4>`;
+      doc.howToFix.examples.forEach(example => {
+        fixContent += `
+          <div class="code-example">
+            ${example.type ? `<h5>${example.type} Example:</h5>` : ''}
+            <div class="before-after">
+              <div class="before">
+                <strong>❌ Before:</strong>
+                <pre><code>${escapeHtml(example.before)}</code></pre>
+              </div>
+              <div class="after">
+                <strong>✅ After:</strong>
+                <pre><code>${escapeHtml(example.after)}</code></pre>
+              </div>
+            </div>
+            ${example.explanation ? `<p class="example-explanation">${example.explanation}</p>` : ''}
+          </div>
+        `;
+      });
+    }
+    
+    fixSection.innerHTML = fixContent;
+    body.appendChild(fixSection);
+  }
+  
+  // Resources
+  if (doc.resources) {
+    const resourcesSection = document.createElement('section');
+    resourcesSection.innerHTML = `
+      <h3>Learn More</h3>
+      <ul>
+        ${doc.resources.map(resource => `
+          <li><a href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.title}</a></li>
+        `).join('')}
+      </ul>
+    `;
+    body.appendChild(resourcesSection);
+  }
+}
+
+/**
  * Closes the documentation modal
  */
 function closeDocumentationModal() {
@@ -440,9 +749,29 @@ function createHelpButton(touchpointId) {
   return button;
 }
 
+/**
+ * Creates an info button for issue-specific documentation
+ */
+function createIssueInfoButton(touchpointId, issueKey, issueData) {
+  const button = document.createElement('button');
+  button.className = 'issue-info-button';
+  button.setAttribute('aria-label', `Learn more about this issue`);
+  button.innerHTML = '<span aria-hidden="true">ℹ</span>';
+  button.onclick = (e) => {
+    e.stopPropagation(); // Prevent issue disclosure toggle
+    openDocumentationModal(touchpointId, {
+      issueKey: issueKey,
+      issueData: issueData
+    });
+  };
+  return button;
+}
+
 // Export functions for use in other modules
 window.CarnforthDocumentation = {
   openDocumentationModal,
   createHelpButton,
-  touchpointDocumentation
+  createIssueInfoButton,
+  touchpointDocumentation,
+  issueDocumentation
 };
