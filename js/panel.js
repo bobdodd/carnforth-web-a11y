@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         preferences = { ...preferences, ...stored.carnforthPreferences };
         
         // Migrate old format: defaultWcagVersions array to defaultWcagVersion string
-        const storedPrefs = stored.carnforthPreferences as any;
+        const storedPrefs = stored.carnforthPreferences;
         if (Array.isArray(storedPrefs.defaultWcagVersions) && !storedPrefs.defaultWcagVersion) {
           // Use the highest version from the array, or default to 2.2
           if (storedPrefs.defaultWcagVersions.includes('2.2')) {
