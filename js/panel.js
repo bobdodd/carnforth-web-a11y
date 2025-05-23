@@ -2265,7 +2265,25 @@ document.addEventListener('DOMContentLoaded', function() {
           </ul>
         </li>
         <li><a href="#about-carnforth"><span class="section-number">3</span>About Carnforth Web A11y</a></li>
-        <li><a href="#about-touchpoints"><span class="section-number">4</span>About Touchpoints</a></li>
+        <li>
+          <a href="#about-touchpoints"><span class="section-number">4</span>About Touchpoints</a>
+          <ul>`;
+      
+      // Add touchpoint documentation links
+      const implementedTouchpoints = ['maps']; // This should match the list in Chapter 4
+      let docIndex = 1;
+      implementedTouchpoints.forEach(touchpoint => {
+        const doc = getTouchpointDocumentation(touchpoint);
+        if (doc) {
+          htmlTemplate += `
+            <li><a href="#touchpoint-${touchpoint}"><span class="section-number">4.${docIndex}</span>${escapeHtml(doc.title || touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}</a></li>`;
+          docIndex++;
+        }
+      });
+      
+      htmlTemplate += `
+          </ul>
+        </li>
       </ul>
     </nav>
   </section>
@@ -2642,7 +2660,7 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     
     <div class="touchpoint-doc">
-      <h3><span class="section-number">4.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
+      <h3 id="touchpoint-${touchpoint}"><span class="section-number">4.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
       <p>${escapeHtml(doc.overview)}</p>`;
       
       if (doc.whatItTests && doc.whatItTests.length > 0) {
@@ -2700,7 +2718,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (doc.examples.good && doc.examples.good.length > 0) {
           htmlTemplate += `
       <h5>Good Examples</h5>`;
-          doc.examples.good.forEach((example, idx) => {
+          doc.examples.good.forEach((example) => {
             htmlTemplate += `
       <div class="code-example">
         <pre>${escapeHtml(example.code)}</pre>
@@ -2712,7 +2730,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (doc.examples.bad && doc.examples.bad.length > 0) {
           htmlTemplate += `
       <h5>Bad Examples</h5>`;
-          doc.examples.bad.forEach((example, idx) => {
+          doc.examples.bad.forEach((example) => {
             htmlTemplate += `
       <div class="code-example">
         <pre>${escapeHtml(example.code)}</pre>
