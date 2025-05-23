@@ -1637,6 +1637,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const date = now.toLocaleDateString();
       const time = now.toLocaleTimeString();
       
+      // Define implemented touchpoints once for the entire export
+      const implementedTouchpoints = ['maps']; // Add more as they are implemented
+      
       // Create the HTML template with embedded CSS
       let htmlTemplate = `<!DOCTYPE html>
 <html lang="en">
@@ -2270,7 +2273,6 @@ document.addEventListener('DOMContentLoaded', function() {
           <ul>`;
       
       // Add touchpoint documentation links
-      const implementedTouchpoints = ['maps']; // This should match the list in Chapter 4
       let docIndex = 1;
       implementedTouchpoints.forEach(touchpoint => {
         const doc = getTouchpointDocumentation(touchpoint);
@@ -2648,7 +2650,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add documentation for each implemented touchpoint
     let touchpointDocIndex = 1;
-    const implementedTouchpoints = ['maps']; // Add more as they are implemented
     
     implementedTouchpoints.forEach(touchpoint => {
       const doc = getTouchpointDocumentation(touchpoint);
