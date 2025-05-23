@@ -75,22 +75,24 @@ header {
   text-align: left;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.5rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--margin-small);
+  flex-grow: 1;
 }
 
 h1 {
   width: auto;
   text-align: left;
   margin-bottom: 0;
+  margin-right: var(--margin-small);
   padding: 0 var(--padding-medium);
   flex-grow: 0;
-}
-
-.header-buttons {
-  display: flex;
-  gap: var(--margin-small);
-  padding-right: var(--padding-medium);
 }
 
 /* Header buttons */
@@ -133,12 +135,27 @@ h1 {
   background-color: var(--info-bg-color);
   color: white;
   border-color: var(--info-bg-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  flex-shrink: 0;
+  margin-left: 0; /* Close to heading */
+}
+
+/* Subtle button styling for preferences */
+.subtle-button {
+  background-color: transparent;
+  border: 1px solid #e0e0e0;
+  color: #666666;
+  font-weight: 500;
+  font-size: 0.875rem; /* Smaller font */
+}
+
+.subtle-button:hover {
+  background-color: #f5f5f5;
+  color: var(--text-color);
+  border-color: #d0d0d0;
+}
+
+.subtle-button:focus {
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 1px;
 }
 
 .header-help-button:hover {
