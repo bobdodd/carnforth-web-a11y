@@ -1845,6 +1845,12 @@ document.addEventListener('DOMContentLoaded', function() {
       display: none;
     }
     
+    /* Hide any stray interactive elements that might come from test page HTML */
+    .small-map-controls,
+    .tiny-button {
+      display: none !important;
+    }
+    
     ul, ol {
       margin-left: 1.5rem;
       margin-bottom: 1rem;
@@ -2306,23 +2312,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (issue.html) {
-              // Check if HTML is already escaped
+              // Always escape HTML content for safety
               const htmlContent = issue.html;
-              const isAlreadyEscaped = htmlContent.includes('&lt;') || htmlContent.includes('&gt;');
+              const escapedContent = htmlContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
               
               htmlTemplate += `
               <div class="technical-label">Current HTML:</div>
-              <pre>${isAlreadyEscaped ? htmlContent : htmlContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${escapedContent}</pre>`;
             }
             
             if (issue.fixedHtml) {
-              // Check if fixed HTML is already escaped
+              // Always escape HTML content for safety
               const fixedHtmlContent = issue.fixedHtml;
-              const isFixedAlreadyEscaped = fixedHtmlContent.includes('&lt;') || fixedHtmlContent.includes('&gt;');
+              const escapedFixedContent = fixedHtmlContent
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
               
               htmlTemplate += `
               <div class="technical-label">Example Fix:</div>
-              <pre>${isFixedAlreadyEscaped ? fixedHtmlContent : fixedHtmlContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${escapedFixedContent}</pre>`;
             }
             
             htmlTemplate += `
@@ -2336,23 +2352,33 @@ document.addEventListener('DOMContentLoaded', function() {
               <h5>Code Example</h5>`;
             
             if (issue.codeExample.before && issue.codeExample.before.trim()) {
-              // Check if code is already escaped
+              // Always escape code content for safety
               const beforeCode = issue.codeExample.before;
-              const isBeforeEscaped = beforeCode.includes('&lt;') || beforeCode.includes('&gt;');
+              const escapedBeforeCode = beforeCode
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
               
               htmlTemplate += `
               <div class="technical-label">Current Implementation:</div>
-              <pre>${isBeforeEscaped ? beforeCode : beforeCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${escapedBeforeCode}</pre>`;
             }
             
             if (issue.codeExample.after && issue.codeExample.after.trim()) {
-              // Check if code is already escaped
+              // Always escape code content for safety
               const afterCode = issue.codeExample.after;
-              const isAfterEscaped = afterCode.includes('&lt;') || afterCode.includes('&gt;');
+              const escapedAfterCode = afterCode
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
               
               htmlTemplate += `
               <div class="technical-label">Accessible Implementation:</div>
-              <pre>${isAfterEscaped ? afterCode : afterCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+              <pre>${escapedAfterCode}</pre>`;
             }
             
             htmlTemplate += `
