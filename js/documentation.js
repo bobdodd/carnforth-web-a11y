@@ -357,16 +357,13 @@ const issueDocumentation = {
  */
 function openDocumentationModal(touchpointId, options = {}) {
   let doc;
-  let modalTitle;
   
   if (options.issueKey && issueDocumentation[options.issueKey]) {
     // Issue-specific documentation
     doc = issueDocumentation[options.issueKey];
-    modalTitle = 'Issue Details';
   } else if (touchpointDocumentation[touchpointId]) {
     // Touchpoint documentation
     doc = touchpointDocumentation[touchpointId];
-    modalTitle = 'Touchpoint Documentation';
   } else {
     console.warn(`No documentation found for: ${options.issueKey || touchpointId}`);
     return;
@@ -381,9 +378,9 @@ function openDocumentationModal(touchpointId, options = {}) {
   
   // Populate modal content
   if (options.issueKey) {
-    populateIssueModal(modal, doc, options);
+    populateIssueModal(modal, doc);
   } else {
-    populateTouchpointModal(modal, doc, touchpointId);
+    populateTouchpointModal(modal, doc);
   }
   
   // Show modal
@@ -459,7 +456,7 @@ function createModal() {
 /**
  * Populates the modal with touchpoint documentation content
  */
-function populateTouchpointModal(modal, doc, touchpointId) {
+function populateTouchpointModal(modal, doc) {
   const title = modal.querySelector('.modal-title');
   const body = modal.querySelector('.modal-body');
   
@@ -568,7 +565,7 @@ function populateTouchpointModal(modal, doc, touchpointId) {
 /**
  * Populates the modal with issue-specific documentation content
  */
-function populateIssueModal(modal, doc, options) {
+function populateIssueModal(modal, doc) {
   const title = modal.querySelector('.modal-title');
   const body = modal.querySelector('.modal-body');
   
