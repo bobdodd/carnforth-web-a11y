@@ -1614,24 +1614,6 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 0;
     }
     
-    .skip-link {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      padding: 8px;
-      z-index: 100;
-      background: #ffffff;
-      color: var(--info-color);
-      border: 2px solid var(--border-color);
-      border-radius: var(--border-radius-small);
-      transition: top 0.2s;
-    }
-    
-    .skip-link:focus {
-      top: 0;
-      outline: 2px solid var(--focus-outline-color);
-    }
-    
     .meta-info {
       background-color: #f5f5f5;
       padding: 1rem;
@@ -2045,7 +2027,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
   <h1>Accessibility Audit Report</h1>
   
   <div class="meta-info">
