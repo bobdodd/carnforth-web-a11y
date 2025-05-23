@@ -1840,6 +1840,11 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 0.75rem;
     }
     
+    /* Hide empty pre elements */
+    pre:empty {
+      display: none;
+    }
+    
     ul, ol {
       margin-left: 1.5rem;
       margin-bottom: 1rem;
@@ -2235,11 +2240,10 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           // Add WCAG information if present
-          if (issue.wcag) {
+          if (issue.wcag && (issue.wcag.principle || issue.wcag.guideline || issue.wcag.successCriterion)) {
             htmlTemplate += `
             <div class="issue-section wcag">
-              <h5>WCAG Reference</h5>
-              <div>`;
+              <h5>WCAG Reference</h5>`;
             
             if (issue.wcag.principle) {
               htmlTemplate += `
@@ -2263,7 +2267,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             htmlTemplate += `
-              </div>
             </div>`;
           }
           
@@ -2290,13 +2293,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="issue-section technical">
               <h5>Technical Details</h5>`;
             
-            if (issue.selector) {
+            if (issue.selector && issue.selector.trim()) {
               htmlTemplate += `
               <div class="technical-label">CSS Selector:</div>
               <pre>${issue.selector}</pre>`;
             }
             
-            if (issue.xpath) {
+            if (issue.xpath && issue.xpath.trim()) {
               htmlTemplate += `
               <div class="technical-label">XPath:</div>
               <pre>${issue.xpath}</pre>`;
@@ -2332,7 +2335,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="issue-section code-example">
               <h5>Code Example</h5>`;
             
-            if (issue.codeExample.before) {
+            if (issue.codeExample.before && issue.codeExample.before.trim()) {
               // Check if code is already escaped
               const beforeCode = issue.codeExample.before;
               const isBeforeEscaped = beforeCode.includes('&lt;') || beforeCode.includes('&gt;');
@@ -2342,7 +2345,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <pre>${isBeforeEscaped ? beforeCode : beforeCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
             }
             
-            if (issue.codeExample.after) {
+            if (issue.codeExample.after && issue.codeExample.after.trim()) {
               // Check if code is already escaped
               const afterCode = issue.codeExample.after;
               const isAfterEscaped = afterCode.includes('&lt;') || afterCode.includes('&gt;');
