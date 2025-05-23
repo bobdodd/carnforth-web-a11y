@@ -1506,6 +1506,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Escape HTML entities to prevent XSS and rendering issues
+   * @param {string} str - The string to escape
+   * @returns {string} - The escaped string
+   */
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
    * Perform the HTML export after getting the URL
    * @param {string} pageUrl - The URL of the inspected page
    */
@@ -2190,10 +2205,10 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="issue-header">
             <span class="issue-bullet ${issue.type}" aria-hidden="true">${issue.type === 'fail' ? 'F' : issue.type === 'warning' ? 'W' : 'I'}</span>
             <span class="issue-type-label sr-only">${issue.type === 'fail' ? 'Fail: ' : issue.type === 'warning' ? 'Warning: ' : 'Info: '}</span>
-            <h4 class="issue-title">${issue.title}</h4>
+            <h4 class="issue-title">${escapeHtml(issue.title)}</h4>
           </div>
           <div class="issue-body">
-            <p class="issue-description">${issue.description}</p>`;
+            <p class="issue-description">${escapeHtml(issue.description)}</p>`;
           
           // Add impact information (required for fail and warning)
           if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact) {
@@ -2204,21 +2219,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (issue.impact.who) {
               htmlTemplate += `
               <div class="impact-who">
-                <strong>Affects: </strong>${issue.impact.who}
+                <strong>Affects: </strong>${escapeHtml(issue.impact.who)}
               </div>`;
             }
             
             if (issue.impact.severity) {
               htmlTemplate += `
               <div class="impact-severity">
-                <strong>Severity: </strong>${issue.impact.severity}
+                <strong>Severity: </strong>${escapeHtml(issue.impact.severity)}
               </div>`;
             }
             
             if (issue.impact.why) {
               htmlTemplate += `
               <div class="impact-why">
-                <strong>Why it matters: </strong>${issue.impact.why}
+                <strong>Why it matters: </strong>${escapeHtml(issue.impact.why)}
               </div>`;
             }
             
@@ -2266,7 +2281,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             issue.remediation.forEach(step => {
               htmlTemplate += `
-                <li>${step}</li>`;
+                <li>${escapeHtml(step)}</li>`;
             });
             
             htmlTemplate += `
@@ -2293,33 +2308,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (issue.html) {
-              // Always escape HTML content for safety
-              const htmlContent = issue.html;
-              const escapedContent = htmlContent
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-              
               htmlTemplate += `
               <div class="technical-label">Current HTML:</div>
-              <pre>${escapedContent}</pre>`;
+              <pre>${escapeHtml(issue.html)}</pre>`;
             }
             
             if (issue.fixedHtml) {
-              // Always escape HTML content for safety
-              const fixedHtmlContent = issue.fixedHtml;
-              const escapedFixedContent = fixedHtmlContent
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-              
               htmlTemplate += `
               <div class="technical-label">Example Fix:</div>
-              <pre>${escapedFixedContent}</pre>`;
+              <pre>${escapeHtml(issue.fixedHtml)}</pre>`;
             }
             
             htmlTemplate += `
@@ -2333,33 +2330,15 @@ document.addEventListener('DOMContentLoaded', function() {
               <h5>Code Example</h5>`;
             
             if (issue.codeExample.before && issue.codeExample.before.trim()) {
-              // Always escape code content for safety
-              const beforeCode = issue.codeExample.before;
-              const escapedBeforeCode = beforeCode
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-              
               htmlTemplate += `
               <div class="technical-label">Current Implementation:</div>
-              <pre>${escapedBeforeCode}</pre>`;
+              <pre>${escapeHtml(issue.codeExample.before)}</pre>`;
             }
             
             if (issue.codeExample.after && issue.codeExample.after.trim()) {
-              // Always escape code content for safety
-              const afterCode = issue.codeExample.after;
-              const escapedAfterCode = afterCode
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-              
               htmlTemplate += `
               <div class="technical-label">Accessible Implementation:</div>
-              <pre>${escapedAfterCode}</pre>`;
+              <pre>${escapeHtml(issue.codeExample.after)}</pre>`;
             }
             
             htmlTemplate += `
@@ -2376,10 +2355,10 @@ document.addEventListener('DOMContentLoaded', function() {
             issue.resources.forEach(resource => {
               if (resource.url) {
                 htmlTemplate += `
-                <li><a href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.title || resource.url}</a></li>`;
+                <li><a href="${escapeHtml(resource.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(resource.title || resource.url)}</a></li>`;
               } else {
                 htmlTemplate += `
-                <li>${resource.title}</li>`;
+                <li>${escapeHtml(resource.title)}</li>`;
               }
             });
             
