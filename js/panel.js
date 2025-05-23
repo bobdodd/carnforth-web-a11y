@@ -230,10 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Load and execute a touchpoint test directly in the DevTools panel
    * @param {string} touchpoint - The touchpoint name
-   * @param {number} tabId - The ID of the inspected tab
    * @returns {Promise<Object>} - The test results
    */
-  async function runTouchpoint(touchpoint, tabId) {
+  async function runTouchpoint(touchpoint) {
     console.log(`[Panel] Running touchpoint test: ${touchpoint}`);
     
     // Create a function that executes in the context of the inspected page
@@ -399,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
       for (const touchpoint of batch) {
         try {
           console.log(`[Panel] Starting touchpoint: ${touchpoint}`);
-          const result = await runTouchpoint(touchpoint, tabId);
+          const result = await runTouchpoint(touchpoint);
           
           // Store the result
           results[touchpoint] = result;
@@ -520,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function applyFallbackSyntaxHighlighting(codeBlocks) {
     console.log('[Panel] Applying fallback syntax highlighting');
-    codeBlocks.forEach((block, index) => {
+    codeBlocks.forEach((block) => {
       applyFallbackHighlightingToElement(block);
     });
   }
