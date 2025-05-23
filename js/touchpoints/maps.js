@@ -1603,17 +1603,22 @@ window.test_maps = async function() {
   src="https://static-maps.example.com/..."
   aria-hidden="true"
   alt="">`,
-            after: `<img
-  src="https://static-maps.example.com/..."
-  alt="Map showing our office location at 123 Main Street, Chicago">
-
-<!-- OR provide an accessible alternative -->
-<div class="map-alternative">
+            after: `<!-- Structured content with proper headings -->
+<section class="location-section">
   <h3>Our Office Location</h3>
-  <p>Our office is located at 123 Main Street, Chicago, IL.</p>
-  <p>Nearby landmarks: Two blocks east of Grant Park.</p>
-  <p>Public transit: Red Line (State/Lake station)</p>
-</div>`
+  
+  <h4 class="sr-only">Map showing our office location</h4>
+  <img
+    src="https://static-maps.example.com/..."
+    alt="Map showing our office location at 123 Main Street, Chicago">
+  
+  <h4>Key Information</h4>
+  <ul>
+    <li>Address: 123 Main Street, Chicago, IL 60601</li>
+    <li>Nearby landmarks: Two blocks east of Grant Park</li>
+    <li>Public transit: Red Line (State/Lake station)</li>
+  </ul>
+</section>`
           } : {
             before: `<${elementType} 
   src="https://www.google.com/maps/embed?pb=..."
@@ -1623,22 +1628,27 @@ window.test_maps = async function() {
   allowfullscreen=""
   loading="lazy">
 </${elementType}>`,
-            after: `<${elementType}
-  src="https://www.google.com/maps/embed?pb=..."
-  width="600" 
-  height="450"
-  title="Interactive map showing our office location"
-  allowfullscreen=""
-  loading="lazy">
-</${elementType}>
-
-<!-- OR provide an accessible alternative -->
-<div class="map-alternative">
+            after: `<!-- Structured content with proper headings -->
+<section class="location-section">
   <h3>Our Office Location</h3>
-  <p>Our office is located at 123 Main Street, Chicago, IL.</p>
-  <p>Nearby landmarks: Two blocks east of Grant Park.</p>
-  <p>Public transit: Red Line (State/Lake station)</p>
-</div>`
+  
+  <h4 class="sr-only">Interactive map showing our office location</h4>
+  <${elementType}
+    src="https://www.google.com/maps/embed?pb=..."
+    width="600" 
+    height="450"
+    title="Interactive map showing our office location"
+    allowfullscreen=""
+    loading="lazy">
+  </${elementType}>
+  
+  <h4>Key Information</h4>
+  <ul>
+    <li>Address: 123 Main Street, Chicago, IL 60601</li>
+    <li>Nearby landmarks: Two blocks east of Grant Park</li>
+    <li>Public transit: Red Line (State/Lake station)</li>
+  </ul>
+</section>`
           }
         });
         
