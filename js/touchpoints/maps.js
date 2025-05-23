@@ -457,7 +457,7 @@ window.test_maps = async function() {
             xpath: getFullXPath(iframe),
             html: iframeHtml,
             currentName: accessibleNameText,
-            severity: 'warning'
+            impact: 'medium'  // Generic iframe names reduce clarity for screen reader users
           });
         }
 
@@ -1260,7 +1260,7 @@ window.test_maps = async function() {
             xpath: getFullXPath(div),
             html: divHtml,
             isInteractive: isInteractive,
-            severity: 'fail'
+            impact: 'high'  // Hidden maps completely block access to content
           });
         } else if (!landmarkInfo.hasLandmark && headingInfo.hasHeading) {
           results.violations.push({
@@ -1272,7 +1272,7 @@ window.test_maps = async function() {
             html: divHtml,
             isInteractive: isInteractive,
             headingText: headingInfo.headingText,
-            severity: 'warning'
+            impact: 'medium'  // Landmark violations reduce navigation efficiency
           });
         }
         
@@ -1286,7 +1286,7 @@ window.test_maps = async function() {
             xpath: getFullXPath(div),
             html: divHtml,
             currentName: ariaLabel || ariaLabelledby,
-            severity: 'warning'
+            impact: 'medium'  // Generic div names reduce understanding
           });
         }
         
@@ -1425,7 +1425,7 @@ window.test_maps = async function() {
             xpath: getFullXPath(svg),
             html: svgHtml,
             currentName: accessibleNameText,
-            severity: 'warning'
+            impact: 'medium'  // Generic SVG names reduce understanding
           });
         }
         
@@ -1546,7 +1546,7 @@ window.test_maps = async function() {
               selector: control.id ? `#${control.id}` : null,
               xpath: controlXPath,
               html: control.outerHTML.substring(0, 200) + (control.outerHTML.length > 200 ? '...' : ''),
-              severity: !touchTarget.meetsWCAG258 ? 'critical' : 'warning'
+              impact: !touchTarget.meetsWCAG258 ? 'high' : 'medium'  // Small targets can prevent interaction for motor-impaired users
             });
             
             if (!touchTarget.meetsWCAG258) {
@@ -1690,7 +1690,7 @@ window.test_maps = async function() {
           // Impact section helps developers understand severity and prioritize fixes
           impact: {
             who: 'Screen reader users who navigate with a keyboard',
-            severity: 'Critical',  // Critical/High/Medium/Low based on user impact
+            level: 'high',  // Critical/High/Medium/Low based on user impact
             why: 'This creates a "silent focus trap" in the accessibility tree. Keyboard users can tab into and interact with elements inside the map, but these interactions will be completely silent for screen-reader users. Focus will move through interactive elements with no audio feedback, creating a confusing and disorienting experience.'
           },
           
@@ -1777,7 +1777,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'Medium',
+            level: 'medium',
             why: 'Maps often contain important location or spatial information. If this information is hidden from screen readers and not provided in another format, it may violate WCAG 1.1.1 by failing to provide text alternatives for non-text content.'
           },
           wcag: {
@@ -1926,7 +1926,7 @@ window.test_maps = async function() {
           
           impact: {
             who: 'Screen reader users',
-            severity: 'Critical',
+            level: 'high',
             why: 'The role="presentation" attribute tells assistive technology to ignore this element\'s semantic meaning. For an interactive map, this creates a confusing experience where users can interact with controls but receive no context about what they are interacting with.'
           },
           
@@ -2010,7 +2010,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users and users with cognitive disabilities',
-            severity: 'High',
+            level: 'high',
             why: 'Screen reader users rely on accessible names to understand the purpose of the map. Without a descriptive title, users may not understand what information the map is conveying.'
           },
           wcag: {
@@ -2083,7 +2083,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users and users with cognitive disabilities',
-            severity: 'High',
+            level: 'high',
             why: 'Screen reader users rely on accessible names to understand the purpose of the map. Without a descriptive title, users may not understand what information the map is conveying.'
           },
           wcag: {
@@ -2155,7 +2155,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'Medium',
+            level: 'medium',
             why: 'Using aria-hidden="true" removes the element from the accessibility tree, making any geographic or location information in the map unavailable to people who rely on screen-readers. This is a WCAG 1.1.1 violation if equivalent information is not provided in another format.'
           },
           wcag: {
@@ -2242,7 +2242,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users, keyboard-only users',
-            severity: 'High',
+            level: 'high',
             why: 'Modern mapping libraries (like Mapbox, Leaflet, Google Maps JS API) typically render in <div> elements, which are semantically meaningless to people using screen readers. Without proper ARIA attributes, the map becomes an unidentified "group" or is announced simply as "div", providing no context about its purpose or content.'
           },
           wcag: {
@@ -2310,7 +2310,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users and users who cannot see images',
-            severity: 'High',
+            level: 'high',
             why: 'Maps often convey crucial location or spatial information. Without alternative text, users who rely on screen readers have no access to this information.'
           },
           wcag: {
@@ -2370,7 +2370,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users and users who cannot see images',
-            severity: 'Medium',
+            level: 'medium',
             why: 'Generic alt text like "map" or "location" doesn\'t convey any meaningful information about the map\'s content. Screen reader users need to know what location or area is being shown and any key details.'
           },
           wcag: {
@@ -2428,7 +2428,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users, keyboard-only users',
-            severity: 'High',
+            level: 'high',
             why: 'SVG-based maps are increasingly common for interactive choropleth, vector, and data visualization maps. Without proper accessibility attributes, screen readers cannot identify the SVG as a map or understand its purpose. This creates a significant barrier for non-visual users trying to access this information.'
           },
           wcag: {
@@ -2516,7 +2516,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'High',
+            level: 'high',
             why: 'Div-based maps are complex regions that need proper structural context. Without a landmark or heading, screen reader users cannot easily navigate to the map or understand its boundaries and purpose within the page structure.'
           },
           wcag: {
@@ -2580,7 +2580,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'Medium',
+            level: 'medium',
             why: 'While the heading provides context, landmarks offer better navigation and structural understanding. Screen reader users can jump between landmarks but may miss content that only has headings.'
           },
           wcag: {
@@ -2639,7 +2639,7 @@ window.test_maps = async function() {
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'High',
+            level: 'high',
             why: 'Generic names provide no useful information about the map\'s content. Users need to know what location, data, or information the map displays to determine if it\'s relevant to their needs. This violates WCAG 2.4.6 which requires labels to describe purpose.'
           },
           wcag: {
@@ -2704,7 +2704,7 @@ window.test_maps = async function() {
             who: failsMinimum 
               ? 'Users with motor disabilities, users with tremors, elderly users, mobile users'
               : 'Mobile users, users with minor motor difficulties',
-            severity: failsMinimum ? 'High' : 'Medium',
+            level: failsMinimum ? 'high' : 'medium',
             why: failsMinimum
               ? 'Small touch targets require precise motor control that many users don\'t have. This can make map controls unusable for people with conditions like Parkinson\'s disease, arthritis, or other motor impairments. Mobile users also struggle with small targets.'
               : 'While technically accessible, smaller touch targets increase error rates and user frustration, particularly on touch devices. Larger targets provide a more comfortable and confident user experience.'
