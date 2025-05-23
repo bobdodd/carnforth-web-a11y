@@ -1663,6 +1663,8 @@ window.test_maps = async function() {
           },
           remediation: [
             'Provide a text description of what the map shows',
+            'Add a screen reader-only heading (h4) before the map to make it skippable',
+            'Include the address with other key information under a visible heading',
             'Add a data table with the key locations or information from the map',
             'Ensure all important information conveyed visually is also available in text format'
           ],
@@ -1677,17 +1679,19 @@ window.test_maps = async function() {
 <section class="location-section">
   <h3>Our Office Location</h3>
   
+  <!-- Screen reader-only heading allows users to skip the map -->
+  <h4 id="map-heading" class="sr-only">Interactive map of our office location</h4>
   <div class="map-container">
-    <div class="map" aria-label="Interactive map of our office location">
+    <div class="map" aria-labelledby="map-heading">
       <!-- Map rendered by JavaScript -->
     </div>
   </div>
   
   <!-- Text alternatives for key map information -->
   <div class="map-description">
-    <p>Address: 123 Main Street, Chicago, IL 60601</p>
-    <h4>Key Information:</h4>
+    <h4>Key Information</h4>
     <ul>
+      <li>Address: 123 Main Street, Chicago, IL 60601</li>
       <li>Nearby landmarks: Two blocks east of City Hall</li>
       <li>Public transit: Red Line (State/Lake station)</li>
       <li>Parking: Public garage available at 130 Main Street</li>
@@ -1706,6 +1710,7 @@ window.test_maps = async function() {
 <section class="location-section">
   <h3>Our Office Location</h3>
   
+  <h4 class="sr-only">Map showing our office location</h4>
   <div class="map-container">
     <img 
       src="https://static-maps.example.com/..."
@@ -1714,9 +1719,9 @@ window.test_maps = async function() {
   
   <!-- Additional text information -->
   <div class="map-description">
-    <p>Address: 123 Main Street, Chicago, IL 60601</p>
-    <h4>Key Information:</h4>
+    <h4>Key Information</h4>
     <ul>
+      <li>Address: 123 Main Street, Chicago, IL 60601</li>
       <li>Nearby landmarks: Two blocks east of City Hall</li>
       <li>Public transit: Red Line (State/Lake station)</li>
       <li>Parking: Public garage available at 130 Main Street</li>
@@ -1737,6 +1742,7 @@ window.test_maps = async function() {
 <section class="location-section">
   <h3>Our Office Location</h3>
   
+  <h4 class="sr-only">Interactive map showing our office location</h4>
   <div class="map-container">
     <${elementType} 
       src="https://www.google.com/maps/embed?pb=..."
@@ -1748,9 +1754,9 @@ window.test_maps = async function() {
   
   <!-- Text alternatives for key map information -->
   <div class="map-description">
-    <p>Address: 123 Main Street, Chicago, IL 60601</p>
-    <h4>Key Information:</h4>
+    <h4>Key Information</h4>
     <ul>
+      <li>Address: 123 Main Street, Chicago, IL 60601</li>
       <li>Nearby landmarks: Two blocks east of City Hall</li>
       <li>Public transit: Red Line (State/Lake station)</li>
       <li>Parking: Public garage available at 130 Main Street</li>
