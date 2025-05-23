@@ -49,8 +49,8 @@
     <div class="filter-controls">
       <div class="filter-group">
         <label class="filter-label">WCAG Version:</label>
-        <button class="filter-button active" data-wcag-version="2.0" aria-pressed="true">2.0</button>
-        <button class="filter-button active" data-wcag-version="2.1" aria-pressed="true">2.1</button>
+        <button class="filter-button" data-wcag-version="2.0" aria-pressed="false">2.0</button>
+        <button class="filter-button" data-wcag-version="2.1" aria-pressed="false">2.1</button>
         <button class="filter-button active" data-wcag-version="2.2" aria-pressed="true">2.2</button>
       </div>
       <div class="filter-group">
@@ -128,18 +128,18 @@
       </div>
       <div class="modal-body">
         <fieldset class="pref-section">
-          <legend>Default WCAG Version Filters</legend>
-          <div class="pref-checkboxes">
+          <legend>Default WCAG Version</legend>
+          <div class="pref-radios">
             <label>
-              <input type="checkbox" id="pref-wcag-2.0" value="2.0" checked>
+              <input type="radio" name="pref-wcag-version" id="pref-wcag-2.0" value="2.0">
               WCAG 2.0
             </label>
             <label>
-              <input type="checkbox" id="pref-wcag-2.1" value="2.1" checked>
+              <input type="radio" name="pref-wcag-version" id="pref-wcag-2.1" value="2.1">
               WCAG 2.1
             </label>
             <label>
-              <input type="checkbox" id="pref-wcag-2.2" value="2.2" checked>
+              <input type="radio" name="pref-wcag-version" id="pref-wcag-2.2" value="2.2" checked>
               WCAG 2.2
             </label>
           </div>

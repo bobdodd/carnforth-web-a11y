@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Filter state
   let activeFilters = {
-    wcagVersions: new Set(['2.0', '2.1', '2.2']), // All versions selected by default
+    wcagVersion: '2.2', // Single WCAG version selected (default to latest)
     wcagLevels: new Set(['A', 'AA', 'AAA']), // All levels selected by default
     issueTypes: new Set(['fail', 'warning', 'info']), // All types selected by default
     searchText: ''
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Preferences state
   let preferences = {
-    defaultWcagVersions: ['2.0', '2.1', '2.2'],
+    defaultWcagVersion: '2.2', // Single WCAG version (default to latest)
     defaultWcagLevels: ['A', 'AA', 'AAA'],
     defaultIssueTypes: ['fail', 'warning', 'info'],
     selectedTouchpoints: [...touchpoints], // All touchpoints by default
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Reset filters to preferences defaults
     activeFilters = {
-      wcagVersions: new Set(preferences.defaultWcagVersions),
+      wcagVersion: preferences.defaultWcagVersion,
       wcagLevels: new Set(preferences.defaultWcagLevels),
       issueTypes: new Set(preferences.defaultIssueTypes),
       searchText: ''
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset filter UI based on preferences
     wcagVersionButtons.forEach(btn => {
       const version = btn.dataset.wcagVersion;
-      if (preferences.defaultWcagVersions.includes(version)) {
+      if (version === preferences.defaultWcagVersion) {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
       } else {
@@ -148,6 +148,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const stored = await chrome.storage.local.get('carnforthPreferences');
       if (stored.carnforthPreferences) {
         preferences = { ...preferences, ...stored.carnforthPreferences };
+        
+        // Migrate old format: defaultWcagVersions array to defaultWcagVersion string
+        if (Array.isArray(preferences.defaultWcagVersions) && !preferences.defaultWcagVersion) {
+          // Use the highest version from the array, or default to 2.2
+          if (preferences.defaultWcagVersions.includes('2.2')) {
+            preferences.defaultWcagVersion = '2.2';
+          } else if (preferences.defaultWcagVersions.includes('2.1')) {
+            preferences.defaultWcagVersion = '2.1';
+          } else if (preferences.defaultWcagVersions.includes('2.0')) {
+            preferences.defaultWcagVersion = '2.0';
+          } else {
+            preferences.defaultWcagVersion = '2.2';
+          }
+          // Remove old property
+          delete preferences.defaultWcagVersions;
+          // Save migrated preferences
+          await savePreferences();
+        }
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -663,16 +681,20 @@ document.addEventListener('DOMContentLoaded', function() {
       const isActive = this.classList.contains('active');
       
       if (isActive) {
-        // Deselect this version
-        activeFilters.wcagVersions.delete(version);
-        this.classList.remove('active');
-        this.setAttribute('aria-pressed', 'false');
-      } else {
-        // Select this version
-        activeFilters.wcagVersions.add(version);
-        this.classList.add('active');
-        this.setAttribute('aria-pressed', 'true');
+        // Radio button behavior - clicking an already selected version does nothing
+        return;
       }
+      
+      // Deselect all other versions
+      wcagVersionButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      
+      // Select this version
+      activeFilters.wcagVersion = version;
+      this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
       
       applyFilters();
     });
@@ -848,8 +870,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Filter by WCAG version
-        if (activeFilters.wcagVersions.size > 0 && issue.wcag && issue.wcag.version) {
-          if (!activeFilters.wcagVersions.has(issue.wcag.version)) {
+        if (issue.wcag && issue.wcag.version) {
+          // For WCAG version filtering, include issues from the selected version and all previous versions
+          const versionHierarchy = { '2.0': 1, '2.1': 2, '2.2': 3 };
+          const selectedLevel = versionHierarchy[activeFilters.wcagVersion] || 3;
+          const issueLevel = versionHierarchy[issue.wcag.version] || 1;
+          if (issueLevel > selectedLevel) {
             return false;
           }
         }
@@ -916,6 +942,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Build filter description
     const filterDescriptions = [];
+    
+    // WCAG version
+    if (activeFilters.wcagVersion !== '2.2') {
+      filterDescriptions.push(`WCAG ${activeFilters.wcagVersion}`);
+    }
     
     // WCAG levels
     if (activeFilters.wcagLevels.size < 3 && activeFilters.wcagLevels.size > 0) {
@@ -3260,10 +3291,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function updatePreferencesForm() {
-    // Update WCAG version checkboxes
-    document.querySelectorAll('#preferences-modal input[id^="pref-wcag-"]').forEach(checkbox => {
-      if (checkbox.value) {
-        checkbox.checked = preferences.defaultWcagVersions.includes(checkbox.value);
+    // Update WCAG version radio buttons
+    document.querySelectorAll('#preferences-modal input[name="pref-wcag-version"]').forEach(radio => {
+      if (radio.value === preferences.defaultWcagVersion) {
+        radio.checked = true;
       }
     });
     
@@ -3295,13 +3326,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function handleSavePreferences() {
-    // Get WCAG versions
-    preferences.defaultWcagVersions = [];
-    document.querySelectorAll('#preferences-modal input[id^="pref-wcag-"]:checked').forEach(checkbox => {
-      if (checkbox.value) {
-        preferences.defaultWcagVersions.push(checkbox.value);
-      }
-    });
+    // Get WCAG version (radio button)
+    const selectedVersionRadio = document.querySelector('#preferences-modal input[name="pref-wcag-version"]:checked');
+    if (selectedVersionRadio) {
+      preferences.defaultWcagVersion = selectedVersionRadio.value;
+    }
     
     // Get WCAG levels
     preferences.defaultWcagLevels = [];
@@ -3346,7 +3375,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function handleResetPreferences() {
     // Reset to defaults
     preferences = {
-      defaultWcagVersions: ['2.0', '2.1', '2.2'],
+      defaultWcagVersion: '2.2',
       defaultWcagLevels: ['A', 'AA', 'AAA'],
       defaultIssueTypes: ['fail', 'warning', 'info'],
       selectedTouchpoints: [...touchpoints],
