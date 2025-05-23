@@ -1521,6 +1521,52 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /**
+   * Get touchpoint documentation if available
+   * @param {string} touchpoint - The touchpoint name
+   * @returns {object|null} - The documentation object or null
+   */
+  function getTouchpointDocumentation(touchpoint) {
+    // Basic documentation for maps touchpoint (expand as needed)
+    const basicDocs = {
+      maps: {
+        whatItTests: [
+          'Iframe-based embedded maps (Google Maps, OpenStreetMap, etc.)',
+          'JavaScript-rendered div maps (Mapbox GL, Leaflet, etc.)',
+          'Static map images',
+          'Proper labeling with title, aria-label, or aria-labelledby',
+          'Touch target sizes for map controls'
+        ],
+        wcagCriteria: [
+          { criterion: '1.1.1 Non-text Content', level: 'A', description: 'Maps need text alternatives' },
+          { criterion: '2.4.6 Headings and Labels', level: 'AA', description: 'Maps need descriptive labels' },
+          { criterion: '2.5.5 Target Size (Enhanced)', level: 'AAA', description: 'Touch targets should be at least 44x44 pixels' },
+          { criterion: '2.5.8 Target Size (Minimum)', level: 'AA', description: 'Touch targets must be at least 24x24 pixels' }
+        ],
+        commonIssues: [
+          'Missing accessible names (title, aria-label)',
+          'Using aria-hidden="true" on interactive maps',
+          'Generic names like "Map" without context',
+          'Map controls with insufficient touch target size'
+        ],
+        bestPractices: [
+          'Always provide a descriptive title or aria-label that explains what the map shows',
+          'Include the location or purpose in the accessible name',
+          'Ensure all map controls are keyboard accessible',
+          'Provide alternative ways to access map information (tables, text descriptions)'
+        ]
+      }
+    };
+    
+    // Check if documentation module is loaded first
+    if (typeof touchpointDocumentation !== 'undefined' && touchpointDocumentation[touchpoint]) {
+      return touchpointDocumentation[touchpoint];
+    }
+    
+    // Fall back to basic docs
+    return basicDocs[touchpoint] || null;
+  }
+
+  /**
    * Perform the HTML export after getting the URL
    * @param {string} pageUrl - The URL of the inspected page
    */
@@ -1930,6 +1976,13 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 1rem;
     }
     
+    /* Section numbering */
+    .section-number {
+      font-weight: bold;
+      color: var(--info-color);
+      margin-right: 0.5rem;
+    }
+    
     /* About Carnforth section */
     .about-section {
       margin-top: 3rem;
@@ -1975,6 +2028,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .about-resources li {
       margin-bottom: 0.75rem;
+    }
+    
+    /* Touchpoint documentation */
+    .touchpoint-doc {
+      background-color: #f9f9f9;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 0.25rem;
+    }
+    
+    .touchpoint-doc h4 {
+      color: var(--text-color);
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .touchpoint-doc ul {
+      margin-left: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .touchpoint-doc li {
+      margin-bottom: 0.25rem;
     }
     
     /* Windows High Contrast Mode support */
@@ -2078,12 +2155,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <h2 id="toc-heading">Table of Contents</h2>
     <nav class="toc" aria-label="Table of contents">
       <ul>
-        <li><a href="#summary-heading">Summary</a></li>
+        <li><a href="#summary-heading"><span class="section-number">1</span>Summary</a></li>
         <li>
-          <a href="#details-heading">Detailed Results</a>
+          <a href="#details-heading"><span class="section-number">2</span>Detailed Results</a>
           <ul>`;
       
       // Add touchpoint links to table of contents
+      let touchpointIndex = 1;
       sortedTouchpoints.forEach(touchpoint => {
         const touchpointData = currentTestResults[touchpoint];
         const issues = touchpointData.issues || [];
@@ -2098,20 +2176,21 @@ document.addEventListener('DOMContentLoaded', function() {
           .replace(/\b\w/g, l => l.toUpperCase());
         
         htmlTemplate += `
-            <li><a href="#${touchpoint}-heading">${displayName}</a></li>`;
+            <li><a href="#${touchpoint}-heading"><span class="section-number">2.${touchpointIndex}</span>${displayName}</a></li>`;
+        touchpointIndex++;
       });
       
       htmlTemplate += `
           </ul>
         </li>
-        <li><a href="#about-carnforth">About Carnforth Web A11y</a></li>
+        <li><a href="#about-carnforth"><span class="section-number">3</span>About Carnforth Web A11y</a></li>
       </ul>
     </nav>
   </section>
 
   <main id="main-content">
   <section aria-labelledby="summary-heading">
-    <h2 id="summary-heading">Summary</h2>
+    <h2 id="summary-heading"><span class="section-number">1.</span>Summary</h2>
     <div class="summary">
       <div class="fail">
         <h3>Failures</h3>
@@ -2129,9 +2208,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section aria-labelledby="details-heading">
-    <h2 id="details-heading">Detailed Results</h2>`;
+    <h2 id="details-heading"><span class="section-number">2.</span>Detailed Results</h2>`;
       
       // Add each touchpoint section
+      let sectionIndex = 1;
       sortedTouchpoints.forEach(touchpoint => {
         const touchpointData = currentTestResults[touchpoint];
         const issues = touchpointData.issues || [];
@@ -2155,7 +2235,7 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     <div class="touchpoint">
       <div class="touchpoint-header">
-        <h3 class="touchpoint-title" id="${touchpoint}-heading">${displayName}</h3>
+        <h3 class="touchpoint-title" id="${touchpoint}-heading"><span class="section-number">2.${sectionIndex}</span>${displayName}</h3>
         <div class="touchpoint-counts">`;
         
         if (counts.fail > 0) {
@@ -2178,6 +2258,60 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="touchpoint-body">
         <div class="touchpoint-description">${touchpointData.description}</div>`;
+        
+        // Add touchpoint documentation if available
+        const doc = getTouchpointDocumentation(touchpoint);
+        if (doc) {
+          htmlTemplate += `
+        <div class="touchpoint-doc">
+          <h4><span class="section-number">2.${sectionIndex}.1</span>About This Test</h4>`;
+          
+          if (doc.whatItTests && doc.whatItTests.length > 0) {
+            htmlTemplate += `
+          <p><strong>What it tests:</strong></p>
+          <ul>`;
+            doc.whatItTests.forEach(test => {
+              htmlTemplate += `<li>${escapeHtml(test)}</li>`;
+            });
+            htmlTemplate += `</ul>`;
+          }
+          
+          if (doc.wcagCriteria && doc.wcagCriteria.length > 0) {
+            htmlTemplate += `
+          <p><strong>WCAG Criteria:</strong></p>
+          <ul>`;
+            doc.wcagCriteria.forEach(criteria => {
+              htmlTemplate += `<li><strong>${escapeHtml(criteria.criterion)}</strong> (Level ${escapeHtml(criteria.level)}): ${escapeHtml(criteria.description)}</li>`;
+            });
+            htmlTemplate += `</ul>`;
+          }
+          
+          if (doc.commonIssues && doc.commonIssues.length > 0) {
+            htmlTemplate += `
+          <p><strong>Common Issues:</strong></p>
+          <ul>`;
+            doc.commonIssues.forEach(issue => {
+              htmlTemplate += `<li>${escapeHtml(issue)}</li>`;
+            });
+            htmlTemplate += `</ul>`;
+          }
+          
+          if (doc.bestPractices && doc.bestPractices.length > 0) {
+            htmlTemplate += `
+          <p><strong>Best Practices:</strong></p>
+          <ul>`;
+            doc.bestPractices.forEach(practice => {
+              htmlTemplate += `<li>${escapeHtml(practice)}</li>`;
+            });
+            htmlTemplate += `</ul>`;
+          }
+          
+          htmlTemplate += `
+        </div>`;
+        }
+        
+        htmlTemplate += `
+        <h4><span class="section-number">2.${sectionIndex}.2</span>Issues Found</h4>`;
         
         // First, group issues by type
         const issuesByType = {
@@ -2378,6 +2512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     </div>`;
+        sectionIndex++;
       });
       
       // Close the main sections and document
@@ -2385,10 +2520,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section class="about-section" aria-labelledby="about-carnforth">
-    <h2 id="about-carnforth">About Carnforth Web A11y</h2>
+    <h2 id="about-carnforth"><span class="section-number">3.</span>About Carnforth Web A11y</h2>
     <p>Carnforth Web A11y is an educational Chrome extension designed to help developers understand and fix web accessibility issues.</p>
     
-    <h3>Project Goals</h3>
+    <h3><span class="section-number">3.1</span>Project Goals</h3>
     <ul>
       <li>Provide clear, actionable feedback about accessibility issues</li>
       <li>Educate developers about WCAG standards and best practices</li>
@@ -2397,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <li>Encourage proactive accessibility implementation, not just compliance</li>
     </ul>
     
-    <h3>Understanding Automated Testing</h3>
+    <h3><span class="section-number">3.2</span>Understanding Automated Testing</h3>
     <p><strong>What automation can do well:</strong></p>
     <ul>
       <li>Detect missing or incorrect HTML attributes</li>
@@ -2416,7 +2551,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <li>Assess whether ARIA is used appropriately</li>
     </ul>
     
-    <h3>The 80/20 Rule of Accessibility Testing</h3>
+    <h3><span class="section-number">3.3</span>The 80/20 Rule of Accessibility Testing</h3>
     <ul>
       <li>Automated tools can find about 20-30% of accessibility issues</li>
       <li>The remaining 70-80% require human judgment and testing</li>
@@ -2431,7 +2566,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <li>Cognitive walkthroughs</li>
     </ul>
     
-    <h3>Using Carnforth Effectively</h3>
+    <h3><span class="section-number">3.4</span>Using Carnforth Effectively</h3>
     <ol>
       <li>Run tests early and often during development</li>
       <li>Read the impact statements to understand who is affected</li>
@@ -2441,7 +2576,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <li>Remember: passing automated tests ≠ fully accessible</li>
     </ol>
     
-    <h3>Contributing to Accessibility</h3>
+    <h3><span class="section-number">3.5</span>Contributing to Accessibility</h3>
     <ul>
       <li>Accessibility is not a checklist - it's a mindset</li>
       <li>Every improvement helps real people use the web</li>
@@ -2451,7 +2586,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </ul>
     
     <div class="about-resources">
-      <h3>Additional Resources</h3>
+      <h3><span class="section-number">3.6</span>Additional Resources</h3>
       <ul>
         <li><a href="https://www.w3.org/WAI/WCAG22/quickref/" target="_blank" rel="noopener noreferrer">Web Content Accessibility Guidelines (WCAG)</a></li>
         <li><a href="https://webaim.org/" target="_blank" rel="noopener noreferrer">WebAIM - Web Accessibility In Mind</a></li>
