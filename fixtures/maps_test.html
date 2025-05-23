@@ -217,7 +217,7 @@
                 <h3>Leaflet - With Heading Only</h3>
                 <div class="test-info"><span class="warn">WARNING</span>: Has heading but no landmark</div>
                 <h4>Hiking Trails Map</h4>
-                <div id="leaflet-map" class="leaflet-container leaflet-fade-anim" aria-label="Leaflet hiking trails map">
+                <div id="leaflet-map" class="leaflet-container leaflet-fade-anim" role="application" aria-label="Leaflet hiking trails map">
                     <div class="map-div">Leaflet Map</div>
                     <div class="leaflet-control-zoom">
                         <a class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
@@ -231,7 +231,7 @@
             <div class="map-container">
                 <h3>Google Maps JavaScript - No Structure</h3>
                 <div class="test-info"><span class="fail">FAIL</span>: No landmark or heading</div>
-                <div id="google-map-js" class="gm-style" aria-label="Google Maps JavaScript API example">
+                <div id="google-map-js" class="gm-style" role="application" aria-label="Google Maps JavaScript API example">
                     <div class="map-div">Google Maps JS</div>
                     <div class="gmnoprint">
                         <button class="gm-control-active">Zoom in</button>
@@ -260,6 +260,7 @@
                 <div class="test-info"><span class="fail">FAIL</span>: Has map data but no accessibility</div>
                 <div id="data-map" 
                      class="map-widget"
+                     role="application"
                      aria-label="Complex data attributes map widget"
                      data-map-type="vector"
                      data-zoom="12"
