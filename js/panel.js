@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log("[Panel] DOMContentLoaded event fired");
   const startTestButton = document.getElementById('start-test');
   const exportBar = document.querySelector('.export-bar');
+  const filterBar = document.querySelector('.filter-bar');
   const exportJsonButton = document.getElementById('export-json');
   const exportExcelButton = document.getElementById('export-excel');
   const exportHtmlButton = document.getElementById('export-html');
@@ -17,6 +18,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const warningCount = document.getElementById('warning-count');
   const infoCount = document.getElementById('info-count');
   const testStatus = document.getElementById('test-status');
+  
+  // Filter elements
+  const wcagFilterButtons = document.querySelectorAll('[data-wcag-level]');
+  const issueTypeButtons = document.querySelectorAll('[data-issue-type]');
+  const searchInput = document.getElementById('issue-search');
+  
+  // Filter state
+  let activeFilters = {
+    wcagLevel: 'all',
+    issueType: 'all',
+    searchText: ''
+  };
 
   // Initialize to default state
   function resetUI() {
@@ -37,6 +50,39 @@ document.addEventListener('DOMContentLoaded', function() {
     exportJsonButton.disabled = true;
     exportExcelButton.disabled = true;
     exportHtmlButton.disabled = true;
+    
+    // Hide filter bar
+    filterBar.classList.add('hidden');
+    
+    // Reset filters to default
+    activeFilters = {
+      wcagLevel: 'all',
+      issueType: 'all',
+      searchText: ''
+    };
+    
+    // Reset filter UI
+    wcagFilterButtons.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-pressed', 'false');
+      if (btn.dataset.wcagLevel === 'all') {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+    });
+    
+    issueTypeButtons.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-pressed', 'false');
+      if (btn.dataset.issueType === 'all') {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+    });
+    
+    if (searchInput) {
+      searchInput.value = '';
+    }
     
     // Clear current results and test status
     currentTestResults = null;
@@ -112,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
     exportJsonButton.disabled = false;
     exportExcelButton.disabled = false;
     exportHtmlButton.disabled = false;
+    
+    // Show filter bar
+    filterBar.classList.remove('hidden');
   }
 
   // Handle messages from the background script
@@ -528,6 +577,113 @@ document.addEventListener('DOMContentLoaded', function() {
         window.CarnforthDocumentation.openDocumentationModal('carnforth-project');
       }
     });
+  }
+
+  // Filter functionality
+  // Handle WCAG level filter buttons
+  wcagFilterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Update active state
+      wcagFilterButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
+      
+      // Update filter
+      activeFilters.wcagLevel = this.dataset.wcagLevel;
+      applyFilters();
+    });
+  });
+
+  // Handle issue type filter buttons
+  issueTypeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Update active state
+      issueTypeButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
+      
+      // Update filter
+      activeFilters.issueType = this.dataset.issueType;
+      applyFilters();
+    });
+  });
+
+  // Handle search input
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      activeFilters.searchText = this.value.toLowerCase();
+      applyFilters();
+    });
+  }
+
+  // Apply filters to displayed results
+  function applyFilters() {
+    if (!currentTestResults) return;
+
+    // Create filtered results
+    const filteredResults = {};
+    let hasVisibleIssues = false;
+
+    Object.keys(currentTestResults).forEach(touchpoint => {
+      if (touchpoint === '__summary') {
+        filteredResults[touchpoint] = currentTestResults[touchpoint];
+        return;
+      }
+
+      const touchpointData = currentTestResults[touchpoint];
+      const filteredIssues = (touchpointData.issues || []).filter(issue => {
+        // Filter by issue type
+        if (activeFilters.issueType !== 'all' && issue.type !== activeFilters.issueType) {
+          return false;
+        }
+
+        // Filter by WCAG level
+        if (activeFilters.wcagLevel !== 'all' && issue.wcag) {
+          if (issue.wcag.level !== activeFilters.wcagLevel) {
+            return false;
+          }
+        }
+
+        // Filter by search text
+        if (activeFilters.searchText) {
+          const searchableText = [
+            issue.title || '',
+            issue.description || '',
+            issue.impact?.why || '',
+            issue.wcag?.guideline || '',
+            issue.wcag?.successCriterion || ''
+          ].join(' ').toLowerCase();
+
+          if (!searchableText.includes(activeFilters.searchText)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      if (filteredIssues.length > 0) {
+        filteredResults[touchpoint] = {
+          ...touchpointData,
+          issues: filteredIssues
+        };
+        hasVisibleIssues = true;
+      }
+    });
+
+    // Display filtered results
+    if (hasVisibleIssues) {
+      displayResults(filteredResults);
+      updateSummary(filteredResults);
+    } else {
+      resultsContainer.innerHTML = '<p class="results-message">No issues match the current filters.</p>';
+    }
   }
 
   // Listen for test button click
