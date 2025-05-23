@@ -201,7 +201,7 @@
                 <h3>Mapbox GL - Within Landmark</h3>
                 <div class="test-info"><span class="pass">PASS</span>: Has role="region" with aria-label</div>
                 <div role="region" aria-label="Interactive Mapbox map section">
-                    <div id="mapbox-gl-map" class="mapboxgl-map">
+                    <div id="mapbox-gl-map" class="mapboxgl-map" aria-label="Mapbox GL interactive map demonstration">
                         <div class="map-div">Mapbox GL Map</div>
                         <div class="mapboxgl-control-container">
                             <button class="mapboxgl-ctrl-zoom-in" aria-label="Zoom in"></button>
@@ -217,7 +217,7 @@
                 <h3>Leaflet - With Heading Only</h3>
                 <div class="test-info"><span class="warn">WARNING</span>: Has heading but no landmark</div>
                 <h4>Hiking Trails Map</h4>
-                <div id="leaflet-map" class="leaflet-container leaflet-fade-anim">
+                <div id="leaflet-map" class="leaflet-container leaflet-fade-anim" aria-label="Leaflet hiking trails map">
                     <div class="map-div">Leaflet Map</div>
                     <div class="leaflet-control-zoom">
                         <a class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
@@ -231,7 +231,7 @@
             <div class="map-container">
                 <h3>Google Maps JavaScript - No Structure</h3>
                 <div class="test-info"><span class="fail">FAIL</span>: No landmark or heading</div>
-                <div id="google-map-js" class="gm-style">
+                <div id="google-map-js" class="gm-style" aria-label="Google Maps JavaScript API example">
                     <div class="map-div">Google Maps JS</div>
                     <div class="gmnoprint">
                         <button class="gm-control-active">Zoom in</button>
@@ -244,7 +244,7 @@
             <div class="map-container">
                 <h3>OpenLayers - Interactive with aria-hidden</h3>
                 <div class="test-info"><span class="fail">FAIL</span>: Interactive div map with aria-hidden</div>
-                <div id="ol-map" class="ol-viewport" aria-hidden="true">
+                <div id="ol-map" class="ol-viewport" aria-hidden="true" aria-label="OpenLayers interactive map with aria-hidden">
                     <div class="map-div">OpenLayers Map</div>
                     <div class="ol-control">
                         <button type="button" tabindex="0">Zoom in</button>
@@ -260,6 +260,7 @@
                 <div class="test-info"><span class="fail">FAIL</span>: Has map data but no accessibility</div>
                 <div id="data-map" 
                      class="map-widget"
+                     aria-label="Complex data attributes map widget"
                      data-map-type="vector"
                      data-zoom="12"
                      data-center-lat="40.7128"
@@ -295,7 +296,7 @@
             <div class="map-container">
                 <h3>ArcGIS JS - role="presentation" on Interactive</h3>
                 <div class="test-info"><span class="fail">FAIL</span>: Interactive map with presentation role</div>
-                <div id="arcgis-js-map" class="esri-view" role="presentation">
+                <div id="arcgis-js-map" class="esri-view" role="presentation" aria-label="ArcGIS JavaScript map with presentation role">
                     <div class="map-div">ArcGIS JS Map</div>
                     <div class="esri-ui">
                         <div role="button" tabindex="0">Zoom widget</div>
