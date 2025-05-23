@@ -1666,7 +1666,64 @@ window.test_maps = async function() {
             'Add a data table with the key locations or information from the map',
             'Ensure all important information conveyed visually is also available in text format'
           ],
-          codeExample: {
+          codeExample: elementType === 'div' ? {
+            before: `<!-- Map without text alternatives -->
+<div class="map-container">
+  <div class="map" aria-hidden="true">
+    <!-- Map rendered by JavaScript -->
+  </div>
+</div>`,
+            after: `<!-- Map with proper heading structure and text alternatives -->
+<section class="location-section">
+  <h3>Our Office Location</h3>
+  
+  <div class="map-container">
+    <div class="map" aria-label="Interactive map of our office location">
+      <!-- Map rendered by JavaScript -->
+    </div>
+  </div>
+  
+  <!-- Text alternatives for key map information -->
+  <div class="map-description">
+    <p>Address: 123 Main Street, Chicago, IL 60601</p>
+    <h4>Key Information:</h4>
+    <ul>
+      <li>Nearby landmarks: Two blocks east of City Hall</li>
+      <li>Public transit: Red Line (State/Lake station)</li>
+      <li>Parking: Public garage available at 130 Main Street</li>
+    </ul>
+  </div>
+</section>`
+          } : elementType === 'img' ? {
+            before: `<!-- Map without text alternatives -->
+<div class="map-container">
+  <img 
+    src="https://static-maps.example.com/..."
+    aria-hidden="true"
+    alt="">
+</div>`,
+            after: `<!-- Map with proper heading structure and text alternatives -->
+<section class="location-section">
+  <h3>Our Office Location</h3>
+  
+  <div class="map-container">
+    <img 
+      src="https://static-maps.example.com/..."
+      alt="Map showing our office at 123 Main Street, Chicago, 2 blocks east of City Hall">
+  </div>
+  
+  <!-- Additional text information -->
+  <div class="map-description">
+    <p>Address: 123 Main Street, Chicago, IL 60601</p>
+    <h4>Key Information:</h4>
+    <ul>
+      <li>Nearby landmarks: Two blocks east of City Hall</li>
+      <li>Public transit: Red Line (State/Lake station)</li>
+      <li>Parking: Public garage available at 130 Main Street</li>
+    </ul>
+  </div>
+</section>`
+          } : {
             before: `<!-- Map without text alternatives -->
 <div class="map-container">
   <${elementType} 
@@ -1676,18 +1733,21 @@ window.test_maps = async function() {
     aria-hidden="true">
   </${elementType}>
 </div>`,
-            after: `<!-- Map with text alternatives -->
-<div class="map-container">
-  <${elementType} 
-    src="https://www.google.com/maps/embed?pb=..."
-    width="600"
-    height="450"
-    title="Map showing our office location">
-  </${elementType}>
+            after: `<!-- Map with proper heading structure and text alternatives -->
+<section class="location-section">
+  <h3>Our Office Location</h3>
   
-  <!-- Added text alternatives for key map information -->
+  <div class="map-container">
+    <${elementType} 
+      src="https://www.google.com/maps/embed?pb=..."
+      width="600"
+      height="450"
+      title="Interactive map showing our office location">
+    </${elementType}>
+  </div>
+  
+  <!-- Text alternatives for key map information -->
   <div class="map-description">
-    <h3>Our Office Location</h3>
     <p>Address: 123 Main Street, Chicago, IL 60601</p>
     <h4>Key Information:</h4>
     <ul>
@@ -1696,7 +1756,7 @@ window.test_maps = async function() {
       <li>Parking: Public garage available at 130 Main Street</li>
     </ul>
   </div>
-</div>`
+</section>`
           }
         });
       });
@@ -1799,21 +1859,19 @@ window.test_maps = async function() {
         // Mark this element as tracked
         elementTracker.set(elementKey, true);
         
+        // Get element type from violation
+        const elementType = violation.element || 'iframe';
+        
         // Create a more specific selector
         let uniqueSelector = violation.selector;
         if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          // Attempt to create a more reliable CSS selector based on the element type
-          const elementType = uniqueSelector.includes('iframe') ? 'iframe' : 
-                             uniqueSelector.includes('div') ? 'div' : 
-                             uniqueSelector.includes('svg') ? 'svg' : 'iframe';
-          
           uniqueSelector = `${elementType}:nth-of-type(${index + 1})`;
         }
         
         issues.push({
           type: 'fail',
           title: `${provider} map missing accessible name`,
-          description: `A map iframe is missing an accessible name (title, aria-label, or aria-labelledby attribute). Screen reader users won't be able to identify the purpose of this map.`,
+          description: `This ${elementType} map is missing an accessible name (${elementType === 'img' ? 'alt text' : elementType === 'iframe' ? 'title' : 'aria-label or aria-labelledby'} attribute). Screen reader users won't be able to identify the purpose of this map.`,
           selector: uniqueSelector,
           xpath: mapXpath,
           html: violation.html,
@@ -1872,14 +1930,12 @@ window.test_maps = async function() {
         // Mark this element as tracked
         elementTracker.set(elementKey, true);
         
+        // Get element type from violation
+        const elementType = violation.element || 'iframe';
+        
         // Create a more specific selector
         let uniqueSelector = violation.selector;
         if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          // Attempt to create a more reliable CSS selector based on the element type
-          const elementType = uniqueSelector.includes('iframe') ? 'iframe' : 
-                             uniqueSelector.includes('div') ? 'div' : 
-                             uniqueSelector.includes('svg') ? 'svg' : 'iframe';
-          
           // Add 3 to the index since this is the slice after the first 3
           uniqueSelector = `${elementType}:nth-of-type(${index + 3 + 1})`;
         }
@@ -1887,7 +1943,7 @@ window.test_maps = async function() {
         issues.push({
           type: 'fail',
           title: `${provider} map missing accessible name`,
-          description: `A map iframe is missing an accessible name (title, aria-label, or aria-labelledby attribute). Screen reader users won't be able to identify the purpose of this map.`,
+          description: `This ${elementType} map is missing an accessible name (${elementType === 'img' ? 'alt text' : elementType === 'iframe' ? 'title' : 'aria-label or aria-labelledby'} attribute). Screen reader users won't be able to identify the purpose of this map.`,
           selector: uniqueSelector,
           xpath: mapXpath,
           html: violation.html,
