@@ -20,20 +20,24 @@ const touchpointDocumentation = {
       'Detection of maps hidden from assistive technology',
       'Interactive vs non-interactive map classification',
       'Landmark and heading context for div maps',
-      'Generic or non-descriptive names'
+      'Generic or non-descriptive names',
+      'Touch target sizes for map controls (zoom, pan, etc.)'
     ],
     wcagCriteria: [
       { criterion: '1.1.1 Non-text Content', level: 'A', description: 'Maps need text alternatives' },
       { criterion: '1.3.1 Info and Relationships', level: 'A', description: 'Map structure must be programmatically determinable' },
       { criterion: '2.4.6 Headings and Labels', level: 'AA', description: 'Maps need descriptive labels' },
-      { criterion: '4.1.2 Name, Role, Value', level: 'A', description: 'Interactive maps must have proper ARIA attributes' }
+      { criterion: '4.1.2 Name, Role, Value', level: 'A', description: 'Interactive maps must have proper ARIA attributes' },
+      { criterion: '2.5.5 Target Size (Enhanced)', level: 'AAA', description: 'Touch targets should be at least 44x44 pixels' },
+      { criterion: '2.5.8 Target Size (Minimum)', level: 'AA', description: 'Touch targets must be at least 24x24 pixels' }
     ],
     commonIssues: [
       'Missing accessible names (title, aria-label)',
       'Using aria-hidden="true" on interactive maps',
       'Generic names like "Map" without context',
       'Div-based maps without proper ARIA roles',
-      'Missing alt text on static map images'
+      'Missing alt text on static map images',
+      'Map controls (zoom buttons, etc.) with insufficient touch target size'
     ],
     bestPractices: [
       'Always provide a descriptive title or aria-label that explains what the map shows',
@@ -43,7 +47,9 @@ const touchpointDocumentation = {
       'For div-based maps, use role="application" for interactive maps or role="img" for static ones',
       'Ensure all map controls are keyboard accessible',
       'Provide alternative ways to access map information (tables, text descriptions)',
-      'Never use aria-hidden="true" on interactive content'
+      'Never use aria-hidden="true" on interactive content',
+      'Ensure map controls have adequate touch target sizes (minimum 24x24px, ideally 44x44px)',
+      'Use padding to increase touch target size without changing visual appearance'
     ],
     examples: {
       good: [
@@ -462,6 +468,62 @@ const issueDocumentation = {
       { title: 'Using aria-hidden', url: 'https://www.w3.org/WAI/WCAG21/Techniques/aria/ARIA7' },
       { title: 'Hiding Content Properly', url: 'https://webaim.org/techniques/css/invisiblecontent/' }
     ]
+  },
+
+  'map-control-too-small': {
+    title: 'Map Control Touch Target Too Small',
+    overview: 'This map control (button, link, etc.) has a touch target size below accessibility standards, making it difficult for users with motor disabilities to activate.',
+    impact: {
+      who: 'Users with motor disabilities, tremors, elderly users, mobile users',
+      severity: 'High - Controls may be unusable',
+      why: 'Small touch targets require precise motor control that many users don\'t have. This affects people with Parkinson\'s disease, arthritis, cerebral palsy, and other conditions that impact fine motor control. Mobile users also struggle with small targets.'
+    },
+    realWorldAnalogy: 'Imagine trying to press a tiny elevator button while wearing thick winter gloves - the small size makes it nearly impossible to hit the right button.',
+    whatMatters: 'Touch targets need sufficient size to accommodate users with varying levels of motor control. The WCAG minimum of 24x24 pixels prevents accidental activation of adjacent controls, while the enhanced 44x44 pixel recommendation provides comfortable usability for all users.',
+    howToFix: [
+      'Increase the touch target size to at least 24x24 CSS pixels (WCAG 2.5.8)',
+      'Ideally, make touch targets 44x44 pixels for optimal usability (WCAG 2.5.5)',
+      'Use CSS padding to increase the clickable area without changing visual size',
+      'Space controls far enough apart to prevent accidental activation',
+      'Consider providing alternative large-button controls for essential functions',
+      'Test with real users who have motor disabilities'
+    ],
+    codeExamples: {
+      before: '<button class="zoom-control" style="width: 20px; height: 20px;">+</button>',
+      after: '<button class="zoom-control" style="width: 20px; height: 20px; padding: 12px;">+</button>\n<!-- Total touch target: 44x44px (20px + 12px*2) -->'
+    },
+    resources: [
+      { title: 'WCAG 2.5.8 Target Size (Minimum)', url: 'https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html' },
+      { title: 'WCAG 2.5.5 Target Size (Enhanced)', url: 'https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html' },
+      { title: 'Touch Target Guidelines', url: 'https://www.nngroup.com/articles/touch-target-size/' }
+    ]
+  },
+
+  'map-controls-suboptimal-size': {
+    title: 'Map Controls Could Benefit from Larger Touch Targets',
+    overview: 'While these map controls meet minimum accessibility requirements, larger touch targets would significantly improve usability for all users.',
+    impact: {
+      who: 'Mobile users, users with minor motor difficulties',
+      severity: 'Medium - Usable but not optimal',
+      why: 'While technically accessible at 24x24 pixels, smaller touch targets increase error rates and user frustration. This particularly affects mobile users and those with minor tremors or reduced dexterity.'
+    },
+    realWorldAnalogy: 'Like using chopsticks to pick up small seeds - it\'s possible but requires more concentration and effort than necessary.',
+    whatMatters: 'Enhanced touch target sizes (44x44 pixels) represent best practice for modern web design. They reduce errors, increase user confidence, and create a more pleasant experience for everyone.',
+    howToFix: [
+      'Increase touch targets to 44x44 CSS pixels for optimal usability',
+      'This is especially important for frequently-used controls like zoom buttons',
+      'Consider mobile-first design principles',
+      'Use generous padding around interactive elements',
+      'Group related controls with adequate spacing'
+    ],
+    codeExamples: {
+      current: '<button class="map-control" style="width: 24px; height: 24px;">🔍</button>',
+      improved: '<button class="map-control" style="width: 32px; height: 32px; padding: 6px;">🔍</button>\n<!-- Total: 44x44px for better usability -->'
+    },
+    resources: [
+      { title: 'Mobile Touch Target Guidelines', url: 'https://material.io/design/usability/accessibility.html#layout-and-typography' },
+      { title: 'Apple Human Interface Guidelines', url: 'https://developer.apple.com/design/human-interface-guidelines/components/menus-and-actions/buttons' }
+    ]
   }
   
   // Add more issue-specific documentation as needed
@@ -493,6 +555,21 @@ function openDocumentationModal(touchpointId, options = {}) {
   if (!modal) {
     modal = createModal();
     document.body.appendChild(modal);
+  }
+  
+  // Store reference to currently focused element
+  const currentlyFocused = document.activeElement;
+  if (currentlyFocused) {
+    // Store a selector that can be used to find this element later
+    if (currentlyFocused.id) {
+      modal.dataset.lastFocus = `#${currentlyFocused.id}`;
+    } else if (currentlyFocused.className) {
+      // Try to create a unique selector based on class and position
+      const selector = `.${currentlyFocused.className.split(' ').join('.')}`;
+      const allMatching = document.querySelectorAll(selector);
+      const index = Array.from(allMatching).indexOf(currentlyFocused);
+      modal.dataset.lastFocus = `${selector}:nth-of-type(${index + 1})`;
+    }
   }
   
   // Populate modal content
@@ -800,14 +877,38 @@ function populateIssueModal(modal, doc) {
 function closeDocumentationModal() {
   const modal = document.getElementById('carnforth-doc-modal');
   if (modal) {
+    // Store reference to the element that should receive focus
+    let elementToFocus = null;
+    
+    // Check if we have a stored reference to the element that opened the modal
+    if (modal.dataset.lastFocus) {
+      const lastFocus = document.querySelector(modal.dataset.lastFocus);
+      if (lastFocus) {
+        elementToFocus = lastFocus;
+      }
+    }
+    
+    // If no stored reference, try to find a help button
+    if (!elementToFocus) {
+      const helpButtons = document.querySelectorAll('.help-button, .issue-info-button');
+      if (helpButtons.length > 0) {
+        elementToFocus = helpButtons[0];
+      }
+    }
+    
+    // Move focus BEFORE hiding the modal to avoid aria-hidden focus trap
+    if (elementToFocus) {
+      elementToFocus.focus();
+    } else {
+      // Fallback: blur current element to move focus out of modal
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+    }
+    
+    // Now safe to hide the modal after focus has been moved
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
-    
-    // Return focus to the help button that opened it
-    const lastFocusedButton = document.activeElement;
-    if (lastFocusedButton && lastFocusedButton.classList.contains('help-button')) {
-      lastFocusedButton.focus();
-    }
   }
 }
 

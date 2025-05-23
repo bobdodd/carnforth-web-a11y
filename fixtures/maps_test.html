@@ -443,6 +443,62 @@
                 <li>✓ All scenarios from maps_extended, maps_svg, maps_div_enhanced</li>
             </ul>
         </section>
+        
+        <!-- Touch Target Size Tests -->
+        <section aria-labelledby="touch-targets-heading">
+            <h2 id="touch-targets-heading">Touch Target Size Tests</h2>
+            
+            <!-- Map with Small Controls -->
+            <div class="map-container">
+                <h3>Map with Small Touch Targets</h3>
+                <div class="test-info"><span class="fail">FAIL</span>: Controls below 24x24px minimum</div>
+                <div id="small-controls-map" class="leaflet-container" role="application" aria-label="Map with small control buttons">
+                    <div class="map-div">Map with Small Controls</div>
+                    <style>
+                        .small-map-controls { position: absolute; top: 10px; right: 10px; background: white; border: 1px solid #ccc; }
+                        .tiny-button { width: 18px; height: 18px; padding: 0; margin: 2px; border: 1px solid #999; background: white; cursor: pointer; }
+                        .suboptimal-button { width: 30px; height: 30px; padding: 0; margin: 2px; border: 1px solid #999; background: white; cursor: pointer; }
+                        .good-button { width: 44px; height: 44px; padding: 0; margin: 2px; border: 1px solid #999; background: white; cursor: pointer; }
+                    </style>
+                    <div class="small-map-controls">
+                        <button class="tiny-button" aria-label="Zoom in" title="Zoom in">+</button>
+                        <button class="tiny-button" aria-label="Zoom out" title="Zoom out">-</button>
+                        <a href="#" class="tiny-button" style="display: inline-block; text-align: center; line-height: 18px; text-decoration: none; color: black;" aria-label="Reset view">⟲</a>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: Touch target size < 24x24px (WCAG 2.5.8 fail)</div>
+            </div>
+            
+            <!-- Map with Suboptimal Controls -->
+            <div class="map-container">
+                <h3>Map with Suboptimal Touch Targets</h3>
+                <div class="test-info"><span class="warn">WARN</span>: Controls between 24-44px</div>
+                <div id="suboptimal-controls-map" class="mapboxgl-map" role="application" aria-label="Map with suboptimal control sizes">
+                    <div class="map-div">Map with Suboptimal Controls</div>
+                    <div class="mapboxgl-control-container">
+                        <div class="mapboxgl-ctrl-top-right">
+                            <button class="suboptimal-button mapboxgl-ctrl-zoom-in" aria-label="Zoom in">+</button>
+                            <button class="suboptimal-button mapboxgl-ctrl-zoom-out" aria-label="Zoom out">−</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: Touch target size 30x30px (WCAG 2.5.8 pass, 2.5.5 fail)</div>
+            </div>
+            
+            <!-- Map with Good Controls -->
+            <div class="map-container">
+                <h3>Map with Optimal Touch Targets</h3>
+                <div class="test-info"><span class="pass">PASS</span>: Controls meet 44x44px recommendation</div>
+                <div id="good-controls-map" class="gm-style" role="application" aria-label="Map with properly sized controls">
+                    <div class="map-div">Map with Good Controls</div>
+                    <div class="gm-control-container">
+                        <button class="good-button gm-control-active" aria-label="Zoom in">+</button>
+                        <button class="good-button gm-control-active" aria-label="Zoom out">−</button>
+                    </div>
+                </div>
+                <div class="test-ref">Tests: Touch target size 44x44px (WCAG 2.5.5 & 2.5.8 pass)</div>
+            </div>
+        </section>
     </main>
 
     <!-- Scripts to simulate libraries -->

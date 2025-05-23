@@ -417,11 +417,11 @@ main {
   color: #666;
   margin-top: 0.25rem;
   font-family: 'Consolas', 'Monaco', monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  word-break: break-all;
+  white-space: normal;
   padding-left: 2.25rem; /* Align with title text after bullet */
+  user-select: text; /* Ensure text is selectable */
+  cursor: text; /* Show text cursor on hover */
 }
 
 .issue-details {

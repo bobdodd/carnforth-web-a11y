@@ -116,11 +116,13 @@ window.test_maps = async function() {
       const results = {
         maps: [],        // All detected maps, regardless of issues
         violations: [],  // Specific accessibility problems found
+        touchTargetViolations: [], // Touch target size issues in map controls
         summary: {       // Aggregate data for reporting
           totalMaps: 0,
           mapsByProvider: {},
           mapsWithoutTitle: 0,
-          mapsWithAriaHidden: 0
+          mapsWithAriaHidden: 0,
+          smallTouchTargets: 0
         }
       };
 
@@ -1442,6 +1444,118 @@ window.test_maps = async function() {
         }
       });
 
+      // Touch Target Size Detection
+      // Check for small touch targets within all detected maps
+      console.log('[Maps] Checking touch target sizes...');
+      
+      // Helper function to check touch target size
+      function checkTouchTargetSize(element) {
+        const rect = element.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(element);
+        
+        // Account for padding in the touch target size
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        
+        const width = rect.width || (rect.right - rect.left);
+        const height = rect.height || (rect.bottom - rect.top);
+        
+        // Total touch target includes padding
+        const totalWidth = width + paddingLeft + paddingRight;
+        const totalHeight = height + paddingTop + paddingBottom;
+        
+        // Check if element is visible
+        const isVisible = rect.width > 0 && rect.height > 0 && 
+                         computedStyle.display !== 'none' && 
+                         computedStyle.visibility !== 'hidden' &&
+                         computedStyle.opacity !== '0';
+        
+        return {
+          width: totalWidth,
+          height: totalHeight,
+          isVisible: isVisible,
+          meetsWCAG258: totalWidth >= 24 && totalHeight >= 24, // WCAG 2.5.8 (Level AA)
+          meetsWCAG255: totalWidth >= 44 && totalHeight >= 44  // WCAG 2.5.5 (Level AAA)
+        };
+      }
+      
+      // Track elements to avoid duplicates
+      const touchTargetElementTracker = new Set();
+      
+      // Selectors for common map controls
+      const controlSelectors = [
+        'button',
+        'a[href]',
+        '[role="button"]',
+        '.gm-control-active', // Google Maps controls
+        '.mapboxgl-ctrl-zoom-in, .mapboxgl-ctrl-zoom-out', // Mapbox
+        '.leaflet-control-zoom-in, .leaflet-control-zoom-out', // Leaflet
+        '.ol-zoom-in, .ol-zoom-out', // OpenLayers
+        '[class*="zoom"]',
+        '[class*="control"]',
+        '[aria-label*="zoom"]',
+        '[aria-label*="Zoom"]',
+        '[title*="zoom"]',
+        '[title*="Zoom"]'
+      ];
+      
+      // Check controls within each detected map container
+      const mapContainers = [
+        ...mapIframes,
+        ...mapDivs,
+        ...Array.from(document.querySelectorAll('svg[role="img"], svg[role="application"]'))
+      ];
+      
+      mapContainers.forEach(container => {
+        // For iframes, we can't check inside them due to cross-origin restrictions
+        if (container.tagName === 'IFRAME') return;
+        
+        // Find the associated map info
+        const mapXPath = getFullXPath(container);
+        const mapInfo = results.maps.find(m => m.xpath === mapXPath);
+        const provider = mapInfo?.provider || 'Unknown';
+        
+        // Find all interactive controls within the map
+        const controls = container.querySelectorAll(controlSelectors.join(', '));
+        
+        controls.forEach(control => {
+          // Skip if already checked
+          const controlXPath = getFullXPath(control);
+          if (touchTargetElementTracker.has(controlXPath)) return;
+          touchTargetElementTracker.add(controlXPath);
+          
+          const touchTarget = checkTouchTargetSize(control);
+          
+          // Only report visible controls that don't meet minimum size
+          if (touchTarget.isVisible && (!touchTarget.meetsWCAG258 || !touchTarget.meetsWCAG255)) {
+            // Get control description
+            const ariaLabel = control.getAttribute('aria-label');
+            const title = control.getAttribute('title');
+            const text = control.textContent?.trim();
+            const controlName = ariaLabel || title || text || 'Unnamed control';
+            
+            results.touchTargetViolations.push({
+              provider: provider,
+              controlName: controlName,
+              width: Math.round(touchTarget.width),
+              height: Math.round(touchTarget.height),
+              meetsWCAG258: touchTarget.meetsWCAG258,
+              meetsWCAG255: touchTarget.meetsWCAG255,
+              selector: control.id ? `#${control.id}` : null,
+              xpath: controlXPath,
+              html: control.outerHTML.substring(0, 200) + (control.outerHTML.length > 200 ? '...' : ''),
+              severity: !touchTarget.meetsWCAG258 ? 'critical' : 'warning'
+            });
+            
+            if (!touchTarget.meetsWCAG258) {
+              results.summary.smallTouchTargets++;
+            }
+          }
+        });
+      });
+
       results.summary.totalMaps = results.maps.length;
 
       return {
@@ -2505,22 +2619,22 @@ window.test_maps = async function() {
         elementTracker.set(elementKey, true);
         
         issues.push({
-          type: 'warning',
+          type: 'fail',
           title: `${provider} ${elementType} has generic accessible name`,
-          description: `This ${elementType} has a generic accessible name: "${currentName}". Generic names like "map", "image", or "graphic" don't provide meaningful information about what the map actually shows. Screen reader users need descriptive names to understand the map's content.`,
+          description: `This ${elementType} has a generic accessible name: "${currentName}". Generic names like "map", "image", or "graphic" don't provide meaningful information about what the map actually shows. Screen reader users need descriptive names to understand the map's content and purpose.`,
           selector: violation.selector,
           xpath: violation.xpath,
           html: violation.html,
           impact: {
             who: 'Screen reader users',
-            severity: 'Medium',
-            why: 'Generic names provide no useful information about the map\'s content. Users need to know what location, data, or information the map displays to determine if it\'s relevant to their needs.'
+            severity: 'High',
+            why: 'Generic names provide no useful information about the map\'s content. Users need to know what location, data, or information the map displays to determine if it\'s relevant to their needs. This violates WCAG 2.4.6 which requires labels to describe purpose.'
           },
           wcag: {
-            principle: 'Perceivable',
-            guideline: '1.1 Text Alternatives',
-            successCriterion: '1.1.1 Non-text Content (Quality)',
-            level: 'A'
+            principle: 'Operable',
+            guideline: '2.4 Navigable',
+            successCriterion: '2.4.6 Headings and Labels',
+            level: 'AA'
           },
           remediation: [
             'Replace the generic name with a descriptive one that explains what the map shows',
@@ -2545,7 +2659,76 @@ window.test_maps = async function() {
       });
     }
 
-    // 9. Always add info message when maps are found to list detected providers
+    // 9. Touch Target Size Violations
+    if (mapsData.results.touchTargetViolations && mapsData.results.touchTargetViolations.length > 0) {
+      const touchTargetViolations = mapsData.results.touchTargetViolations;
+      
+      // Report all touch target violations individually
+      touchTargetViolations.forEach(violation => {
+        const elementKey = violation.xpath || violation.selector;
+        
+        // Skip if we already have an issue for this element
+        if (elementTracker.has(elementKey)) {
+          return;
+        }
+        
+        // Mark this element as tracked
+        elementTracker.set(elementKey, true);
+        
+        // Determine if this fails WCAG 2.5.8 (AA) or only 2.5.5 (AAA)
+        const failsMinimum = !violation.meetsWCAG258;
+        
+        issues.push({
+          type: 'fail',
+          title: `${violation.provider} map control "${violation.controlName}" has insufficient touch target size (${violation.width}x${violation.height}px)`,
+          description: failsMinimum 
+            ? `This map control has a touch target size of only ${violation.width}x${violation.height} pixels, which is below the WCAG 2.5.8 minimum of 24x24 pixels. Small touch targets are difficult or impossible for users with motor disabilities to activate accurately.`
+            : `This map control has a touch target size of ${violation.width}x${violation.height} pixels. While it meets the minimum WCAG 2.5.8 requirement of 24x24 pixels, it falls short of the enhanced 44x44 pixel target recommended by WCAG 2.5.5 for optimal usability.`,
+          selector: violation.selector,
+          xpath: violation.xpath,
+          html: violation.html,
+          impact: {
+            who: failsMinimum 
+              ? 'Users with motor disabilities, users with tremors, elderly users, mobile users'
+              : 'Mobile users, users with minor motor difficulties',
+            severity: failsMinimum ? 'High' : 'Medium',
+            why: failsMinimum
+              ? 'Small touch targets require precise motor control that many users don\'t have. This can make map controls unusable for people with conditions like Parkinson\'s disease, arthritis, or other motor impairments. Mobile users also struggle with small targets.'
+              : 'While technically accessible, smaller touch targets increase error rates and user frustration, particularly on touch devices. Larger targets provide a more comfortable and confident user experience.'
+          },
+          wcag: {
+            principle: 'Operable',
+            guideline: '2.5 Input Modalities',
+            successCriterion: failsMinimum ? '2.5.8 Target Size (Minimum)' : '2.5.5 Target Size (Enhanced)',
+            level: failsMinimum ? 'AA' : 'AAA'
+          },
+          remediation: failsMinimum ? [
+            'Increase the touch target size to at least 24x24 CSS pixels',
+            'Ideally, make touch targets 44x44 pixels for better usability (WCAG 2.5.5)',
+            'Use padding to increase the clickable area without changing visual size',
+            'Consider providing alternative large-button controls for essential functions',
+            'Space controls apart to reduce accidental activation of wrong target'
+          ] : [
+            'Consider increasing touch targets to 44x44 CSS pixels for optimal usability',
+            'This is especially important for frequently-used controls like zoom buttons',
+            'Use generous padding around interactive elements',
+            'Mobile-first design often naturally leads to appropriately-sized touch targets',
+            'Test with real users on touch devices to ensure comfortable interaction'
+          ],
+          codeExample: {
+            before: `<button class="${failsMinimum ? 'zoom-in' : 'map-control'}" style="width: ${failsMinimum ? '20' : '30'}px; height: ${failsMinimum ? '20' : '30'}px;">
+  ${failsMinimum ? '+' : '🔍'}
+</button>`,
+            after: `<button class="${failsMinimum ? 'zoom-in' : 'map-control'}" style="width: ${failsMinimum ? '20' : '30'}px; height: ${failsMinimum ? '20' : '30'}px; padding: ${failsMinimum ? '12' : '7'}px;">
+  ${failsMinimum ? '+' : '🔍'}
+</button>
+<!-- Total touch target: 44x44px -->`
+          }
+        });
+      });
+    }
+
+    // 10. Always add info message when maps are found to list detected providers
     if (mapsData.pageFlags.hasMaps) {
       // Sort providers alphabetically and create array
       const sortedProviders = Object.entries(mapsData.results.summary.mapsByProvider)

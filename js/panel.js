@@ -884,6 +884,13 @@ document.addEventListener('DOMContentLoaded', function() {
           issueKey = 'maps-presentation-role';
         } else if (issue.title.includes('aria-hidden')) {
           issueKey = 'maps-aria-hidden';
+        } else if (issue.title.includes('map control') && issue.title.includes('has insufficient touch target size')) {
+          // Check WCAG level to determine which documentation to show
+          if (issue.wcag && issue.wcag.level === 'AA') {
+            issueKey = 'map-control-too-small';
+          } else {
+            issueKey = 'map-controls-suboptimal-size';
+          }
         }
       } else if (touchpoint === 'tabindex') {
         if (issue.title.includes('Positive tabindex')) {
@@ -917,13 +924,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (issue.xpath) {
       const xpathPreview = document.createElement('div');
       xpathPreview.className = 'xpath-preview';
-      xpathPreview.style.fontSize = '0.875rem';
-      xpathPreview.style.color = '#666';
-      xpathPreview.style.marginTop = '0.25rem';
-      xpathPreview.style.fontFamily = 'monospace';
-      xpathPreview.style.overflow = 'hidden';
-      xpathPreview.style.textOverflow = 'ellipsis';
-      xpathPreview.style.whiteSpace = 'nowrap';
       xpathPreview.textContent = `XPath: ${issue.xpath}`;
       disclosureBtn.appendChild(xpathPreview);
     }
