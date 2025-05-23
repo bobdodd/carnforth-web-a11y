@@ -810,7 +810,7 @@ function createHelpButton(touchpointId) {
   const button = document.createElement('button');
   button.className = 'help-button';
   button.setAttribute('aria-label', `Help for ${touchpointId.replace(/_/g, ' ')} touchpoint`);
-  button.innerHTML = '<span aria-hidden="true">?</span>';
+  button.textContent = '?';
   button.onclick = (e) => {
     e.stopPropagation(); // Prevent accordion toggle
     openDocumentationModal(touchpointId);
@@ -825,7 +825,7 @@ function createIssueInfoButton(touchpointId, issueKey, issueData) {
   const button = document.createElement('button');
   button.className = 'issue-info-button';
   button.setAttribute('aria-label', `Learn more about this issue`);
-  button.innerHTML = '<span aria-hidden="true">?</span>';
+  button.textContent = '?';
   button.onclick = (e) => {
     e.stopPropagation(); // Prevent issue disclosure toggle
     openDocumentationModal(touchpointId, {
