@@ -2433,17 +2433,20 @@ window.test_maps = async function() {
       });
     }
 
-    // 9. If maps are found but no accessibility issues detected, add an info message
-    if (mapsData.pageFlags.hasMaps && issues.length === 0) {
+    // 9. Always add info message when maps are found to list detected providers
+    if (mapsData.pageFlags.hasMaps) {
       // Create a formatted string of map providers and counts
       const providersInfo = Object.entries(mapsData.results.summary.mapsByProvider)
         .map(([provider, count]) => `${provider}: ${count}`)
         .join(', ');
       
+      // Determine if there are any issues with the maps
+      const hasIssues = issues.length > 0;
+      
       issues.push({
         type: 'info',
-        title: 'Maps with no accessibility issues detected',
-        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo}). No accessibility issues detected.`
+        title: hasIssues ? 'Maps detected on page' : 'Maps with no accessibility issues detected',
+        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo}).${hasIssues ? '' : ' No accessibility issues detected.'}`
       });
     }
     
