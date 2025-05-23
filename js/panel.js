@@ -1460,17 +1460,19 @@ document.addEventListener('DOMContentLoaded', function() {
         impactSection.appendChild(whoSection);
       }
 
-      // Severity
-      if (issue.impact.severity) {
+      // Impact Level (previously called Severity)
+      if (issue.impact.level) {
         const severitySection = document.createElement('div');
         severitySection.className = 'impact-severity';
         
         const severityLabel = document.createElement('strong');
-        severityLabel.textContent = 'Severity: ';
+        severityLabel.textContent = 'Impact Level: ';
         severitySection.appendChild(severityLabel);
         
-        const severityText = document.createTextNode(issue.impact.severity);
-        severitySection.appendChild(severityText);
+        const severitySpan = document.createElement('span');
+        severitySpan.className = `impact-level impact-level-${issue.impact.level}`;
+        severitySpan.textContent = issue.impact.level.charAt(0).toUpperCase() + issue.impact.level.slice(1);
+        severitySection.appendChild(severitySpan);
         
         impactSection.appendChild(severitySection);
       }

@@ -688,6 +688,44 @@ main {
   margin-bottom: var(--margin-small);
 }
 
+/* Style impact level with colors */
+.impact-severity strong {
+  margin-right: 4px;
+}
+
+.impact-severity {
+  font-weight: 500;
+}
+
+/* Impact level badges */
+.impact-level {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.impact-level-high {
+  background-color: #fee;
+  color: #b71c1c;
+  border: 1px solid #ffcdd2;
+}
+
+.impact-level-medium {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+
+.impact-level-low {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
 /* Remediation list */
 .remediation-steps {
   padding-left: var(--padding-large);
