@@ -2713,7 +2713,8 @@ window.test_maps = async function() {
             principle: 'Operable',
             guideline: '2.5 Input Modalities',
             successCriterion: failsMinimum ? '2.5.8 Target Size (Minimum)' : '2.5.5 Target Size (Enhanced)',
-            level: failsMinimum ? 'AA' : 'AAA'
+            level: failsMinimum ? 'AA' : 'AAA',
+            version: failsMinimum ? '2.2' : '2.1' // 2.5.8 is WCAG 2.2, 2.5.5 is WCAG 2.1
           },
           remediation: failsMinimum ? [
             'Increase the touch target size to at least 24x24 CSS pixels',
