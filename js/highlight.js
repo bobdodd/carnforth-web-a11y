@@ -155,14 +155,49 @@ function highlightFunctionToInject(selector, issueId) {
   highlight.style.width = (rect.width + (offset * 2)) + 'px';
   highlight.style.height = (rect.height + (offset * 2)) + 'px';
   
-  // Use white borders inside and outside the dark red outline
+  // Create a thick red highlight with white borders that works in all contrast modes
   highlight.style.boxSizing = 'border-box';
-  highlight.style.border = '2px solid white';  // Inner white border
-  highlight.style.outline = '4px solid #cc0000'; // Dark red outline, thicker (4px)
-  highlight.style.outlineOffset = '-3px'; // Adjust to create the right layering effect
   
-  // Add a white outer glow
-  highlight.style.boxShadow = '0 0 0 1px white, 0 0 8px rgba(255, 255, 255, 0.8)';
+  // Use multiple box-shadows to create the layered effect
+  // This works better than outline for cross-browser compatibility
+  highlight.style.boxShadow = `
+    0 0 0 2px white,           /* Inner white border */
+    0 0 0 8px #cc0000,         /* Thick red border (6px wide) */
+    0 0 0 10px white,          /* Outer white border */
+    0 0 20px rgba(0, 0, 0, 0.5) /* Subtle shadow for depth */
+  `;
+  
+  // For high contrast mode, use CurrentColor which adapts to the user's settings
+  const highContrastStyles = `
+    @media (prefers-contrast: high) {
+      .carnforth-highlight {
+        box-shadow: 
+          0 0 0 2px CurrentColor,    /* Inner border uses system color */
+          0 0 0 8px CanvasText,      /* Main border uses text color */
+          0 0 0 10px CurrentColor,   /* Outer border uses system color */
+          0 0 20px rgba(0, 0, 0, 0.5) !important;
+      }
+    }
+    
+    /* Windows High Contrast Mode specific */
+    @media (-ms-high-contrast: active), (forced-colors: active) {
+      .carnforth-highlight {
+        box-shadow: none !important;
+        border: 2px solid ButtonText !important;
+        outline: 6px solid Highlight !important;
+        outline-offset: 2px !important;
+        forced-color-adjust: none;
+      }
+    }
+  `;
+  
+  // Add high contrast styles if not already added
+  if (!document.getElementById('carnforth-highlight-styles')) {
+    const style = document.createElement('style');
+    style.id = 'carnforth-highlight-styles';
+    style.textContent = highContrastStyles;
+    document.head.appendChild(style);
+  }
   
   highlight.style.zIndex = '2147483647'; // Maximum z-index
   highlight.style.pointerEvents = 'none'; // Make it non-interactive
@@ -197,9 +232,37 @@ function highlightFunctionToInject(selector, issueId) {
       style.id = 'carnforth-animations';
       style.textContent = `
         @keyframes carnforth-pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.05); opacity: 0.8; }
-          100% { transform: scale(1); opacity: 1; }
+          0% { 
+            transform: scale(1); 
+            opacity: 1; 
+          }
+          50% { 
+            transform: scale(1.02); 
+            opacity: 0.9;
+            box-shadow: 
+              0 0 0 2px white,
+              0 0 0 10px #cc0000,    /* Slightly thicker during pulse */
+              0 0 0 12px white,
+              0 0 30px rgba(204, 0, 0, 0.6); /* Red glow effect */
+          }
+          100% { 
+            transform: scale(1); 
+            opacity: 1; 
+          }
+        }
+        
+        /* High contrast mode pulse animation */
+        @media (prefers-contrast: high), (-ms-high-contrast: active), (forced-colors: active) {
+          @keyframes carnforth-pulse {
+            0%, 100% { 
+              transform: scale(1); 
+              opacity: 1; 
+            }
+            50% { 
+              transform: scale(1.02); 
+              opacity: 1; /* Don't reduce opacity in high contrast */
+            }
+          }
         }
       `;
       document.head.appendChild(style);
