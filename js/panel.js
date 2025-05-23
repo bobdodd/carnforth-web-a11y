@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Filter state
   let activeFilters = {
-    wcagLevel: 'all',
-    issueType: 'all',
+    wcagLevels: new Set(['A', 'AA', 'AAA']), // All levels selected by default
+    issueTypes: new Set(['fail', 'warning', 'info']), // All types selected by default
     searchText: ''
   };
 
@@ -56,25 +56,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Reset filters to default
     activeFilters = {
-      wcagLevel: 'all',
-      issueType: 'all',
+      wcagLevels: new Set(['A', 'AA', 'AAA']),
+      issueTypes: new Set(['fail', 'warning', 'info']),
       searchText: ''
     };
     
-    // Reset filter UI
+    // Reset filter UI - all selected by default except "All" buttons
     wcagFilterButtons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('aria-pressed', 'false');
       if (btn.dataset.wcagLevel === 'all') {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      } else {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
       }
     });
     
     issueTypeButtons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('aria-pressed', 'false');
       if (btn.dataset.issueType === 'all') {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      } else {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
       }
@@ -583,16 +585,63 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle WCAG level filter buttons
   wcagFilterButtons.forEach(button => {
     button.addEventListener('click', function() {
-      // Update active state
-      wcagFilterButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-pressed', 'false');
-      });
-      this.classList.add('active');
-      this.setAttribute('aria-pressed', 'true');
+      const level = this.dataset.wcagLevel;
       
-      // Update filter
-      activeFilters.wcagLevel = this.dataset.wcagLevel;
+      if (level === 'all') {
+        // "All" button toggles all other buttons
+        const allButton = this;
+        const isCurrentlyActive = allButton.classList.contains('active');
+        
+        if (!isCurrentlyActive) {
+          // Select all levels
+          activeFilters.wcagLevels = new Set(['A', 'AA', 'AAA']);
+          wcagFilterButtons.forEach(btn => {
+            if (btn.dataset.wcagLevel !== 'all') {
+              btn.classList.add('active');
+              btn.setAttribute('aria-pressed', 'true');
+            }
+          });
+        } else {
+          // Deselect all levels
+          activeFilters.wcagLevels.clear();
+          wcagFilterButtons.forEach(btn => {
+            if (btn.dataset.wcagLevel !== 'all') {
+              btn.classList.remove('active');
+              btn.setAttribute('aria-pressed', 'false');
+            }
+          });
+        }
+        
+        // Toggle "All" button state
+        allButton.classList.toggle('active');
+        allButton.setAttribute('aria-pressed', allButton.classList.contains('active') ? 'true' : 'false');
+      } else {
+        // Individual level button
+        const isActive = this.classList.contains('active');
+        
+        if (isActive) {
+          // Deselect this level
+          activeFilters.wcagLevels.delete(level);
+          this.classList.remove('active');
+          this.setAttribute('aria-pressed', 'false');
+        } else {
+          // Select this level
+          activeFilters.wcagLevels.add(level);
+          this.classList.add('active');
+          this.setAttribute('aria-pressed', 'true');
+        }
+        
+        // Update "All" button state based on individual selections
+        const allButton = document.querySelector('[data-wcag-level="all"]');
+        if (activeFilters.wcagLevels.size === 3) {
+          allButton.classList.add('active');
+          allButton.setAttribute('aria-pressed', 'true');
+        } else {
+          allButton.classList.remove('active');
+          allButton.setAttribute('aria-pressed', 'false');
+        }
+      }
+      
       applyFilters();
     });
   });
@@ -600,16 +649,63 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle issue type filter buttons
   issueTypeButtons.forEach(button => {
     button.addEventListener('click', function() {
-      // Update active state
-      issueTypeButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-pressed', 'false');
-      });
-      this.classList.add('active');
-      this.setAttribute('aria-pressed', 'true');
+      const type = this.dataset.issueType;
       
-      // Update filter
-      activeFilters.issueType = this.dataset.issueType;
+      if (type === 'all') {
+        // "All" button toggles all other buttons
+        const allButton = this;
+        const isCurrentlyActive = allButton.classList.contains('active');
+        
+        if (!isCurrentlyActive) {
+          // Select all types
+          activeFilters.issueTypes = new Set(['fail', 'warning', 'info']);
+          issueTypeButtons.forEach(btn => {
+            if (btn.dataset.issueType !== 'all') {
+              btn.classList.add('active');
+              btn.setAttribute('aria-pressed', 'true');
+            }
+          });
+        } else {
+          // Deselect all types
+          activeFilters.issueTypes.clear();
+          issueTypeButtons.forEach(btn => {
+            if (btn.dataset.issueType !== 'all') {
+              btn.classList.remove('active');
+              btn.setAttribute('aria-pressed', 'false');
+            }
+          });
+        }
+        
+        // Toggle "All" button state
+        allButton.classList.toggle('active');
+        allButton.setAttribute('aria-pressed', allButton.classList.contains('active') ? 'true' : 'false');
+      } else {
+        // Individual type button
+        const isActive = this.classList.contains('active');
+        
+        if (isActive) {
+          // Deselect this type
+          activeFilters.issueTypes.delete(type);
+          this.classList.remove('active');
+          this.setAttribute('aria-pressed', 'false');
+        } else {
+          // Select this type
+          activeFilters.issueTypes.add(type);
+          this.classList.add('active');
+          this.setAttribute('aria-pressed', 'true');
+        }
+        
+        // Update "All" button state based on individual selections
+        const allButton = document.querySelector('[data-issue-type="all"]');
+        if (activeFilters.issueTypes.size === 3) {
+          allButton.classList.add('active');
+          allButton.setAttribute('aria-pressed', 'true');
+        } else {
+          allButton.classList.remove('active');
+          allButton.setAttribute('aria-pressed', 'false');
+        }
+      }
+      
       applyFilters();
     });
   });
@@ -639,13 +735,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const touchpointData = currentTestResults[touchpoint];
       const filteredIssues = (touchpointData.issues || []).filter(issue => {
         // Filter by issue type
-        if (activeFilters.issueType !== 'all' && issue.type !== activeFilters.issueType) {
+        if (activeFilters.issueTypes.size > 0 && !activeFilters.issueTypes.has(issue.type)) {
           return false;
         }
 
         // Filter by WCAG level
-        if (activeFilters.wcagLevel !== 'all' && issue.wcag) {
-          if (issue.wcag.level !== activeFilters.wcagLevel) {
+        if (activeFilters.wcagLevels.size > 0 && issue.wcag && issue.wcag.level) {
+          if (!activeFilters.wcagLevels.has(issue.wcag.level)) {
             return false;
           }
         }
