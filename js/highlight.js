@@ -114,9 +114,25 @@ function highlightFunctionToInject(selector, issueId) {
   // Check if this issue already has a highlight
   const existingHighlight = document.getElementById(highlightId);
   if (existingHighlight) {
-    // If already highlighted, just return without scrolling
-    // REMOVED: element.scrollIntoView() call that was causing page navigation events
-    console.log('Element already highlighted, skipping highlight creation');
+    // If already highlighted, scroll to it without triggering navigation
+    console.log('Element already highlighted, scrolling to view');
+    
+    // Use a custom scroll method that won't trigger navigation events
+    const rect = element.getBoundingClientRect();
+    const absoluteTop = rect.top + window.pageYOffset;
+    const absoluteLeft = rect.left + window.pageXOffset;
+    
+    // Calculate center position
+    const centerY = absoluteTop - (window.innerHeight / 2) + (rect.height / 2);
+    const centerX = absoluteLeft - (window.innerWidth / 2) + (rect.width / 2);
+    
+    // Use window.scrollTo with behavior smooth
+    window.scrollTo({
+      top: Math.max(0, centerY),
+      left: Math.max(0, centerX),
+      behavior: 'smooth'
+    });
+    
     return;
   }
   
@@ -154,12 +170,41 @@ function highlightFunctionToInject(selector, issueId) {
   // Add to page
   document.body.appendChild(highlight);
   
-  // REMOVED: Scroll element into view - This was causing page navigation events
-  // We're removing the auto-scrolling behavior because it may trigger page changed events
-  // element.scrollIntoView({
-  //   behavior: 'smooth',
-  //   block: 'center'
-  // });
+  // Scroll element into view using a method that won't trigger navigation events
+  // Use setTimeout to ensure the highlight is rendered before scrolling
+  setTimeout(() => {
+    const elementRect = element.getBoundingClientRect();
+    const absoluteTop = elementRect.top + window.pageYOffset;
+    const absoluteLeft = elementRect.left + window.pageXOffset;
+    
+    // Calculate center position
+    const centerY = absoluteTop - (window.innerHeight / 2) + (elementRect.height / 2);
+    const centerX = absoluteLeft - (window.innerWidth / 2) + (elementRect.width / 2);
+    
+    // Use window.scrollTo instead of scrollIntoView to avoid navigation events
+    window.scrollTo({
+      top: Math.max(0, centerY),
+      left: Math.max(0, centerX),
+      behavior: 'smooth'
+    });
+    
+    // Also add a visual pulse effect to draw attention
+    highlight.style.animation = 'carnforth-pulse 1s ease-out';
+    
+    // Add the pulse animation if it doesn't exist
+    if (!document.getElementById('carnforth-animations')) {
+      const style = document.createElement('style');
+      style.id = 'carnforth-animations';
+      style.textContent = `
+        @keyframes carnforth-pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.8; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, 100); // Small delay to ensure DOM is updated
   
   // Add window resize listener to reposition highlight
   const updatePosition = () => {
@@ -175,7 +220,7 @@ function highlightFunctionToInject(selector, issueId) {
 
   // Create a non-navigating scroll handler to prevent accidental navigation events
   // This uses a passive event listener and requestAnimationFrame for better performance
-  const updatePositionWithoutNavigation = (e) => {
+  const updatePositionWithoutNavigation = () => {
     requestAnimationFrame(() => {
       updatePosition();
     });
