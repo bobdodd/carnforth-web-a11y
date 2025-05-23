@@ -1535,7 +1535,7 @@ window.test_maps = async function() {
       interactiveHiddenViolations.forEach((violation, index) => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
-        const elementType = violation.element === 'div' ? 'div' : 'iframe';
+        const elementType = violation.element || 'iframe';
         
         // Create a key to track this element
         const elementKey = mapXpath || violation.selector;
@@ -1598,7 +1598,23 @@ window.test_maps = async function() {
           ],
           
           // Code examples make fixes concrete and copy-pasteable
-          codeExample: {
+          codeExample: elementType === 'img' ? {
+            before: `<img 
+  src="https://static-maps.example.com/..."
+  aria-hidden="true"
+  alt="">`,
+            after: `<img
+  src="https://static-maps.example.com/..."
+  alt="Map showing our office location at 123 Main Street, Chicago">
+
+<!-- OR provide an accessible alternative -->
+<div class="map-alternative">
+  <h3>Our Office Location</h3>
+  <p>Our office is located at 123 Main Street, Chicago, IL.</p>
+  <p>Nearby landmarks: Two blocks east of Grant Park.</p>
+  <p>Public transit: Red Line (State/Lake station)</p>
+</div>`
+          } : {
             before: `<${elementType} 
   src="https://www.google.com/maps/embed?pb=..."
   width="600"
@@ -1693,7 +1709,7 @@ window.test_maps = async function() {
       presentationRoleViolations.forEach((violation, index) => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
-        const elementType = violation.element === 'div' ? 'div' : 'iframe';
+        const elementType = violation.element || 'iframe';
         
         const elementKey = mapXpath || violation.selector;
         elementTracker.set(elementKey, true);
@@ -1738,7 +1754,15 @@ window.test_maps = async function() {
             'Test with a screen reader to verify all controls are announced correctly'
           ],
           
-          codeExample: {
+          codeExample: elementType === 'img' ? {
+            before: `<img 
+  src="https://static-maps.example.com/..."
+  role="presentation"
+  alt="">`,
+            after: `<img
+  src="https://static-maps.example.com/..."
+  alt="Map of downtown area showing major streets and landmarks">`
+          } : {
             before: `<${elementType} 
   src="https://www.google.com/maps/embed?pb=..."
   role="presentation"
@@ -1920,7 +1944,7 @@ window.test_maps = async function() {
       nonInteractiveHiddenViolations.forEach(violation => {
         const provider = violation.provider || 'Unknown';
         const mapXpath = violation.xpath || '';
-        const elementType = violation.element === 'div' ? 'div' : 'iframe';
+        const elementType = violation.element || 'iframe';
         const elementKey = mapXpath || violation.selector;
         
         // Skip if we already have an issue for this element
@@ -1955,7 +1979,23 @@ window.test_maps = async function() {
             'Add text nearby that describes what the map is showing - this benefits all users',
             'For complex maps, consider providing an accessible alternative like a data table or descriptive text'
           ],
-          codeExample: {
+          codeExample: elementType === 'img' ? {
+            before: `<!-- Map hidden from screen readers -->
+<img 
+  src="https://static-maps.example.com/..."
+  aria-hidden="true"
+  alt="">`,
+            after: `<!-- Option 1: If map contains important information -->
+<img 
+  src="https://static-maps.example.com/..."
+  alt="Map showing office location at 123 Main Street, 2 blocks from Central Station">
+
+<!-- OR Option 2: If map is purely decorative -->
+<img 
+  src="https://static-maps.example.com/..."
+  alt=""
+  role="presentation">`
+          } : {
             before: `<!-- Map hidden from screen readers -->
 <${elementType} 
   src="https://www.google.com/maps/embed?pb=..."
