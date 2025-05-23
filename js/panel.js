@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const wcagFilterButtons = document.querySelectorAll('[data-wcag-level]');
   const issueTypeButtons = document.querySelectorAll('[data-issue-type]');
   const searchInput = document.getElementById('issue-search');
+  const filterResultsText = document.getElementById('filter-results-text');
+  const filterStatus = document.getElementById('filter-status');
   
   // Filter state
   let activeFilters = {
@@ -163,6 +165,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show filter bar
     filterBar.classList.remove('hidden');
+    
+    // Initialize filter count
+    const totalIssues = Object.keys(results)
+      .filter(key => key !== '__summary')
+      .reduce((total, touchpoint) => {
+        return total + (results[touchpoint].issues || []).length;
+      }, 0);
+    
+    updateFilterResultsCount(totalIssues, totalIssues);
   }
 
   // Handle messages from the background script
@@ -725,6 +736,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create filtered results
     const filteredResults = {};
     let hasVisibleIssues = false;
+    let totalFilteredIssues = 0;
+    let totalOriginalIssues = 0;
 
     Object.keys(currentTestResults).forEach(touchpoint => {
       if (touchpoint === '__summary') {
@@ -733,7 +746,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const touchpointData = currentTestResults[touchpoint];
-      const filteredIssues = (touchpointData.issues || []).filter(issue => {
+      const originalIssues = touchpointData.issues || [];
+      totalOriginalIssues += originalIssues.length;
+      
+      const filteredIssues = originalIssues.filter(issue => {
         // Filter by issue type
         if (activeFilters.issueTypes.size > 0 && !activeFilters.issueTypes.has(issue.type)) {
           return false;
@@ -770,8 +786,12 @@ document.addEventListener('DOMContentLoaded', function() {
           issues: filteredIssues
         };
         hasVisibleIssues = true;
+        totalFilteredIssues += filteredIssues.length;
       }
     });
+
+    // Update visible count
+    updateFilterResultsCount(totalFilteredIssues, totalOriginalIssues);
 
     // Display filtered results
     if (hasVisibleIssues) {
@@ -780,6 +800,63 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       resultsContainer.innerHTML = '<p class="results-message">No issues match the current filters.</p>';
     }
+
+    // Announce to screen readers
+    announceFilterResults(totalFilteredIssues, totalOriginalIssues);
+  }
+
+  // Update the visible filter results count
+  function updateFilterResultsCount(filtered, total) {
+    if (!filterResultsText) return;
+    
+    if (filtered === total) {
+      filterResultsText.textContent = `Showing all ${total} issues`;
+    } else {
+      filterResultsText.textContent = `Showing ${filtered} of ${total} issues`;
+    }
+  }
+
+  // Announce filter results to screen readers
+  function announceFilterResults(filtered, total) {
+    if (!filterStatus) return;
+    
+    let announcement = '';
+    
+    // Build filter description
+    const filterDescriptions = [];
+    
+    // WCAG levels
+    if (activeFilters.wcagLevels.size < 3 && activeFilters.wcagLevels.size > 0) {
+      const levels = Array.from(activeFilters.wcagLevels).sort().join(', ');
+      filterDescriptions.push(`WCAG levels: ${levels}`);
+    }
+    
+    // Issue types
+    if (activeFilters.issueTypes.size < 3 && activeFilters.issueTypes.size > 0) {
+      const types = Array.from(activeFilters.issueTypes).join(', ');
+      filterDescriptions.push(`issue types: ${types}`);
+    }
+    
+    // Search text
+    if (activeFilters.searchText) {
+      filterDescriptions.push(`search term: "${activeFilters.searchText}"`);
+    }
+    
+    if (filtered === 0) {
+      announcement = 'No issues match the current filters';
+      if (filterDescriptions.length > 0) {
+        announcement += ': ' + filterDescriptions.join(', ');
+      }
+    } else if (filtered === total) {
+      announcement = `Showing all ${total} issues`;
+    } else {
+      announcement = `Showing ${filtered} of ${total} issues`;
+      if (filterDescriptions.length > 0) {
+        announcement += ' filtered by ' + filterDescriptions.join(', ');
+      }
+    }
+    
+    filterStatus.textContent = announcement;
   }
 
   // Listen for test button click

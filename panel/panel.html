@@ -41,24 +41,32 @@
   </div>
 
   <div class="filter-bar hidden">
-    <div class="filter-group">
-      <label class="filter-label">WCAG Level:</label>
-      <button class="filter-button" data-wcag-level="all" aria-pressed="false">All</button>
-      <button class="filter-button active" data-wcag-level="A" aria-pressed="true">A</button>
-      <button class="filter-button active" data-wcag-level="AA" aria-pressed="true">AA</button>
-      <button class="filter-button active" data-wcag-level="AAA" aria-pressed="true">AAA</button>
+    <div class="filter-controls">
+      <div class="filter-group">
+        <label class="filter-label">WCAG Level:</label>
+        <button class="filter-button" data-wcag-level="all" aria-pressed="false">All</button>
+        <button class="filter-button active" data-wcag-level="A" aria-pressed="true">A</button>
+        <button class="filter-button active" data-wcag-level="AA" aria-pressed="true">AA</button>
+        <button class="filter-button active" data-wcag-level="AAA" aria-pressed="true">AAA</button>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Issue Type:</label>
+        <button class="filter-button" data-issue-type="all" aria-pressed="false">All</button>
+        <button class="filter-button active" data-issue-type="fail" aria-pressed="true">Fails</button>
+        <button class="filter-button active" data-issue-type="warning" aria-pressed="true">Warnings</button>
+        <button class="filter-button active" data-issue-type="info" aria-pressed="true">Info</button>
+      </div>
     </div>
-    <div class="filter-group">
-      <label class="filter-label">Issue Type:</label>
-      <button class="filter-button" data-issue-type="all" aria-pressed="false">All</button>
-      <button class="filter-button active" data-issue-type="fail" aria-pressed="true">Fails</button>
-      <button class="filter-button active" data-issue-type="warning" aria-pressed="true">Warnings</button>
-      <button class="filter-button active" data-issue-type="info" aria-pressed="true">Info</button>
+    <div class="filter-search-row">
+      <div class="filter-search">
+        <label for="issue-search" class="sr-only">Search issues:</label>
+        <input type="search" id="issue-search" placeholder="Search issues..." class="search-input">
+      </div>
+      <div class="filter-results-count">
+        <span id="filter-results-text">Showing all issues</span>
+      </div>
     </div>
-    <div class="filter-search">
-      <label for="issue-search" class="sr-only">Search issues:</label>
-      <input type="search" id="issue-search" placeholder="Search issues..." class="search-input">
-    </div>
+    <div id="filter-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </div>
 
   <main>
