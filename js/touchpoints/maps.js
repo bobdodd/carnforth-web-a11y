@@ -1699,7 +1699,8 @@ window.test_maps = async function() {
             principle: 'Perceivable, Operable',
             guideline: '1.3 Adaptable, 2.1 Keyboard Accessible',
             successCriterion: '1.3.1 Info and Relationships, 2.1.1 Keyboard',
-            level: 'A'  // A = essential, AA = recommended, AAA = enhanced
+            level: 'A'  // A = essential, AA = recommended, AAA = enhanced,
+            version: '2.0'
           },
           
           // Remediation steps should be specific and actionable
@@ -1783,7 +1784,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.1 Text Alternatives',
             successCriterion: '1.1.1 Non-text Content',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Provide a text description of what the map shows',
@@ -1933,7 +1935,8 @@ window.test_maps = async function() {
             principle: 'Robust',
             guideline: '4.1 Compatible',
             successCriterion: '4.1.2 Name, Role, Value',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           
           remediation: [
@@ -2014,7 +2017,8 @@ window.test_maps = async function() {
             principle: 'Operable, Robust',
             guideline: '2.4 Navigable, 4.1 Compatible',
             successCriterion: '2.4.1 Bypass Blocks, 4.1.2 Name, Role, Value',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Add a title attribute to the map iframe',
@@ -2086,7 +2090,8 @@ window.test_maps = async function() {
             principle: 'Operable, Robust',
             guideline: '2.4 Navigable, 4.1 Compatible',
             successCriterion: '2.4.1 Bypass Blocks, 4.1.2 Name, Role, Value',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Add a title attribute to the map iframe',
@@ -2157,7 +2162,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.1 Text Alternatives',
             successCriterion: '1.1.1 Non-text Content (AT RISK)',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'If the map conveys important information: Remove aria-hidden="true" and add descriptive text (via title, aria-label, or nearby content)',
@@ -2243,7 +2249,8 @@ window.test_maps = async function() {
             principle: 'Perceivable, Robust',
             guideline: '1.1 Text Alternatives, 4.1 Compatible',
             successCriterion: '1.1.1 Non-text Content, 4.1.2 Name, Role, Value',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'For interactive maps: Add role="application" to the map container',
@@ -2310,7 +2317,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.1 Text Alternatives',
             successCriterion: '1.1.1 Non-text Content',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Add a descriptive alt attribute to the image that explains what the map shows',
@@ -2369,7 +2377,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.1 Text Alternatives',
             successCriterion: '1.1.1 Non-text Content',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Replace the generic alt text with a more specific description of what the map shows',
@@ -2426,7 +2435,8 @@ window.test_maps = async function() {
             principle: 'Perceivable, Robust',
             guideline: '1.1 Text Alternatives, 4.1 Compatible',
             successCriterion: '1.1.1 Non-text Content, 4.1.2 Name, Role, Value',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             missingRole ? 'Add role="img" or role="graphics-document" to the SVG element' : '',
@@ -2513,7 +2523,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.3 Adaptable',
             successCriterion: '1.3.1 Info and Relationships',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Best practice: Wrap the map in a landmark region with an accessible name',
@@ -2576,7 +2587,8 @@ window.test_maps = async function() {
             principle: 'Perceivable',
             guideline: '1.3 Adaptable',
             successCriterion: '1.3.1 Info and Relationships (Best Practice)',
-            level: 'A'
+            level: 'A',
+            version: '2.0'
           },
           remediation: [
             'Consider wrapping the map in a landmark region for better structure',
@@ -2634,7 +2646,8 @@ window.test_maps = async function() {
             principle: 'Operable',
             guideline: '2.4 Navigable',
             successCriterion: '2.4.6 Headings and Labels',
-            level: 'AA'
+            level: 'AA',
+            version: '2.0'
           },
           remediation: [
             'Replace the generic name with a descriptive one that explains what the map shows',
