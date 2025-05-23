@@ -20,17 +20,36 @@ document.addEventListener('DOMContentLoaded', function() {
   const testStatus = document.getElementById('test-status');
   
   // Filter elements
+  const wcagVersionButtons = document.querySelectorAll('[data-wcag-version]');
   const wcagFilterButtons = document.querySelectorAll('[data-wcag-level]');
   const issueTypeButtons = document.querySelectorAll('[data-issue-type]');
   const searchInput = document.getElementById('issue-search');
   const filterResultsText = document.getElementById('filter-results-text');
   const filterStatus = document.getElementById('filter-status');
   
+  // Preferences elements
+  const preferencesButton = document.getElementById('preferences-button');
+  const preferencesModal = document.getElementById('preferences-modal');
+  const modalClose = preferencesModal?.querySelector('.modal-close');
+  const modalBackdrop = preferencesModal?.querySelector('.modal-backdrop');
+  const savePreferencesButton = document.getElementById('save-preferences');
+  const resetPreferencesButton = document.getElementById('reset-preferences');
+  
   // Filter state
   let activeFilters = {
+    wcagVersions: new Set(['2.0', '2.1', '2.2']), // All versions selected by default
     wcagLevels: new Set(['A', 'AA', 'AAA']), // All levels selected by default
     issueTypes: new Set(['fail', 'warning', 'info']), // All types selected by default
     searchText: ''
+  };
+  
+  // Preferences state
+  let preferences = {
+    defaultWcagVersions: ['2.0', '2.1', '2.2'],
+    defaultWcagLevels: ['A', 'AA', 'AAA'],
+    defaultIssueTypes: ['fail', 'warning', 'info'],
+    selectedTouchpoints: [...touchpoints], // All touchpoints by default
+    accordionDefault: 'closed'
   };
 
   // Initialize to default state
@@ -56,31 +75,51 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hide filter bar
     filterBar.classList.add('hidden');
     
-    // Reset filters to default
+    // Reset filters to preferences defaults
     activeFilters = {
-      wcagLevels: new Set(['A', 'AA', 'AAA']),
-      issueTypes: new Set(['fail', 'warning', 'info']),
+      wcagVersions: new Set(preferences.defaultWcagVersions),
+      wcagLevels: new Set(preferences.defaultWcagLevels),
+      issueTypes: new Set(preferences.defaultIssueTypes),
       searchText: ''
     };
     
-    // Reset filter UI - all selected by default except "All" buttons
-    wcagFilterButtons.forEach(btn => {
-      if (btn.dataset.wcagLevel === 'all') {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-pressed', 'false');
-      } else {
+    // Reset filter UI based on preferences
+    wcagVersionButtons.forEach(btn => {
+      const version = btn.dataset.wcagVersion;
+      if (preferences.defaultWcagVersions.includes(version)) {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    });
+    
+    wcagFilterButtons.forEach(btn => {
+      const level = btn.dataset.wcagLevel;
+      if (level === 'all') {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      } else if (preferences.defaultWcagLevels.includes(level)) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
       }
     });
     
     issueTypeButtons.forEach(btn => {
-      if (btn.dataset.issueType === 'all') {
+      const type = btn.dataset.issueType;
+      if (type === 'all') {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
-      } else {
+      } else if (preferences.defaultIssueTypes.includes(type)) {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
       }
     });
     
@@ -93,8 +132,31 @@ document.addEventListener('DOMContentLoaded', function() {
     testStatus.textContent = '';
   }
   
-  // Reset UI on page load
-  resetUI();
+  // Load preferences from storage
+  async function loadPreferences() {
+    try {
+      const stored = await chrome.storage.local.get('carnforthPreferences');
+      if (stored.carnforthPreferences) {
+        preferences = { ...preferences, ...stored.carnforthPreferences };
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    }
+  }
+  
+  // Save preferences to storage
+  async function savePreferences() {
+    try {
+      await chrome.storage.local.set({ carnforthPreferences: preferences });
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+    }
+  }
+  
+  // Load preferences then reset UI
+  loadPreferences().then(() => {
+    resetUI();
+  });
   
   // Connection management
   let port = null;
@@ -376,10 +438,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   /**
    * Run all touchpoint tests in batches
-   * @param {number} tabId - The ID of the inspected tab
    * @returns {Promise<Object>} - The combined test results
    */
-  async function runAllTouchpoints(tabId) {
+  async function runAllTouchpoints() {
     console.log('[Panel] Running all touchpoint tests');
     
     const results = {};
@@ -389,9 +450,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const successful = [];
     const failed = [];
     
+    // Use only selected touchpoints from preferences
+    const selectedTouchpoints = preferences.selectedTouchpoints;
+    
     // Process touchpoints in batches
-    for (let i = 0; i < touchpoints.length; i += batchSize) {
-      const batch = touchpoints.slice(i, i + batchSize);
+    for (let i = 0; i < selectedTouchpoints.length; i += batchSize) {
+      const batch = selectedTouchpoints.slice(i, i + batchSize);
       console.log(`[Panel] Processing batch of touchpoints: ${batch.join(', ')}`);
       
       // Run touchpoints in this batch sequentially
@@ -592,6 +656,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Filter functionality
+  // Handle WCAG version filter buttons
+  wcagVersionButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const version = this.dataset.wcagVersion;
+      const isActive = this.classList.contains('active');
+      
+      if (isActive) {
+        // Deselect this version
+        activeFilters.wcagVersions.delete(version);
+        this.classList.remove('active');
+        this.setAttribute('aria-pressed', 'false');
+      } else {
+        // Select this version
+        activeFilters.wcagVersions.add(version);
+        this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
+      }
+      
+      applyFilters();
+    });
+  });
+  
   // Handle WCAG level filter buttons
   wcagFilterButtons.forEach(button => {
     button.addEventListener('click', function() {
@@ -760,6 +846,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
           }
         }
+        
+        // Filter by WCAG version
+        if (activeFilters.wcagVersions.size > 0 && issue.wcag && issue.wcag.version) {
+          if (!activeFilters.wcagVersions.has(issue.wcag.version)) {
+            return false;
+          }
+        }
 
         // Filter by search text
         if (activeFilters.searchText) {
@@ -879,7 +972,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Starting tests on tab:', tabId);
     
     // Run the tests directly in the panel without injecting code into the page
-    runAllTouchpoints(tabId)
+    runAllTouchpoints()
       .then(results => {
         console.log('All touchpoints completed, processing results');
         handleTestResults(results);
@@ -1006,6 +1099,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize accordion functionality
     initializeAccordions();
     initializeIssueDisclosures();
+    
+    // Apply accordion default preference
+    if (preferences.accordionDefault === 'open') {
+      // Open all accordions
+      document.querySelectorAll('.accordion-header').forEach(header => {
+        const accordion = header.parentElement;
+        const content = accordion.querySelector('.accordion-content');
+        if (content && header.getAttribute('aria-expanded') === 'false') {
+          // Simulate click to open accordion
+          header.click();
+        }
+      });
+    }
     
     // Apply syntax highlighting to all code blocks
     // Use a longer timeout to ensure DOM is fully rendered and highlight.js is loaded
@@ -3110,4 +3216,184 @@ document.addEventListener('DOMContentLoaded', function() {
   exportJsonButton.addEventListener('click', exportAsJson);
   exportExcelButton.addEventListener('click', exportAsExcel);
   exportHtmlButton.addEventListener('click', exportAsHtml);
+  
+  // Preferences modal functionality
+  function openPreferencesModal() {
+    if (preferencesModal) {
+      preferencesModal.classList.remove('hidden');
+      // Populate touchpoints list
+      populateTouchpointsList();
+      // Update form with current preferences
+      updatePreferencesForm();
+      // Focus on close button for accessibility
+      modalClose?.focus();
+    }
+  }
+  
+  function closePreferencesModal() {
+    if (preferencesModal) {
+      preferencesModal.classList.add('hidden');
+      // Return focus to preferences button
+      preferencesButton?.focus();
+    }
+  }
+  
+  function populateTouchpointsList() {
+    const touchpointList = document.getElementById('touchpoint-list');
+    if (!touchpointList) return;
+    
+    touchpointList.innerHTML = '';
+    touchpoints.forEach(touchpoint => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = `pref-touchpoint-${touchpoint}`;
+      checkbox.value = touchpoint;
+      checkbox.checked = preferences.selectedTouchpoints.includes(touchpoint);
+      
+      const displayName = touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(' ' + displayName));
+      
+      touchpointList.appendChild(label);
+    });
+  }
+  
+  function updatePreferencesForm() {
+    // Update WCAG version checkboxes
+    document.querySelectorAll('#preferences-modal input[id^="pref-wcag-"]').forEach(checkbox => {
+      if (checkbox.value) {
+        checkbox.checked = preferences.defaultWcagVersions.includes(checkbox.value);
+      }
+    });
+    
+    // Update WCAG level checkboxes
+    document.querySelectorAll('#preferences-modal input[id^="pref-level-"]').forEach(checkbox => {
+      if (checkbox.value) {
+        checkbox.checked = preferences.defaultWcagLevels.includes(checkbox.value);
+      }
+    });
+    
+    // Update issue type checkboxes
+    document.querySelectorAll('#preferences-modal input[id^="pref-type-"]').forEach(checkbox => {
+      if (checkbox.value) {
+        checkbox.checked = preferences.defaultIssueTypes.includes(checkbox.value);
+      }
+    });
+    
+    // Update accordion default
+    const accordionRadio = document.querySelector(`input[name="accordion-default"][value="${preferences.accordionDefault}"]`);
+    if (accordionRadio) {
+      accordionRadio.checked = true;
+    }
+    
+    // Update select all touchpoints checkbox
+    const selectAllCheckbox = document.getElementById('pref-select-all-touchpoints');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = preferences.selectedTouchpoints.length === touchpoints.length;
+    }
+  }
+  
+  function handleSavePreferences() {
+    // Get WCAG versions
+    preferences.defaultWcagVersions = [];
+    document.querySelectorAll('#preferences-modal input[id^="pref-wcag-"]:checked').forEach(checkbox => {
+      if (checkbox.value) {
+        preferences.defaultWcagVersions.push(checkbox.value);
+      }
+    });
+    
+    // Get WCAG levels
+    preferences.defaultWcagLevels = [];
+    document.querySelectorAll('#preferences-modal input[id^="pref-level-"]:checked').forEach(checkbox => {
+      if (checkbox.value) {
+        preferences.defaultWcagLevels.push(checkbox.value);
+      }
+    });
+    
+    // Get issue types
+    preferences.defaultIssueTypes = [];
+    document.querySelectorAll('#preferences-modal input[id^="pref-type-"]:checked').forEach(checkbox => {
+      if (checkbox.value) {
+        preferences.defaultIssueTypes.push(checkbox.value);
+      }
+    });
+    
+    // Get selected touchpoints
+    preferences.selectedTouchpoints = [];
+    document.querySelectorAll('#touchpoint-list input:checked').forEach(checkbox => {
+      if (checkbox.value) {
+        preferences.selectedTouchpoints.push(checkbox.value);
+      }
+    });
+    
+    // Get accordion default
+    const accordionRadio = document.querySelector('input[name="accordion-default"]:checked');
+    if (accordionRadio) {
+      preferences.accordionDefault = accordionRadio.value;
+    }
+    
+    // Save preferences
+    savePreferences().then(() => {
+      // Apply new preferences to current filters if no test is running
+      if (!currentTestResults) {
+        resetUI();
+      }
+      closePreferencesModal();
+    });
+  }
+  
+  function handleResetPreferences() {
+    // Reset to defaults
+    preferences = {
+      defaultWcagVersions: ['2.0', '2.1', '2.2'],
+      defaultWcagLevels: ['A', 'AA', 'AAA'],
+      defaultIssueTypes: ['fail', 'warning', 'info'],
+      selectedTouchpoints: [...touchpoints],
+      accordionDefault: 'closed'
+    };
+    
+    // Update form
+    updatePreferencesForm();
+    populateTouchpointsList();
+  }
+  
+  // Handle select all touchpoints
+  const selectAllTouchpoints = document.getElementById('pref-select-all-touchpoints');
+  if (selectAllTouchpoints) {
+    selectAllTouchpoints.addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('#touchpoint-list input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+    });
+  }
+  
+  // Add event listeners for preferences
+  if (preferencesButton) {
+    preferencesButton.addEventListener('click', openPreferencesModal);
+  }
+  
+  if (modalClose) {
+    modalClose.addEventListener('click', closePreferencesModal);
+  }
+  
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', closePreferencesModal);
+  }
+  
+  if (savePreferencesButton) {
+    savePreferencesButton.addEventListener('click', handleSavePreferences);
+  }
+  
+  if (resetPreferencesButton) {
+    resetPreferencesButton.addEventListener('click', handleResetPreferences);
+  }
+  
+  // Handle ESC key to close modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && preferencesModal && !preferencesModal.classList.contains('hidden')) {
+      closePreferencesModal();
+    }
+  });
 });

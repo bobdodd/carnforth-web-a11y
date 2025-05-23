@@ -14,9 +14,18 @@
 <body>
   <header>
     <h1>Carnforth Web A11y</h1>
-    <button id="about-carnforth" class="header-help-button" aria-label="About Carnforth Project">
-      ?
-    </button>
+    <div class="header-buttons">
+      <button id="preferences-button" class="header-button" aria-label="Preferences">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+          <path fill-rule="evenodd" d="M10 1.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM2 10a8 8 0 1116 0 8 8 0 01-16 0z" clip-rule="evenodd"/>
+          <path d="M8.5 2.5v1.25a.75.75 0 01-.53.72 5.5 5.5 0 00-2.72 2.72.75.75 0 01-.72.53H3.25v2.5h1.25a.75.75 0 01.72.53 5.5 5.5 0 002.72 2.72.75.75 0 01.53.72v1.25h3v-1.25a.75.75 0 01.53-.72 5.5 5.5 0 002.72-2.72.75.75 0 01.72-.53h1.25v-2.5h-1.25a.75.75 0 01-.72-.53 5.5 5.5 0 00-2.72-2.72.75.75 0 01-.53-.72V2.5h-3z"/>
+        </svg>
+      </button>
+      <button id="about-carnforth" class="header-button header-help-button" aria-label="About Carnforth Project">
+        ?
+      </button>
+    </div>
   </header>
   
   <div class="message-bar">
@@ -42,6 +51,12 @@
 
   <div class="filter-bar hidden">
     <div class="filter-controls">
+      <div class="filter-group">
+        <label class="filter-label">WCAG Version:</label>
+        <button class="filter-button active" data-wcag-version="2.0" aria-pressed="true">2.0</button>
+        <button class="filter-button active" data-wcag-version="2.1" aria-pressed="true">2.1</button>
+        <button class="filter-button active" data-wcag-version="2.2" aria-pressed="true">2.2</button>
+      </div>
       <div class="filter-group">
         <label class="filter-label">WCAG Level:</label>
         <button class="filter-button" data-wcag-level="all" aria-pressed="false">All</button>
@@ -106,6 +121,103 @@
       color: #545a61; /* Darker gray for better contrast */
     }
   </style>
+
+  <!-- Preferences Modal -->
+  <div id="preferences-modal" class="modal hidden" role="dialog" aria-labelledby="preferences-title" aria-modal="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="preferences-title">Preferences</h2>
+        <button class="modal-close" aria-label="Close preferences">×</button>
+      </div>
+      <div class="modal-body">
+        <fieldset class="pref-section">
+          <legend>Default WCAG Version Filters</legend>
+          <div class="pref-checkboxes">
+            <label>
+              <input type="checkbox" id="pref-wcag-2.0" value="2.0" checked>
+              WCAG 2.0
+            </label>
+            <label>
+              <input type="checkbox" id="pref-wcag-2.1" value="2.1" checked>
+              WCAG 2.1
+            </label>
+            <label>
+              <input type="checkbox" id="pref-wcag-2.2" value="2.2" checked>
+              WCAG 2.2
+            </label>
+          </div>
+        </fieldset>
+        
+        <fieldset class="pref-section">
+          <legend>Default WCAG Level Filters</legend>
+          <div class="pref-checkboxes">
+            <label>
+              <input type="checkbox" id="pref-level-A" value="A" checked>
+              Level A
+            </label>
+            <label>
+              <input type="checkbox" id="pref-level-AA" value="AA" checked>
+              Level AA
+            </label>
+            <label>
+              <input type="checkbox" id="pref-level-AAA" value="AAA" checked>
+              Level AAA
+            </label>
+          </div>
+        </fieldset>
+        
+        <fieldset class="pref-section">
+          <legend>Default Issue Type Filters</legend>
+          <div class="pref-checkboxes">
+            <label>
+              <input type="checkbox" id="pref-type-fail" value="fail" checked>
+              Fails
+            </label>
+            <label>
+              <input type="checkbox" id="pref-type-warning" value="warning" checked>
+              Warnings
+            </label>
+            <label>
+              <input type="checkbox" id="pref-type-info" value="info" checked>
+              Info
+            </label>
+          </div>
+        </fieldset>
+        
+        <fieldset class="pref-section">
+          <legend>Touchpoints to Run</legend>
+          <div class="pref-touchpoints">
+            <label>
+              <input type="checkbox" id="pref-select-all-touchpoints" checked>
+              <strong>Select All</strong>
+            </label>
+            <div id="touchpoint-list" class="touchpoint-grid">
+              <!-- Touchpoints will be populated dynamically -->
+            </div>
+          </div>
+        </fieldset>
+        
+        <fieldset class="pref-section">
+          <legend>Display Options</legend>
+          <div class="pref-radio">
+            <label>
+              <input type="radio" name="accordion-default" value="closed" checked>
+              Accordions closed by default
+            </label>
+            <label>
+              <input type="radio" name="accordion-default" value="open">
+              Accordions open by default
+            </label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="modal-footer">
+        <button id="save-preferences" class="primary-button">Save Preferences</button>
+        <button id="reset-preferences" class="secondary-button">Reset to Defaults</button>
+      </div>
+    </div>
+  </div>
 
   <script src="../js/documentation.js"></script>
   <script src="../js/accordion.js"></script>
