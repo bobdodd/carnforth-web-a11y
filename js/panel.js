@@ -942,6 +942,29 @@ document.addEventListener('DOMContentLoaded', function() {
     description.textContent = issue.description;
     details.appendChild(description);
 
+    // 1a. Add providers list if present (for info messages about maps)
+    if (issue.providers && Array.isArray(issue.providers) && issue.providers.length > 0) {
+      const providerSection = document.createElement('div');
+      providerSection.className = 'provider-list-section';
+      
+      const listTitle = document.createElement('p');
+      listTitle.className = 'provider-list-title';
+      listTitle.textContent = 'Map providers found:';
+      providerSection.appendChild(listTitle);
+      
+      const providerList = document.createElement('ul');
+      providerList.className = 'provider-list';
+      
+      issue.providers.forEach(({provider, count}) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${provider}: ${count} map${count !== 1 ? 's' : ''}`;
+        providerList.appendChild(listItem);
+      });
+      
+      providerSection.appendChild(providerList);
+      details.appendChild(providerSection);
+    }
+
     // 2. Add impact information (required for fail and warning)
     if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact) {
       const impactSection = document.createElement('div');

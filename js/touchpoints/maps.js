@@ -2435,10 +2435,10 @@ window.test_maps = async function() {
 
     // 9. Always add info message when maps are found to list detected providers
     if (mapsData.pageFlags.hasMaps) {
-      // Create a formatted string of map providers and counts
-      const providersInfo = Object.entries(mapsData.results.summary.mapsByProvider)
-        .map(([provider, count]) => `${provider}: ${count}`)
-        .join(', ');
+      // Sort providers alphabetically and create array
+      const sortedProviders = Object.entries(mapsData.results.summary.mapsByProvider)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([provider, count]) => ({provider, count}));
       
       // Determine if there are any issues with the maps
       const hasIssues = issues.length > 0;
@@ -2446,7 +2446,8 @@ window.test_maps = async function() {
       issues.push({
         type: 'info',
         title: hasIssues ? 'Maps detected on page' : 'Maps with no accessibility issues detected',
-        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page (${providersInfo}).${hasIssues ? '' : ' No accessibility issues detected.'}`
+        description: `${mapsData.results.summary.totalMaps} map${mapsData.results.summary.totalMaps !== 1 ? 's' : ''} found on the page.${hasIssues ? '' : ' No accessibility issues detected.'}`,
+        providers: sortedProviders
       });
     }
     

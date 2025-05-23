@@ -1111,3 +1111,25 @@ main {
     border-color: CanvasText;
   }
 }
+
+/* Provider list styles for map info messages */
+.provider-list-section {
+  margin-top: var(--margin-small);
+}
+
+.provider-list-title {
+  font-weight: 600;
+  margin-bottom: var(--margin-xs);
+  color: var(--color-text-secondary);
+}
+
+.provider-list {
+  margin: 0;
+  padding-left: 1.5em;
+  list-style-type: disc;
+}
+
+.provider-list li {
+  margin-bottom: 0.25em;
+  color: var(--color-text-primary);
+}
