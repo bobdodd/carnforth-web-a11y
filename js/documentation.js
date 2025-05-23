@@ -38,6 +38,8 @@ const touchpointDocumentation = {
     bestPractices: [
       'Always provide a descriptive title or aria-label that explains what the map shows',
       'Include the location or purpose in the accessible name (e.g., "Map of downtown Chicago office locations")',
+      'Add a screen reader-only heading (h4) before maps to make them easily skippable',
+      'Structure content with proper headings: main location (h3), map (sr-only h4), key information (h4)',
       'For div-based maps, use role="application" for interactive maps or role="img" for static ones',
       'Ensure all map controls are keyboard accessible',
       'Provide alternative ways to access map information (tables, text descriptions)',
@@ -46,12 +48,12 @@ const touchpointDocumentation = {
     examples: {
       good: [
         {
-          code: '<iframe src="https://maps.google.com/..." title="Interactive map showing University of Oxford campus location"></iframe>',
-          explanation: 'Descriptive title that explains what the map shows'
+          code: '<section>\n  <h3>Our Office Location</h3>\n  <h4 class="sr-only">Interactive map of our office</h4>\n  <iframe src="https://maps.google.com/..." title="Interactive map showing office location"></iframe>\n  <h4>Key Information</h4>\n  <ul>\n    <li>Address: 123 Main St...</li>\n  </ul>\n</section>',
+          explanation: 'Proper heading structure with sr-only h4 allows skipping the map'
         },
         {
-          code: '<div role="application" aria-label="Interactive store locator map for Chicago area">\n  <!-- Map content -->\n</div>',
-          explanation: 'Div-based map with proper role and descriptive label'
+          code: '<h4 id="map-heading" class="sr-only">Store locator map</h4>\n<div role="application" aria-labelledby="map-heading">\n  <!-- Map content -->\n</div>',
+          explanation: 'Screen reader-only heading connected via aria-labelledby'
         }
       ],
       bad: [
@@ -186,7 +188,13 @@ const issueDocumentation = {
       'May violate legal accessibility requirements'
     ],
     howToFix: {
-      overview: 'Add a descriptive title or aria-label that explains what the map shows',
+      overview: 'Add a descriptive title or aria-label and use proper heading structure',
+      steps: [
+        'Add a descriptive accessible name (title, aria-label, or alt text)',
+        'Place map within a proper heading structure',
+        'Add screen reader-only h4 before the map for navigation',
+        'Group text alternatives under a Key Information heading'
+      ],
       examples: [
         {
           type: 'iframe',
@@ -229,12 +237,14 @@ const issueDocumentation = {
       'Reduces efficiency for all users navigating the page'
     ],
     howToFix: {
-      overview: 'Replace generic names with descriptive ones that include location, purpose, or content',
+      overview: 'Replace generic names with descriptive ones and use proper heading structure',
       tips: [
         'Include the location: "Map of downtown Seattle"',
         'Mention the purpose: "Delivery area map"',
         'Add relevant context: "Hurricane evacuation routes map"',
-        'Be specific but concise: "Campus building locations"'
+        'Be specific but concise: "Campus building locations"',
+        'Add screen reader-only headings to make maps skippable',
+        'Structure content with clear heading hierarchy'
       ],
       examples: [
         {
@@ -425,12 +435,14 @@ const issueDocumentation = {
       'May prevent users from accessing critical information'
     ],
     howToFix: {
-      overview: 'Remove aria-hidden="true" and provide proper alternative text',
+      overview: 'Remove aria-hidden="true" and provide proper alternative text with heading structure',
       steps: [
         'Remove the aria-hidden="true" attribute',
+        'Add a screen reader-only h4 heading before the map for easy skipping',
         'For images: Add descriptive alt text that conveys the map information',
         'For iframes: Add descriptive title attribute',
-        'For complex maps: Consider providing text description of key locations',
+        'Structure alternatives: h3 for location, sr-only h4 for map, h4 for key information',
+        'Include address and important details under the Key Information heading',
         'Only use aria-hidden on truly decorative content'
       ],
       examples: [
