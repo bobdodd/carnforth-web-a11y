@@ -6,6 +6,92 @@
  * WCAG criteria, best practices, and more.
  */
 
+// Documentation about the Carnforth Project
+const carnforthProjectDocumentation = {
+  title: 'About the Carnforth Project',
+  overview: 'Carnforth Web A11y is an educational Chrome extension designed to help developers understand and fix web accessibility issues.',
+  sections: [
+    {
+      heading: 'Project Goals',
+      content: [
+        'Provide clear, actionable feedback about accessibility issues',
+        'Educate developers about WCAG standards and best practices',
+        'Make accessibility testing approachable and understandable',
+        'Demonstrate that accessibility improves usability for everyone',
+        'Encourage proactive accessibility implementation, not just compliance'
+      ]
+    },
+    {
+      heading: 'What Makes Carnforth Different',
+      content: [
+        'Educational focus - every issue includes the "why" and "who" it affects',
+        'Real-world analogies to help developers understand impact',
+        'Code examples showing both problems and solutions',
+        'Comprehensive issue detection beyond basic WCAG compliance',
+        'Visual highlighting to quickly locate issues on the page'
+      ]
+    },
+    {
+      heading: 'Understanding Automated Testing',
+      content: [
+        '<strong>What automation can do well:</strong>',
+        '• Detect missing or incorrect HTML attributes',
+        '• Find color contrast issues',
+        '• Identify structural problems (headings, landmarks)',
+        '• Check for keyboard accessibility basics',
+        '• Validate ARIA usage',
+        '',
+        '<strong>What automation cannot do:</strong>',
+        '• Judge if alt text is meaningful',
+        '• Determine if content makes sense to users',
+        '• Test complex interactions',
+        '• Evaluate cognitive load',
+        '• Assess whether ARIA is used appropriately'
+      ]
+    },
+    {
+      heading: 'The 80/20 Rule of Accessibility Testing',
+      content: [
+        'Automated tools can find about 20-30% of accessibility issues',
+        'The remaining 70-80% require human judgment and testing',
+        'Carnforth focuses on making that 20-30% as educational and actionable as possible',
+        'Always complement automated testing with:',
+        '• Manual keyboard testing',
+        '• Screen reader testing',
+        '• Testing with actual users with disabilities',
+        '• Cognitive walkthroughs'
+      ]
+    },
+    {
+      heading: 'Using Carnforth Effectively',
+      content: [
+        '1. Run tests early and often during development',
+        '2. Read the impact statements to understand who is affected',
+        '3. Use the code examples as starting points, not complete solutions',
+        '4. Follow the provided WCAG links to learn more',
+        '5. Test your fixes with real assistive technology',
+        '6. Remember: passing automated tests ≠ fully accessible'
+      ]
+    },
+    {
+      heading: 'Contributing to Accessibility',
+      content: [
+        'Accessibility is not a checklist - it\'s a mindset',
+        'Every improvement helps real people use the web',
+        'Small changes can have significant impact',
+        'Accessibility benefits everyone, not just people with disabilities',
+        'When in doubt, ask users with disabilities for feedback'
+      ]
+    }
+  ],
+  resources: [
+    { title: 'Web Content Accessibility Guidelines (WCAG)', url: 'https://www.w3.org/WAI/WCAG22/quickref/' },
+    { title: 'WebAIM - Web Accessibility In Mind', url: 'https://webaim.org/' },
+    { title: 'A11y Project', url: 'https://www.a11yproject.com/' },
+    { title: 'MDN Accessibility', url: 'https://developer.mozilla.org/en-US/docs/Web/Accessibility' }
+  ]
+};
+
 // Documentation content for each touchpoint
 const touchpointDocumentation = {
   maps: {
@@ -538,13 +624,20 @@ const issueDocumentation = {
  */
 function openDocumentationModal(touchpointId, options = {}) {
   let doc;
+  let modalType = 'touchpoint'; // default
   
-  if (options.issueKey && issueDocumentation[options.issueKey]) {
+  if (touchpointId === 'carnforth-project') {
+    // Carnforth Project documentation
+    doc = carnforthProjectDocumentation;
+    modalType = 'carnforth';
+  } else if (options.issueKey && issueDocumentation[options.issueKey]) {
     // Issue-specific documentation
     doc = issueDocumentation[options.issueKey];
+    modalType = 'issue';
   } else if (touchpointDocumentation[touchpointId]) {
     // Touchpoint documentation
     doc = touchpointDocumentation[touchpointId];
+    modalType = 'touchpoint';
   } else {
     console.warn(`No documentation found for: ${options.issueKey || touchpointId}`);
     return;
@@ -572,8 +665,10 @@ function openDocumentationModal(touchpointId, options = {}) {
     }
   }
   
-  // Populate modal content
-  if (options.issueKey) {
+  // Populate modal content based on type
+  if (modalType === 'carnforth') {
+    populateCarnforthModal(modal, doc);
+  } else if (modalType === 'issue') {
     populateIssueModal(modal, doc);
   } else {
     populateTouchpointModal(modal, doc);
@@ -756,6 +851,62 @@ function populateTouchpointModal(modal, doc) {
     `;
     body.appendChild(resourcesSection);
   }
+}
+
+/**
+ * Populates the modal with Carnforth Project documentation
+ */
+function populateCarnforthModal(modal, doc) {
+  const title = modal.querySelector('.modal-title');
+  const body = modal.querySelector('.modal-body');
+  
+  title.textContent = doc.title;
+  
+  let content = `<div class="doc-content">`;
+  
+  // Overview
+  content += `<p class="doc-overview">${doc.overview}</p>`;
+  
+  // Sections
+  doc.sections.forEach(section => {
+    content += `<section class="doc-section">`;
+    content += `<h3>${section.heading}</h3>`;
+    
+    if (Array.isArray(section.content)) {
+      const hasHtml = section.content.some(item => item.includes('<'));
+      if (hasHtml) {
+        // If content contains HTML, join as paragraphs
+        content += section.content.map(item => `<p>${item}</p>`).join('');
+      } else {
+        // Otherwise, create a list
+        content += `<ul>`;
+        section.content.forEach(item => {
+          content += `<li>${item}</li>`;
+        });
+        content += `</ul>`;
+      }
+    } else {
+      content += `<p>${section.content}</p>`;
+    }
+    
+    content += `</section>`;
+  });
+  
+  // Resources
+  if (doc.resources && doc.resources.length > 0) {
+    content += `<section class="doc-section">`;
+    content += `<h3>Learn More</h3>`;
+    content += `<ul class="resource-list">`;
+    doc.resources.forEach(resource => {
+      content += `<li><a href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.title}</a></li>`;
+    });
+    content += `</ul>`;
+    content += `</section>`;
+  }
+  
+  content += `</div>`;
+  
+  body.innerHTML = content;
 }
 
 /**

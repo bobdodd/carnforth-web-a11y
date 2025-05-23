@@ -73,13 +73,51 @@ header {
   padding-bottom: var(--padding-medium);
   border-bottom: 1px solid var(--border-color);
   text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 h1 {
-  width: 100%;
+  width: auto;
   text-align: left;
   margin-bottom: 0;
   padding: 0 var(--padding-medium);
+  flex-grow: 0;
+}
+
+/* Header help button */
+.header-help-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background-color: var(--info-bg-color);
+  color: white;
+  border: none;
+  font-size: 1.125rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.header-help-button:hover {
+  background-color: var(--info-color);
+  transform: scale(1.05);
+}
+
+.header-help-button:focus {
+  outline: 3px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+.header-help-button:active {
+  transform: scale(0.95);
 }
 
 /* Message bar */

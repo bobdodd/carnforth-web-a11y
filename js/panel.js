@@ -520,6 +520,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Listen for about button click
+  const aboutButton = document.getElementById('about-carnforth');
+  if (aboutButton) {
+    aboutButton.addEventListener('click', function() {
+      if (window.CarnforthDocumentation && window.CarnforthDocumentation.openDocumentationModal) {
+        window.CarnforthDocumentation.openDocumentationModal('carnforth-project');
+      }
+    });
+  }
+
   // Listen for test button click
   startTestButton.addEventListener('click', function() {
     // Show loading state
@@ -761,14 +771,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     header.appendChild(summary);
     
-    // Add a spacer to push any future elements to the right
-    const spacer = document.createElement('div');
-    spacer.className = 'accordion-spacer';
-    header.appendChild(spacer);
-    
-    // Add help button if documentation system is available
+    // Add help button immediately after the summary if documentation system is available
     if (window.CarnforthDocumentation && window.CarnforthDocumentation.createHelpButton) {
       const helpButton = window.CarnforthDocumentation.createHelpButton(touchpoint);
+      helpButton.style.marginLeft = '0.5rem'; // Small gap after the text
       header.appendChild(helpButton);
     }
     
@@ -1916,6 +1922,53 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 1rem;
     }
     
+    /* About Carnforth section */
+    .about-section {
+      margin-top: 3rem;
+      padding: 2rem;
+      background-color: #f0f7ff;
+      border: 1px solid #d0e3f4;
+      border-radius: 0.5rem;
+    }
+    
+    .about-section h2 {
+      color: var(--info-color);
+      border-bottom: 2px solid var(--info-color);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .about-section h3 {
+      color: var(--text-color);
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .about-section ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .about-section li {
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+    }
+    
+    .about-resources {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #d0e3f4;
+    }
+    
+    .about-resources ul {
+      list-style-type: none;
+      margin-left: 0;
+    }
+    
+    .about-resources li {
+      margin-bottom: 0.75rem;
+    }
+    
     /* Windows High Contrast Mode support */
     @media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
       /* Reset all colors to system colors in high contrast mode */
@@ -2044,6 +2097,7 @@ document.addEventListener('DOMContentLoaded', function() {
       htmlTemplate += `
           </ul>
         </li>
+        <li><a href="#about-carnforth">About Carnforth Web A11y</a></li>
       </ul>
     </nav>
   </section>
@@ -2272,6 +2326,36 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
           }
           
+          // Add code examples if present
+          if (issue.codeExample && (issue.codeExample.before || issue.codeExample.after)) {
+            htmlTemplate += `
+            <div class="issue-section code-example">
+              <h5>Code Example</h5>`;
+            
+            if (issue.codeExample.before) {
+              // Check if code is already escaped
+              const beforeCode = issue.codeExample.before;
+              const isBeforeEscaped = beforeCode.includes('&lt;') || beforeCode.includes('&gt;');
+              
+              htmlTemplate += `
+              <div class="technical-label">Current Implementation:</div>
+              <pre>${isBeforeEscaped ? beforeCode : beforeCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+            }
+            
+            if (issue.codeExample.after) {
+              // Check if code is already escaped
+              const afterCode = issue.codeExample.after;
+              const isAfterEscaped = afterCode.includes('&lt;') || afterCode.includes('&gt;');
+              
+              htmlTemplate += `
+              <div class="technical-label">Accessible Implementation:</div>
+              <pre>${isAfterEscaped ? afterCode : afterCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+            }
+            
+            htmlTemplate += `
+            </div>`;
+          }
+          
           // Add resources if present
           if (issue.resources && issue.resources.length > 0) {
             htmlTemplate += `
@@ -2309,6 +2393,83 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Close the main sections and document
       htmlTemplate += `
+  </section>
+  
+  <section class="about-section" aria-labelledby="about-carnforth">
+    <h2 id="about-carnforth">About Carnforth Web A11y</h2>
+    <p>Carnforth Web A11y is an educational Chrome extension designed to help developers understand and fix web accessibility issues.</p>
+    
+    <h3>Project Goals</h3>
+    <ul>
+      <li>Provide clear, actionable feedback about accessibility issues</li>
+      <li>Educate developers about WCAG standards and best practices</li>
+      <li>Make accessibility testing approachable and understandable</li>
+      <li>Demonstrate that accessibility improves usability for everyone</li>
+      <li>Encourage proactive accessibility implementation, not just compliance</li>
+    </ul>
+    
+    <h3>Understanding Automated Testing</h3>
+    <p><strong>What automation can do well:</strong></p>
+    <ul>
+      <li>Detect missing or incorrect HTML attributes</li>
+      <li>Find color contrast issues</li>
+      <li>Identify structural problems (headings, landmarks)</li>
+      <li>Check for keyboard accessibility basics</li>
+      <li>Validate ARIA usage</li>
+    </ul>
+    
+    <p><strong>What automation cannot do:</strong></p>
+    <ul>
+      <li>Judge if alt text is meaningful</li>
+      <li>Determine if content makes sense to users</li>
+      <li>Test complex interactions</li>
+      <li>Evaluate cognitive load</li>
+      <li>Assess whether ARIA is used appropriately</li>
+    </ul>
+    
+    <h3>The 80/20 Rule of Accessibility Testing</h3>
+    <ul>
+      <li>Automated tools can find about 20-30% of accessibility issues</li>
+      <li>The remaining 70-80% require human judgment and testing</li>
+      <li>Carnforth focuses on making that 20-30% as educational and actionable as possible</li>
+    </ul>
+    
+    <p>Always complement automated testing with:</p>
+    <ul>
+      <li>Manual keyboard testing</li>
+      <li>Screen reader testing</li>
+      <li>Testing with actual users with disabilities</li>
+      <li>Cognitive walkthroughs</li>
+    </ul>
+    
+    <h3>Using Carnforth Effectively</h3>
+    <ol>
+      <li>Run tests early and often during development</li>
+      <li>Read the impact statements to understand who is affected</li>
+      <li>Use the code examples as starting points, not complete solutions</li>
+      <li>Follow the provided WCAG links to learn more</li>
+      <li>Test your fixes with real assistive technology</li>
+      <li>Remember: passing automated tests ≠ fully accessible</li>
+    </ol>
+    
+    <h3>Contributing to Accessibility</h3>
+    <ul>
+      <li>Accessibility is not a checklist - it's a mindset</li>
+      <li>Every improvement helps real people use the web</li>
+      <li>Small changes can have significant impact</li>
+      <li>Accessibility benefits everyone, not just people with disabilities</li>
+      <li>When in doubt, ask users with disabilities for feedback</li>
+    </ul>
+    
+    <div class="about-resources">
+      <h3>Additional Resources</h3>
+      <ul>
+        <li><a href="https://www.w3.org/WAI/WCAG22/quickref/" target="_blank" rel="noopener noreferrer">Web Content Accessibility Guidelines (WCAG)</a></li>
+        <li><a href="https://webaim.org/" target="_blank" rel="noopener noreferrer">WebAIM - Web Accessibility In Mind</a></li>
+        <li><a href="https://www.a11yproject.com/" target="_blank" rel="noopener noreferrer">The A11y Project</a></li>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility" target="_blank" rel="noopener noreferrer">MDN Accessibility Documentation</a></li>
+      </ul>
+    </div>
   </section>
   
   </main>
