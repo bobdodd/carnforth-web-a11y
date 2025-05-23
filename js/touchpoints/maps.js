@@ -66,6 +66,121 @@ window.test_maps = async function() {
         return path;
       }
       
+      // Utility Pattern: Page Region Detection
+      // This function determines which landmark/region an element belongs to
+      // This is useful for grouping issues by page area
+      function getPageRegion(element) {
+        if (!element) return { region: 'Unknown', landmark: null };
+        
+        let currentElement = element;
+        let closestLandmark = null;
+        let closestLandmarkRole = null;
+        
+        // Check ancestors for landmarks
+        while (currentElement && currentElement !== document.body) {
+          const role = currentElement.getAttribute('role');
+          const tagName = currentElement.tagName.toLowerCase();
+          
+          // Check for explicit ARIA landmarks
+          if (role) {
+            const landmarkRoles = ['banner', 'navigation', 'main', 'complementary', 'contentinfo', 'search', 'form', 'region'];
+            if (landmarkRoles.includes(role)) {
+              closestLandmark = currentElement;
+              closestLandmarkRole = role;
+              break;
+            }
+          }
+          
+          // Check for implicit landmarks
+          if (!closestLandmark) {
+            switch (tagName) {
+              case 'header':
+                if (!currentElement.closest('article, section')) {
+                  closestLandmark = currentElement;
+                  closestLandmarkRole = 'banner';
+                }
+                break;
+              case 'nav':
+                closestLandmark = currentElement;
+                closestLandmarkRole = 'navigation';
+                break;
+              case 'main':
+                closestLandmark = currentElement;
+                closestLandmarkRole = 'main';
+                break;
+              case 'aside':
+                closestLandmark = currentElement;
+                closestLandmarkRole = 'complementary';
+                break;
+              case 'footer':
+                if (!currentElement.closest('article, section')) {
+                  closestLandmark = currentElement;
+                  closestLandmarkRole = 'contentinfo';
+                }
+                break;
+              case 'form':
+                if (currentElement.getAttribute('aria-label') || currentElement.getAttribute('aria-labelledby')) {
+                  closestLandmark = currentElement;
+                  closestLandmarkRole = 'form';
+                }
+                break;
+              case 'section':
+                if (currentElement.getAttribute('aria-label') || currentElement.getAttribute('aria-labelledby')) {
+                  closestLandmark = currentElement;
+                  closestLandmarkRole = 'region';
+                }
+                break;
+            }
+          }
+          
+          currentElement = currentElement.parentElement;
+        }
+        
+        // Determine the region name
+        let regionName = 'Page Body';
+        let landmarkLabel = null;
+        
+        if (closestLandmark) {
+          // Get the accessible name of the landmark if available
+          landmarkLabel = closestLandmark.getAttribute('aria-label') || 
+                          (closestLandmark.getAttribute('aria-labelledby') && 
+                           document.getElementById(closestLandmark.getAttribute('aria-labelledby'))?.textContent?.trim());
+          
+          switch (closestLandmarkRole) {
+            case 'banner':
+              regionName = 'Header';
+              break;
+            case 'navigation':
+              regionName = landmarkLabel ? `Navigation: ${landmarkLabel}` : 'Navigation';
+              break;
+            case 'main':
+              regionName = 'Main Content';
+              break;
+            case 'complementary':
+              regionName = landmarkLabel ? `Sidebar: ${landmarkLabel}` : 'Sidebar';
+              break;
+            case 'contentinfo':
+              regionName = 'Footer';
+              break;
+            case 'search':
+              regionName = 'Search';
+              break;
+            case 'form':
+              regionName = landmarkLabel ? `Form: ${landmarkLabel}` : 'Form';
+              break;
+            case 'region':
+              regionName = landmarkLabel ? `Region: ${landmarkLabel}` : 'Region';
+              break;
+          }
+        }
+        
+        return {
+          region: regionName,
+          landmark: closestLandmarkRole,
+          landmarkLabel: landmarkLabel
+        };
+      }
+      
       // Pattern: Provider Detection
       // Why identify providers? Different map services have different accessibility features
       // and limitations. Provider-specific guidance improves remediation quality.
@@ -432,6 +547,9 @@ window.test_maps = async function() {
         // Pattern: Violation Detection and Categorization
         // Different issues have different severity levels and remediation approaches
         
+        // Get region information for this element
+        const regionInfo = getPageRegion(iframe);
+        
         // Violation Type 1: Missing Accessible Name
         // Impact: Screen reader users can't identify the map's purpose
         // WCAG: 4.1.2 Name, Role, Value (Level A)
@@ -443,7 +561,9 @@ window.test_maps = async function() {
             src: iframe.src,
             selector: cssSelector,
             xpath: getFullXPath(iframe),
-            html: iframeHtml
+            html: iframeHtml,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         // Check for generic names
@@ -457,7 +577,9 @@ window.test_maps = async function() {
             xpath: getFullXPath(iframe),
             html: iframeHtml,
             currentName: accessibleNameText,
-            impact: 'medium'  // Generic iframe names reduce clarity for screen reader users
+            impact: 'medium',  // Generic iframe names reduce clarity for screen reader users
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
 
@@ -478,7 +600,9 @@ window.test_maps = async function() {
               selector: cssSelector,
               xpath: getFullXPath(iframe),
               html: iframeHtml,
-              isInteractive: true
+              isInteractive: true,
+              region: regionInfo.region,
+              landmark: regionInfo.landmark
             });
           } else {
             // Warning: Non-interactive content hidden
@@ -491,7 +615,9 @@ window.test_maps = async function() {
               selector: cssSelector,
               xpath: getFullXPath(iframe),
               html: iframeHtml,
-              isInteractive: false
+              isInteractive: false,
+              region: regionInfo.region,
+              landmark: regionInfo.landmark
             });
           }
         }
@@ -508,7 +634,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(iframe),
             html: iframeHtml,
-            isInteractive: true
+            isInteractive: true,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
       });
@@ -756,6 +884,9 @@ window.test_maps = async function() {
         results.maps.push(mapInfo);
         results.summary.mapsByProvider[provider] = (results.summary.mapsByProvider[provider] || 0) + 1;
         
+        // Get region information for this element
+        const regionInfo = getPageRegion(img);
+        
         // Check for accessibility issues
         
         // Missing alt text
@@ -765,7 +896,9 @@ window.test_maps = async function() {
             provider: provider,
             selector: cssSelector,
             xpath: getFullXPath(img),
-            html: imgHtml
+            html: imgHtml,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         } 
         // Has alt but it's not meaningful
@@ -776,7 +909,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(img),
             html: imgHtml,
-            alt: alt
+            alt: alt,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -789,7 +924,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(img),
             html: imgHtml,
-            isInteractive: false
+            isInteractive: false,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
       });
@@ -1208,6 +1345,9 @@ window.test_maps = async function() {
         results.maps.push(mapInfo);
         results.summary.mapsByProvider[provider] = (results.summary.mapsByProvider[provider] || 0) + 1;
 
+        // Get region information for this element
+        const regionInfo = getPageRegion(div);
+        
         // Check if the div has aria-hidden
         const ariaHidden = div.getAttribute('aria-hidden');
         
@@ -1220,7 +1360,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(div),
             html: divHtml,
-            isInteractive: true
+            isInteractive: true,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         // For non-interactive div maps with aria-hidden, this is a warning
@@ -1232,7 +1374,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(div),
             html: divHtml,
-            isInteractive: false
+            isInteractive: false,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1245,7 +1389,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(div),
             html: divHtml,
-            isInteractive: true
+            isInteractive: true,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1260,7 +1406,9 @@ window.test_maps = async function() {
             xpath: getFullXPath(div),
             html: divHtml,
             isInteractive: isInteractive,
-            impact: 'high'  // Hidden maps completely block access to content
+            impact: 'high',  // Hidden maps completely block access to content
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         } else if (!landmarkInfo.hasLandmark && headingInfo.hasHeading) {
           results.violations.push({
@@ -1272,7 +1420,9 @@ window.test_maps = async function() {
             html: divHtml,
             isInteractive: isInteractive,
             headingText: headingInfo.headingText,
-            impact: 'medium'  // Landmark violations reduce navigation efficiency
+            impact: 'medium',  // Landmark violations reduce navigation efficiency
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1286,7 +1436,9 @@ window.test_maps = async function() {
             xpath: getFullXPath(div),
             html: divHtml,
             currentName: ariaLabel || ariaLabelledby,
-            impact: 'medium'  // Generic div names reduce understanding
+            impact: 'medium',  // Generic div names reduce understanding
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1301,7 +1453,9 @@ window.test_maps = async function() {
             html: divHtml,
             isInteractive: isInteractive,
             missingName: !hasAccessibleName,
-            missingRole: !role
+            missingRole: !role,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
       });
@@ -1375,6 +1529,9 @@ window.test_maps = async function() {
         results.maps.push(mapInfo);
         results.summary.mapsByProvider[provider] = (results.summary.mapsByProvider[provider] || 0) + 1;
         
+        // Get region information for this element
+        const regionInfo = getPageRegion(svg);
+        
         // Check for accessibility issues
         
         // Most critical: interactive SVG map with aria-hidden="true"
@@ -1386,7 +1543,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(svg),
             html: svgHtml,
-            isInteractive: true
+            isInteractive: true,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         } 
         // Non-interactive SVG with aria-hidden="true"
@@ -1398,7 +1557,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(svg),
             html: svgHtml,
-            isInteractive: false
+            isInteractive: false,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1411,7 +1572,9 @@ window.test_maps = async function() {
             selector: cssSelector,
             xpath: getFullXPath(svg),
             html: svgHtml,
-            isInteractive: true
+            isInteractive: true,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1425,7 +1588,9 @@ window.test_maps = async function() {
             xpath: getFullXPath(svg),
             html: svgHtml,
             currentName: accessibleNameText,
-            impact: 'medium'  // Generic SVG names reduce understanding
+            impact: 'medium',  // Generic SVG names reduce understanding
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
         
@@ -1439,7 +1604,9 @@ window.test_maps = async function() {
             xpath: getFullXPath(svg),
             html: svgHtml,
             missingName: !hasAccessibleName,
-            missingRole: !hasProperRole
+            missingRole: !hasProperRole,
+            region: regionInfo.region,
+            landmark: regionInfo.landmark
           });
         }
       });
@@ -1536,6 +1703,9 @@ window.test_maps = async function() {
             const text = control.textContent?.trim();
             const controlName = ariaLabel || title || text || 'Unnamed control';
             
+            // Get region information for this control
+            const regionInfo = getPageRegion(control);
+            
             results.touchTargetViolations.push({
               provider: provider,
               controlName: controlName,
@@ -1546,7 +1716,9 @@ window.test_maps = async function() {
               selector: control.id ? `#${control.id}` : null,
               xpath: controlXPath,
               html: control.outerHTML.substring(0, 200) + (control.outerHTML.length > 200 ? '...' : ''),
-              impact: !touchTarget.meetsWCAG258 ? 'high' : 'medium'  // Small targets can prevent interaction for motor-impaired users
+              impact: !touchTarget.meetsWCAG258 ? 'high' : 'medium',  // Small targets can prevent interaction for motor-impaired users
+              region: regionInfo.region,
+              landmark: regionInfo.landmark
             });
             
             if (!touchTarget.meetsWCAG258) {

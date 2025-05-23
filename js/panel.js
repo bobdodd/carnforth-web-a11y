@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('issue-search');
   const filterResultsText = document.getElementById('filter-results-text');
   const filterStatus = document.getElementById('filter-status');
+  const groupByRegionCheckbox = document.getElementById('group-by-region');
   
   // Preferences elements
   const preferencesButton = document.getElementById('preferences-button');
@@ -834,6 +835,19 @@ document.addEventListener('DOMContentLoaded', function() {
       applyFilters();
     });
   }
+  
+  // Handle group by region checkbox
+  if (groupByRegionCheckbox) {
+    groupByRegionCheckbox.addEventListener('change', function() {
+      if (currentTestResults) {
+        if (this.checked) {
+          displayResultsGroupedByRegion(currentTestResults);
+        } else {
+          displayResults(currentTestResults);
+        }
+      }
+    });
+  }
 
   // Apply filters to displayed results
   function applyFilters() {
@@ -1154,6 +1168,219 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 300);
   }
+  
+  /**
+   * Display the test results grouped by page region
+   * @param {Object} results - Test results organized by touchpoint
+   */
+  function displayResultsGroupedByRegion(results) {
+    if (!results || Object.keys(results).length === 0) {
+      resultsContainer.innerHTML = '<p class="results-message">No accessibility issues detected.</p>';
+      return;
+    }
+
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+    
+    // First, collect all issues and group them by region
+    const issuesByRegion = {};
+    const regionOrder = []; // To maintain order of regions as we encounter them
+    
+    Object.keys(results).forEach(touchpoint => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointData = results[touchpoint];
+      const issues = touchpointData.issues || [];
+      
+      issues.forEach(issue => {
+        // Get the region from the issue, default to 'Unknown Region'
+        const region = issue.region || 'Unknown Region';
+        
+        if (!issuesByRegion[region]) {
+          issuesByRegion[region] = [];
+          regionOrder.push(region);
+        }
+        
+        // Add touchpoint info to the issue for display
+        issuesByRegion[region].push({
+          ...issue,
+          touchpoint: touchpoint,
+          touchpointDescription: touchpointData.description
+        });
+      });
+    });
+    
+    // Sort regions with known landmarks first, then unknown
+    regionOrder.sort((a, b) => {
+      const knownRegions = ['Header', 'Navigation', 'Main Content', 'Footer', 'Sidebar', 'Search', 'Form'];
+      const aIndex = knownRegions.findIndex(r => a.startsWith(r));
+      const bIndex = knownRegions.findIndex(r => b.startsWith(r));
+      
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      } else if (aIndex !== -1) {
+        return -1;
+      } else if (bIndex !== -1) {
+        return 1;
+      } else {
+        return a.localeCompare(b);
+      }
+    });
+    
+    // Create accordion for each region
+    regionOrder.forEach(region => {
+      const issues = issuesByRegion[region];
+      
+      if (issues.length === 0) return;
+      
+      const accordion = createRegionAccordion(region, issues);
+      resultsContainer.appendChild(accordion);
+    });
+    
+    // Initialize accordion functionality
+    initializeAccordions();
+    initializeIssueDisclosures();
+    
+    // Apply accordion default preference
+    if (preferences.accordionDefault === 'open') {
+      document.querySelectorAll('.accordion-header').forEach(header => {
+        const accordion = header.parentElement;
+        const content = accordion.querySelector('.accordion-content');
+        if (content && header.getAttribute('aria-expanded') === 'false') {
+          header.click();
+        }
+      });
+    }
+    
+    // Apply syntax highlighting
+    setTimeout(() => {
+      try {
+        applyHtmlSyntaxHighlighting();
+      } catch (error) {
+        console.error('[Panel] Error applying syntax highlighting:', error);
+      }
+    }, 300);
+  }
+  
+  /**
+   * Create an accordion section for a page region
+   * @param {string} region - Region name
+   * @param {Array} issues - Array of issues in this region
+   * @returns {HTMLElement} - The accordion element
+   */
+  function createRegionAccordion(region, issues) {
+    // Count issues by type
+    const counts = {
+      fail: 0,
+      warning: 0,
+      info: 0
+    };
+
+    issues.forEach(issue => {
+      counts[issue.type]++;
+    });
+
+    // Create accordion element
+    const accordion = document.createElement('div');
+    accordion.className = 'accordion region-accordion';
+    accordion.setAttribute('id', `accordion-region-${region.replace(/\s+/g, '-').toLowerCase()}`);
+
+    // Create accordion header
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('tabindex', '0');
+
+    // Add expand/collapse icon
+    const icon = document.createElement('span');
+    icon.className = 'accordion-icon';
+    icon.innerHTML = '▶';
+    icon.setAttribute('aria-hidden', 'true');
+    header.appendChild(icon);
+
+    // Add region name
+    const title = document.createElement('h2');
+    title.className = 'accordion-title';
+    title.textContent = region;
+    header.appendChild(title);
+
+    // Add summary counts
+    const summary = document.createElement('div');
+    summary.className = 'accordion-summary';
+
+    if (counts.fail > 0) {
+      const failCount = document.createElement('span');
+      failCount.className = 'count fail';
+      failCount.textContent = `${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}`;
+      summary.appendChild(failCount);
+    }
+
+    if (counts.warning > 0) {
+      const warnCount = document.createElement('span');
+      warnCount.className = 'count warning';
+      warnCount.textContent = `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`;
+      summary.appendChild(warnCount);
+    }
+
+    if (counts.info > 0) {
+      const infoCount = document.createElement('span');
+      infoCount.className = 'count info';
+      infoCount.textContent = `${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}`;
+      summary.appendChild(infoCount);
+    }
+
+    header.appendChild(summary);
+    accordion.appendChild(header);
+
+    // Create accordion content
+    const content = document.createElement('div');
+    content.className = 'accordion-content';
+
+    // Group issues by touchpoint within the region
+    const issuesByTouchpoint = {};
+    issues.forEach(issue => {
+      if (!issuesByTouchpoint[issue.touchpoint]) {
+        issuesByTouchpoint[issue.touchpoint] = [];
+      }
+      issuesByTouchpoint[issue.touchpoint].push(issue);
+    });
+
+    // Create sub-sections for each touchpoint
+    Object.keys(issuesByTouchpoint).sort().forEach(touchpoint => {
+      const touchpointIssues = issuesByTouchpoint[touchpoint];
+      
+      // Create touchpoint subsection
+      const subsection = document.createElement('div');
+      subsection.className = 'touchpoint-subsection';
+      
+      const touchpointTitle = document.createElement('h3');
+      touchpointTitle.className = 'touchpoint-subsection-title';
+      touchpointTitle.textContent = touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      subsection.appendChild(touchpointTitle);
+      
+      // Create issue list
+      const issueList = document.createElement('ul');
+      issueList.className = 'issue-list';
+      
+      // Sort issues by type
+      touchpointIssues.sort((a, b) => {
+        const typeOrder = { fail: 0, warning: 1, info: 2 };
+        return typeOrder[a.type] - typeOrder[b.type];
+      });
+      
+      touchpointIssues.forEach((issue, index) => {
+        const issueItem = createIssueElement(issue, touchpoint, index);
+        issueList.appendChild(issueItem);
+      });
+      
+      subsection.appendChild(issueList);
+      content.appendChild(subsection);
+    });
+
+    accordion.appendChild(content);
+    return accordion;
+  }
 
   /**
    * Create an accordion section for a touchpoint
@@ -1413,7 +1640,22 @@ document.addEventListener('DOMContentLoaded', function() {
     description.textContent = issue.description;
     details.appendChild(description);
 
-    // 1a. Add providers list if present (for info messages about maps)
+    // 1a. Add region information if present
+    if (issue.region && issue.region !== 'Unknown') {
+      const regionSection = document.createElement('div');
+      regionSection.className = 'issue-region';
+      
+      const regionLabel = document.createElement('strong');
+      regionLabel.textContent = 'Page Region: ';
+      regionSection.appendChild(regionLabel);
+      
+      const regionText = document.createTextNode(issue.region);
+      regionSection.appendChild(regionText);
+      
+      details.appendChild(regionSection);
+    }
+
+    // 1b. Add providers list if present (for info messages about maps)
     if (issue.providers && Array.isArray(issue.providers) && issue.providers.length > 0) {
       const providerSection = document.createElement('div');
       providerSection.className = 'provider-list-section';

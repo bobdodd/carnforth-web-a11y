@@ -287,6 +287,26 @@ h1 {
   min-width: 200px;
 }
 
+.filter-options {
+  display: flex;
+  align-items: center;
+  gap: var(--margin-medium);
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.filter-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
 .search-input {
   width: 100%;
   padding: var(--padding-small) var(--padding-medium);
@@ -686,6 +706,32 @@ main {
 .impact-severity, 
 .impact-why {
   margin-bottom: var(--margin-small);
+}
+
+/* Region information */
+.issue-region {
+  margin-bottom: var(--margin-medium);
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Region grouping styles */
+.region-accordion .accordion-title {
+  font-style: italic;
+}
+
+.touchpoint-subsection {
+  margin-bottom: var(--margin-large);
+  padding-left: var(--padding-medium);
+}
+
+.touchpoint-subsection-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: var(--margin-medium);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--padding-small);
 }
 
 /* Style impact level with colors */
