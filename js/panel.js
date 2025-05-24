@@ -1630,10 +1630,15 @@ document.addEventListener('DOMContentLoaded', function() {
       const issueList = document.createElement('ul');
       issueList.className = 'issue-list';
       
-      // Sort issues by type
+      // Sort issues by type first, then alphabetically
       touchpointIssues.sort((a, b) => {
+        // First sort by type (fail, warning, info)
         const typeOrder = { fail: 0, warning: 1, info: 2 };
-        return typeOrder[a.type] - typeOrder[b.type];
+        const typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff !== 0) return typeDiff;
+        
+        // Then sort alphabetically by title within the same type
+        return a.title.localeCompare(b.title);
       });
       
       touchpointIssues.forEach((issue, index) => {
@@ -1740,8 +1745,11 @@ document.addEventListener('DOMContentLoaded', function() {
       issuesByTouchpoint[key].push(issue);
     });
 
-    // Create subsections for each touchpoint
-    Object.entries(issuesByTouchpoint).forEach(([touchpointTitle, touchpointIssues]) => {
+    // Sort touchpoints alphabetically and create subsections
+    const sortedTouchpoints = Object.entries(issuesByTouchpoint)
+      .sort(([a], [b]) => a.localeCompare(b));
+    
+    sortedTouchpoints.forEach(([touchpointTitle, touchpointIssues]) => {
       const touchpointSection = document.createElement('div');
       touchpointSection.className = 'touchpoint-subsection';
       
@@ -1750,7 +1758,18 @@ document.addEventListener('DOMContentLoaded', function() {
       touchpointHeader.textContent = touchpointTitle;
       touchpointSection.appendChild(touchpointHeader);
       
-      touchpointIssues.forEach(issue => {
+      // Sort issues within touchpoint by type first, then alphabetically
+      const sortedIssues = touchpointIssues.sort((a, b) => {
+        // First sort by type (fail, warning, info)
+        const typeOrder = { fail: 0, warning: 1, info: 2 };
+        const typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff !== 0) return typeDiff;
+        
+        // Then sort alphabetically by title within the same type
+        return a.title.localeCompare(b.title);
+      });
+      
+      sortedIssues.forEach(issue => {
         const issueElement = createIssueElement(issue, issue.touchpoint);
         touchpointSection.appendChild(issueElement);
       });
@@ -1863,8 +1882,11 @@ document.addEventListener('DOMContentLoaded', function() {
       issuesByTouchpoint[key].push(issue);
     });
 
-    // Create subsections for each touchpoint
-    Object.entries(issuesByTouchpoint).forEach(([touchpointTitle, touchpointIssues]) => {
+    // Sort touchpoints alphabetically and create subsections
+    const sortedTouchpoints = Object.entries(issuesByTouchpoint)
+      .sort(([a], [b]) => a.localeCompare(b));
+    
+    sortedTouchpoints.forEach(([touchpointTitle, touchpointIssues]) => {
       const touchpointSection = document.createElement('div');
       touchpointSection.className = 'touchpoint-subsection';
       
@@ -1873,7 +1895,18 @@ document.addEventListener('DOMContentLoaded', function() {
       touchpointHeader.textContent = touchpointTitle;
       touchpointSection.appendChild(touchpointHeader);
       
-      touchpointIssues.forEach(issue => {
+      // Sort issues within touchpoint by type first, then alphabetically
+      const sortedIssues = touchpointIssues.sort((a, b) => {
+        // First sort by type (fail, warning, info)
+        const typeOrder = { fail: 0, warning: 1, info: 2 };
+        const typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff !== 0) return typeDiff;
+        
+        // Then sort alphabetically by title within the same type
+        return a.title.localeCompare(b.title);
+      });
+      
+      sortedIssues.forEach(issue => {
         const issueElement = createIssueElement(issue, issue.touchpoint);
         touchpointSection.appendChild(issueElement);
       });
