@@ -1700,22 +1700,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (counts.fail > 0) {
       const failCount = document.createElement('span');
-      failCount.className = 'issue-count fail-count';
-      failCount.innerHTML = `<span class="issue-icon fail-icon" aria-hidden="true">✗</span> ${counts.fail} Failed`;
+      failCount.className = 'count fail';
+      failCount.textContent = `${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}`;
+      failCount.setAttribute('title', `${counts.fail} ${counts.fail === 1 ? 'Failure' : 'Failures'}`);
       summary.appendChild(failCount);
     }
 
     if (counts.warning > 0) {
-      const warningCount = document.createElement('span');
-      warningCount.className = 'issue-count warning-count';
-      warningCount.innerHTML = `<span class="issue-icon warning-icon" aria-hidden="true">⚠</span> ${counts.warning} Warning`;
-      summary.appendChild(warningCount);
+      const warnCount = document.createElement('span');
+      warnCount.className = 'count warning';
+      warnCount.textContent = `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`;
+      warnCount.setAttribute('title', `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`);
+      summary.appendChild(warnCount);
     }
 
     if (counts.info > 0) {
       const infoCount = document.createElement('span');
-      infoCount.className = 'issue-count info-count';
-      infoCount.innerHTML = `<span class="issue-icon info-icon" aria-hidden="true">ⓘ</span> ${counts.info} Info`;
+      infoCount.className = 'count info';
+      infoCount.textContent = `${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}`;
+      infoCount.setAttribute('title', `${counts.info} Information ${counts.info === 1 ? 'item' : 'items'}`);
       summary.appendChild(infoCount);
     }
 
@@ -1820,22 +1823,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (counts.fail > 0) {
       const failCount = document.createElement('span');
-      failCount.className = 'issue-count fail-count';
-      failCount.innerHTML = `<span class="issue-icon fail-icon" aria-hidden="true">✗</span> ${counts.fail} Failed`;
+      failCount.className = 'count fail';
+      failCount.textContent = `${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}`;
+      failCount.setAttribute('title', `${counts.fail} ${counts.fail === 1 ? 'Failure' : 'Failures'}`);
       summary.appendChild(failCount);
     }
 
     if (counts.warning > 0) {
-      const warningCount = document.createElement('span');
-      warningCount.className = 'issue-count warning-count';
-      warningCount.innerHTML = `<span class="issue-icon warning-icon" aria-hidden="true">⚠</span> ${counts.warning} Warning`;
-      summary.appendChild(warningCount);
+      const warnCount = document.createElement('span');
+      warnCount.className = 'count warning';
+      warnCount.textContent = `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`;
+      warnCount.setAttribute('title', `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`);
+      summary.appendChild(warnCount);
     }
 
     if (counts.info > 0) {
       const infoCount = document.createElement('span');
-      infoCount.className = 'issue-count info-count';
-      infoCount.innerHTML = `<span class="issue-icon info-icon" aria-hidden="true">ⓘ</span> ${counts.info} Info`;
+      infoCount.className = 'count info';
+      infoCount.textContent = `${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}`;
+      infoCount.setAttribute('title', `${counts.info} Information ${counts.info === 1 ? 'item' : 'items'}`);
       summary.appendChild(infoCount);
     }
 
