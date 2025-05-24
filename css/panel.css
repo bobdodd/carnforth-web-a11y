@@ -475,6 +475,24 @@ main {
   margin-left: var(--margin-medium);
 }
 
+/* Issue icons in accordion summary */
+.issue-icon {
+  font-weight: bold;
+  margin-right: 0.25rem;
+}
+
+.issue-icon.fail-icon {
+  color: var(--fail-color);
+}
+
+.issue-icon.warning-icon {
+  color: var(--warning-color);
+}
+
+.issue-icon.info-icon {
+  color: var(--info-color);
+}
+
 /* Add spacer to push everything after title and summary to the right if needed */
 .accordion-spacer {
   flex-grow: 1;
