@@ -2539,7 +2539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', labelX);
-        text.setAttribute('y', labelY);
+        text.setAttribute('y', labelY + 2); // Shift text down slightly to center better in background
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'middle');
         text.setAttribute('class', 'chart-value');
@@ -2562,13 +2562,13 @@ document.addEventListener('DOMContentLoaded', function() {
     legendG.setAttribute('class', 'chart-legend');
     
     // Calculate legend height based on number of items with 1.5 line spacing
-    const legendItemHeight = 27; // Increased from 18 to provide 1.5 line spacing
+    const legendItemHeight = 21; // 14px font * 1.5 = 21px line height
     const activeItems = data.filter(item => item.value > 0).length;
     const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
     
     // Update SVG dimensions to accommodate legend with wider width
-    const svgWidth = 300; // Increased from 200 to prevent text cropping
-    svg.setAttribute('width', svgWidth);
+    const svgWidth = 400; // Increased to prevent text cropping
+    svg.setAttribute('width', '100%'); // Use full container width
     svg.setAttribute('height', height + legendHeight);
     svg.setAttribute('viewBox', `0 0 ${svgWidth} ${height + legendHeight}`);
     
@@ -2582,7 +2582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Single pattern indicator that combines color and pattern
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         legendIndicator.setAttribute('x', 10);
-        legendIndicator.setAttribute('y', legendY - 8);
+        legendIndicator.setAttribute('y', legendY - 6); // Center with text baseline
         legendIndicator.setAttribute('width', '20');
         legendIndicator.setAttribute('height', '12');
         legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
@@ -2595,13 +2595,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 35);
-        text.setAttribute('y', legendY);
+        text.setAttribute('y', legendY + 3); // Adjust for better baseline alignment
         text.setAttribute('class', 'legend-text');
+        text.setAttribute('dominant-baseline', 'middle');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
         
         legendG.appendChild(itemG);
-        legendY += 27; // Space between legend items - 1.5 line spacing
+        legendY += 21; // 1.5x line height (14px font * 1.5 = 21px)
       }
     });
     
