@@ -2523,7 +2523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const labelText = item.value.toString();
         const textWidth = labelText.length * 12 + 20; // Add more padding for 1px border
-        const textHeight = 26; // Slightly taller for better padding
+        const textHeight = 30; // Taller to provide padding above text
         
         labelBg.setAttribute('x', labelX - textWidth/2);
         labelBg.setAttribute('y', labelY - textHeight/2);
@@ -2539,7 +2539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', labelX);
-        text.setAttribute('y', labelY + 2); // Shift text down slightly to center better in background
+        text.setAttribute('y', labelY + 3); // Position text with padding from top of background
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'middle');
         text.setAttribute('class', 'chart-value');
