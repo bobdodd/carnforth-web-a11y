@@ -2599,11 +2599,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Single pattern indicator that combines color and pattern
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        const rectY = legendY;
+        const swatchHeight = 20; // ~80% of 28px font height for visual separation
+        const swatchY = legendY + (42 - swatchHeight) / 2; // Center swatch in line height
         legendIndicator.setAttribute('x', 10);
-        legendIndicator.setAttribute('y', rectY);
+        legendIndicator.setAttribute('y', swatchY);
         legendIndicator.setAttribute('width', '20');
-        legendIndicator.setAttribute('height', '42'); // 1.5x font height (28px * 1.5 = 42px)
+        legendIndicator.setAttribute('height', swatchHeight);
         legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
         legendIndicator.setAttribute('stroke', '#333');
         legendIndicator.setAttribute('stroke-width', '1');
