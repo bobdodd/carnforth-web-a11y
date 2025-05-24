@@ -2615,7 +2615,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 35);
-        text.setAttribute('y', rectY + 28); // Position text baseline at rect Y + font height (28px)
+        text.setAttribute('y', legendY + 28); // Position text baseline at legendY + font height (28px)
         text.setAttribute('class', 'legend-text');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
