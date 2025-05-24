@@ -2511,17 +2511,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add value label with background for contrast
         const labelAngle = currentAngle + sliceAngle / 2;
-        const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
-        const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+        // Position labels closer to center to avoid clipping
+        const labelRadius = radius * 0.6; // Reduced from 0.7
+        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
         
         // Create a group for the label
         const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         
-        // Add white background rect for contrast
+        // Add white background rect for contrast with proper sizing
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const labelText = item.value.toString();
-        const textWidth = labelText.length * 10 + 8; // Approximate width
-        const textHeight = 20;
+        const textWidth = labelText.length * 12 + 16; // Better width calculation
+        const textHeight = 24; // Taller to accommodate text
         
         labelBg.setAttribute('x', labelX - textWidth/2);
         labelBg.setAttribute('y', labelY - textHeight/2);
@@ -2530,8 +2532,9 @@ document.addEventListener('DOMContentLoaded', function() {
         labelBg.setAttribute('fill', 'white');
         labelBg.setAttribute('stroke', '#333');
         labelBg.setAttribute('stroke-width', '1');
-        labelBg.setAttribute('rx', '3');
-        labelBg.setAttribute('ry', '3');
+        labelBg.setAttribute('rx', '4');
+        labelBg.setAttribute('ry', '4');
+        labelBg.setAttribute('fill-opacity', '0.95'); // Slight transparency
         labelG.appendChild(labelBg);
         
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -2558,9 +2561,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
+    // Calculate legend height based on number of items
+    const legendItemHeight = 18;
+    const activeItems = data.filter(item => item.value > 0).length;
+    const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
+    
     // Update SVG height to accommodate legend
-    svg.setAttribute('height', height + 60);
-    svg.setAttribute('viewBox', `0 0 ${width} ${height + 60}`);
+    svg.setAttribute('height', height + legendHeight);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height + legendHeight}`);
     
     // Create legend items vertically to avoid overlap
     let legendY = legendStartY;
@@ -2569,31 +2577,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Legend item group
         const itemG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         
-        // Add pattern indicator (stripes, dots, lines) in addition to color
-        const patternIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        patternIndicator.setAttribute('x', 10);
-        patternIndicator.setAttribute('y', legendY - 8);
-        patternIndicator.setAttribute('width', '15');
-        patternIndicator.setAttribute('height', '10');
-        patternIndicator.setAttribute('fill', `url(#${item.pattern})`);
-        patternIndicator.setAttribute('stroke', item.color);
-        patternIndicator.setAttribute('stroke-width', '2');
-        itemG.appendChild(patternIndicator);
-        
-        // Color square
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 30);
-        rect.setAttribute('y', legendY - 8);
-        rect.setAttribute('width', '10');
-        rect.setAttribute('height', '10');
-        rect.setAttribute('fill', item.color);
-        rect.setAttribute('class', 'legend-color');
-        itemG.appendChild(rect);
+        // Single pattern indicator that combines color and pattern
+        const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        legendIndicator.setAttribute('x', 10);
+        legendIndicator.setAttribute('y', legendY - 8);
+        legendIndicator.setAttribute('width', '20');
+        legendIndicator.setAttribute('height', '12');
+        legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
+        legendIndicator.setAttribute('stroke', '#333');
+        legendIndicator.setAttribute('stroke-width', '1');
+        legendIndicator.setAttribute('class', 'legend-color');
+        itemG.appendChild(legendIndicator);
         
         // Label with percentage
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', 45);
+        text.setAttribute('x', 35);
         text.setAttribute('y', legendY);
         text.setAttribute('class', 'legend-text');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;

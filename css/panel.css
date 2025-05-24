@@ -934,8 +934,9 @@ main {
 
 .chart-legend text,
 .legend-text {
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.875rem; /* 14px - larger for better readability */
   fill: var(--text-color);
+  font-weight: 500;
 }
 
 .chart-axis {
