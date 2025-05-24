@@ -892,9 +892,88 @@ main {
   color: var(--text-color);
 }
 
-.chart-container canvas {
+.svg-chart-container {
   max-width: 100%;
   height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* SVG Chart Styles */
+.chart-slice,
+.chart-bar {
+  transition: opacity 0.2s ease;
+}
+
+.chart-slice:hover,
+.chart-bar:hover,
+.chart-slice:focus,
+.chart-bar:focus {
+  opacity: 0.8;
+  outline: 2px solid var(--focus-outline-color);
+  outline-offset: 2px;
+}
+
+.chart-value {
+  font-size: 1rem; /* 16px minimum */
+  font-weight: bold;
+  fill: white;
+  pointer-events: none;
+}
+
+.chart-label {
+  font-size: 0.875rem; /* 14px */
+  fill: var(--text-color);
+}
+
+.chart-no-data {
+  font-size: 1rem;
+  fill: #666;
+}
+
+.chart-legend text,
+.legend-text {
+  font-size: 0.75rem; /* 12px */
+  fill: var(--text-color);
+}
+
+.chart-axis {
+  stroke: var(--border-color);
+}
+
+/* High Contrast Mode Support for Charts */
+@media screen and (-ms-high-contrast: active), screen and (forced-colors: active) {
+  .chart-slice,
+  .chart-bar,
+  .legend-color {
+    /* In high contrast, patterns will be applied via JavaScript */
+    stroke: CanvasText;
+    stroke-width: 2;
+  }
+  
+  .chart-value {
+    fill: Canvas;
+    stroke: CanvasText;
+    stroke-width: 1;
+  }
+  
+  .chart-label,
+  .legend-text {
+    fill: CanvasText;
+  }
+  
+  .chart-axis {
+    stroke: CanvasText;
+  }
+  
+  /* Pattern definitions will use currentColor which respects high contrast */
+  pattern path,
+  pattern circle,
+  pattern line {
+    stroke: CanvasText;
+    fill: CanvasText;
+  }
 }
 
 /* Impact level badges */

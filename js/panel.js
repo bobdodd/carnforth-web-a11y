@@ -2304,7 +2304,6 @@ document.addEventListener('DOMContentLoaded', function() {
     Object.entries(results).forEach(([touchpoint, data]) => {
       if (touchpoint === '__summary') return;
       
-      const touchpointCriteria = window.WCAGMapping.TOUCHPOINT_WCAG_MAPPING[touchpoint] || [];
       const issues = data.issues || [];
       
       issues.forEach(issue => {
@@ -2330,143 +2329,442 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // Draw impact pie chart
-    drawPieChart('impact-chart', [
-      { label: 'High', value: impactCounts.high, color: '#d32f2f' },
-      { label: 'Medium', value: impactCounts.medium, color: '#f57c00' },
-      { label: 'Low', value: impactCounts.low, color: '#388e3c' }
-    ]);
+    // Create accessible SVG charts
+    createAccessiblePieChart('impact-chart', 
+      'Distribution of issues by impact severity',
+      [
+        { label: 'High Impact', value: impactCounts.high, color: '#d32f2f', pattern: 'high-impact' },
+        { label: 'Medium Impact', value: impactCounts.medium, color: '#f57c00', pattern: 'medium-impact' },
+        { label: 'Low Impact', value: impactCounts.low, color: '#388e3c', pattern: 'low-impact' }
+      ]
+    );
     
-    // Draw type pie chart
-    drawPieChart('type-chart', [
-      { label: 'Fail', value: typeCounts.fail, color: '#b71c1c' },
-      { label: 'Warning', value: typeCounts.warning, color: '#ff6f00' },
-      { label: 'Info', value: typeCounts.info, color: '#1976d2' }
-    ]);
+    createAccessiblePieChart('type-chart',
+      'Distribution of issues by type',
+      [
+        { label: 'Failures', value: typeCounts.fail, color: '#b71c1c', pattern: 'fail-type' },
+        { label: 'Warnings', value: typeCounts.warning, color: '#ff6f00', pattern: 'warning-type' },
+        { label: 'Information', value: typeCounts.info, color: '#1976d2', pattern: 'info-type' }
+      ]
+    );
     
-    // Draw WCAG level bar chart
-    drawBarChart('level-chart', [
-      { label: 'Level A', value: levelCounts.A, color: '#b71c1c' },
-      { label: 'Level AA', value: levelCounts.AA, color: '#ff6f00' },
-      { label: 'Level AAA', value: levelCounts.AAA, color: '#388e3c' }
-    ]);
+    createAccessibleBarChart('level-chart',
+      'Number of failures by WCAG level',
+      [
+        { label: 'Level A', value: levelCounts.A, color: '#b71c1c', pattern: 'level-a' },
+        { label: 'Level AA', value: levelCounts.AA, color: '#ff6f00', pattern: 'level-aa' },
+        { label: 'Level AAA', value: levelCounts.AAA, color: '#388e3c', pattern: 'level-aaa' }
+      ]
+    );
   }
 
   /**
-   * Draw a pie chart on a canvas
-   * @param {string} canvasId - ID of the canvas element
-   * @param {Array} data - Array of {label, value, color}
+   * Create an accessible pie chart using SVG
+   * @param {string} containerId - ID of the container element
+   * @param {string} description - Chart description for screen readers
+   * @param {Array} data - Array of {label, value, color, pattern}
    */
-  function drawPieChart(canvasId, data) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
+  function createAccessiblePieChart(containerId, description, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
+    // Clear existing content
+    container.innerHTML = '';
+    
+    // Calculate dimensions
+    const width = 200;
+    const height = 200;
     const centerX = width / 2;
     const centerY = height / 2;
     const radius = Math.min(width, height) / 2 - 20;
     
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-    
     // Calculate total
     const total = data.reduce((sum, item) => sum + item.value, 0);
+    
+    // Create SVG element
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', description);
+    
+    // Add title for tooltip
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = description;
+    svg.appendChild(title);
+    
+    // Add description
+    const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+    const detailedDesc = data.map(d => `${d.label}: ${d.value} (${total > 0 ? Math.round(d.value/total*100) : 0}%)`).join(', ');
+    desc.textContent = detailedDesc;
+    svg.appendChild(desc);
+    
+    // Define patterns for high contrast mode
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    data.forEach(item => {
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+      pattern.setAttribute('id', item.pattern);
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+      pattern.setAttribute('width', '10');
+      pattern.setAttribute('height', '10');
+      
+      // Different patterns for different data types
+      if (item.pattern.includes('high') || item.pattern.includes('fail')) {
+        // Diagonal stripes for high/fail
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M0,10 L10,0 M0,0 L10,10');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2');
+        pattern.appendChild(path);
+      } else if (item.pattern.includes('medium') || item.pattern.includes('warning')) {
+        // Dots for medium/warning
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '5');
+        circle.setAttribute('cy', '5');
+        circle.setAttribute('r', '2');
+        circle.setAttribute('fill', 'currentColor');
+        pattern.appendChild(circle);
+      } else {
+        // Horizontal lines for low/info
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '5');
+        line.setAttribute('x2', '10');
+        line.setAttribute('y2', '5');
+        line.setAttribute('stroke', 'currentColor');
+        line.setAttribute('stroke-width', '2');
+        pattern.appendChild(line);
+      }
+      
+      defs.appendChild(pattern);
+    });
+    svg.appendChild(defs);
+    
     if (total === 0) {
-      // Draw "No data" message
-      ctx.fillStyle = '#666';
-      ctx.font = '14px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data', centerX, centerY);
-      return;
+      // No data message
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', centerX);
+      text.setAttribute('y', centerY);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('class', 'chart-no-data');
+      text.textContent = 'No data';
+      svg.appendChild(text);
+    } else {
+      // Create pie slices
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      let currentAngle = -Math.PI / 2; // Start at top
+      
+      data.forEach((item, index) => {
+        if (item.value === 0) return;
+        
+        const sliceAngle = (item.value / total) * 2 * Math.PI;
+        const endAngle = currentAngle + sliceAngle;
+        
+        // Create path for slice
+        const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
+        const x1 = centerX + Math.cos(currentAngle) * radius;
+        const y1 = centerY + Math.sin(currentAngle) * radius;
+        const x2 = centerX + Math.cos(endAngle) * radius;
+        const y2 = centerY + Math.sin(endAngle) * radius;
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const d = [
+          `M ${centerX} ${centerY}`,
+          `L ${x1} ${y1}`,
+          `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+          'Z'
+        ].join(' ');
+        
+        path.setAttribute('d', d);
+        path.setAttribute('fill', item.color);
+        path.setAttribute('stroke', '#fff');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('class', 'chart-slice');
+        path.setAttribute('data-pattern', `url(#${item.pattern})`);
+        path.setAttribute('tabindex', '0');
+        path.setAttribute('role', 'img');
+        path.setAttribute('aria-label', `${item.label}: ${item.value} (${Math.round(item.value/total*100)}%)`);
+        
+        g.appendChild(path);
+        
+        // Add value label
+        const labelAngle = currentAngle + sliceAngle / 2;
+        const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+        const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+        
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', labelX);
+        text.setAttribute('y', labelY);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('class', 'chart-value');
+        text.setAttribute('aria-hidden', 'true');
+        text.textContent = item.value.toString();
+        g.appendChild(text);
+        
+        currentAngle = endAngle;
+      });
+      
+      svg.appendChild(g);
     }
     
-    // Draw pie slices
-    let currentAngle = -Math.PI / 2; // Start at top
-    data.forEach(item => {
-      if (item.value === 0) return;
-      
-      const sliceAngle = (item.value / total) * 2 * Math.PI;
-      
-      // Draw slice
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-      ctx.lineTo(centerX, centerY);
-      ctx.fillStyle = item.color;
-      ctx.fill();
-      
-      // Draw label
-      const labelAngle = currentAngle + sliceAngle / 2;
-      const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
-      const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
-      
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(item.value.toString(), labelX, labelY);
-      
-      currentAngle += sliceAngle;
-    });
+    // Add legend
+    const legendY = height - 15;
+    const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    legendG.setAttribute('class', 'chart-legend');
     
-    // Add legend below chart
-    ctx.fillStyle = '#333';
-    ctx.font = '10px Arial';
-    ctx.textAlign = 'left';
-    let legendY = height - 10;
+    let legendX = 10;
     data.forEach((item, index) => {
       if (item.value > 0) {
-        const legendX = 10 + (index * 60);
-        ctx.fillStyle = item.color;
-        ctx.fillRect(legendX, legendY - 8, 10, 10);
-        ctx.fillStyle = '#333';
-        ctx.fillText(item.label, legendX + 15, legendY - 3);
+        // Legend item group
+        const itemG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        // Color square
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', legendX);
+        rect.setAttribute('y', legendY - 8);
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        rect.setAttribute('class', 'legend-color');
+        rect.setAttribute('data-pattern', `url(#${item.pattern})`);
+        itemG.appendChild(rect);
+        
+        // Label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', legendX + 15);
+        text.setAttribute('y', legendY);
+        text.setAttribute('class', 'legend-text');
+        text.textContent = item.label.split(' ')[0]; // Just first word for space
+        itemG.appendChild(text);
+        
+        legendG.appendChild(itemG);
+        legendX += 70;
       }
     });
+    
+    svg.appendChild(legendG);
+    container.appendChild(svg);
+    
+    // Add accessible data table (visually hidden but available to screen readers)
+    const table = document.createElement('table');
+    table.className = 'sr-only';
+    table.setAttribute('summary', description);
+    
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const thCategory = document.createElement('th');
+    thCategory.textContent = 'Category';
+    const thCount = document.createElement('th');
+    thCount.textContent = 'Count';
+    const thPercentage = document.createElement('th');
+    thPercentage.textContent = 'Percentage';
+    headerRow.appendChild(thCategory);
+    headerRow.appendChild(thCount);
+    headerRow.appendChild(thPercentage);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      const tdCategory = document.createElement('td');
+      tdCategory.textContent = item.label;
+      const tdCount = document.createElement('td');
+      tdCount.textContent = item.value;
+      const tdPercentage = document.createElement('td');
+      tdPercentage.textContent = total > 0 ? `${Math.round(item.value/total*100)}%` : '0%';
+      row.appendChild(tdCategory);
+      row.appendChild(tdCount);
+      row.appendChild(tdPercentage);
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    
+    container.appendChild(table);
   }
 
   /**
-   * Draw a bar chart on a canvas
-   * @param {string} canvasId - ID of the canvas element
-   * @param {Array} data - Array of {label, value, color}
+   * Create an accessible bar chart using SVG
+   * @param {string} containerId - ID of the container element
+   * @param {string} description - Chart description for screen readers
+   * @param {Array} data - Array of {label, value, color, pattern}
    */
-  function drawBarChart(canvasId, data) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
+  function createAccessibleBarChart(containerId, description, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
     
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
+    // Clear existing content
+    container.innerHTML = '';
+    
+    // Calculate dimensions
+    const width = 300;
+    const height = 200;
     const padding = 40;
     const barWidth = (width - padding * 2) / data.length - 10;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
     
     // Find max value
     const maxValue = Math.max(...data.map(d => d.value), 1);
     
+    // Create SVG element
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', description);
+    
+    // Add title for tooltip
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = description;
+    svg.appendChild(title);
+    
+    // Add description
+    const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+    const detailedDesc = data.map(d => `${d.label}: ${d.value}`).join(', ');
+    desc.textContent = detailedDesc;
+    svg.appendChild(desc);
+    
+    // Define patterns for high contrast mode
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    data.forEach(item => {
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+      pattern.setAttribute('id', item.pattern);
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+      pattern.setAttribute('width', '10');
+      pattern.setAttribute('height', '10');
+      
+      // Different patterns for different levels
+      if (item.pattern.includes('level-a')) {
+        // Diagonal stripes for Level A
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M0,10 L10,0 M0,0 L10,10');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2');
+        pattern.appendChild(path);
+      } else if (item.pattern.includes('level-aa')) {
+        // Dots for Level AA
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '5');
+        circle.setAttribute('cy', '5');
+        circle.setAttribute('r', '2');
+        circle.setAttribute('fill', 'currentColor');
+        pattern.appendChild(circle);
+      } else {
+        // Horizontal lines for Level AAA
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '5');
+        line.setAttribute('x2', '10');
+        line.setAttribute('y2', '5');
+        line.setAttribute('stroke', 'currentColor');
+        line.setAttribute('stroke-width', '2');
+        pattern.appendChild(line);
+      }
+      
+      defs.appendChild(pattern);
+    });
+    svg.appendChild(defs);
+    
+    // Create bars group
+    const barsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    barsG.setAttribute('class', 'chart-bars');
+    
     // Draw bars
     data.forEach((item, index) => {
       const barX = padding + index * (barWidth + 10);
-      const barHeight = (item.value / maxValue) * (height - padding * 2);
+      const barHeight = item.value > 0 ? (item.value / maxValue) * (height - padding * 2) : 0;
       const barY = height - padding - barHeight;
       
+      // Create bar group
+      const barG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      barG.setAttribute('tabindex', '0');
+      barG.setAttribute('role', 'img');
+      barG.setAttribute('aria-label', `${item.label}: ${item.value} failures`);
+      
       // Draw bar
-      ctx.fillStyle = item.color;
-      ctx.fillRect(barX, barY, barWidth, barHeight);
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', barX);
+      rect.setAttribute('y', barY);
+      rect.setAttribute('width', barWidth);
+      rect.setAttribute('height', barHeight);
+      rect.setAttribute('fill', item.color);
+      rect.setAttribute('stroke', '#fff');
+      rect.setAttribute('stroke-width', '1');
+      rect.setAttribute('class', 'chart-bar');
+      rect.setAttribute('data-pattern', `url(#${item.pattern})`);
+      barG.appendChild(rect);
       
       // Draw value on top
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(item.value.toString(), barX + barWidth / 2, barY - 5);
+      if (item.value > 0) {
+        const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        valueText.setAttribute('x', barX + barWidth / 2);
+        valueText.setAttribute('y', barY - 5);
+        valueText.setAttribute('text-anchor', 'middle');
+        valueText.setAttribute('class', 'chart-value');
+        valueText.setAttribute('aria-hidden', 'true');
+        valueText.textContent = item.value.toString();
+        barG.appendChild(valueText);
+      }
       
       // Draw label
-      ctx.font = '11px Arial';
-      ctx.fillText(item.label, barX + barWidth / 2, height - padding + 15);
+      const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      labelText.setAttribute('x', barX + barWidth / 2);
+      labelText.setAttribute('y', height - padding + 15);
+      labelText.setAttribute('text-anchor', 'middle');
+      labelText.setAttribute('class', 'chart-label');
+      labelText.textContent = item.label;
+      barG.appendChild(labelText);
+      
+      barsG.appendChild(barG);
     });
+    
+    svg.appendChild(barsG);
+    
+    // Add axis line
+    const axisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    axisLine.setAttribute('x1', padding);
+    axisLine.setAttribute('y1', height - padding);
+    axisLine.setAttribute('x2', width - padding);
+    axisLine.setAttribute('y2', height - padding);
+    axisLine.setAttribute('stroke', '#666');
+    axisLine.setAttribute('stroke-width', '1');
+    axisLine.setAttribute('class', 'chart-axis');
+    svg.appendChild(axisLine);
+    
+    container.appendChild(svg);
+    
+    // Add accessible data table (visually hidden but available to screen readers)
+    const table = document.createElement('table');
+    table.className = 'sr-only';
+    table.setAttribute('summary', description);
+    
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const thLevel = document.createElement('th');
+    thLevel.textContent = 'WCAG Level';
+    const thFailures = document.createElement('th');
+    thFailures.textContent = 'Number of Failures';
+    headerRow.appendChild(thLevel);
+    headerRow.appendChild(thFailures);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    const tbody = document.createElement('tbody');
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      const tdLevel = document.createElement('td');
+      tdLevel.textContent = item.label;
+      const tdFailures = document.createElement('td');
+      tdFailures.textContent = item.value;
+      row.appendChild(tdLevel);
+      row.appendChild(tdFailures);
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    
+    container.appendChild(table);
   }
   
   /**
@@ -4101,4 +4399,23 @@ document.addEventListener('DOMContentLoaded', function() {
       closePreferencesModal();
     }
   });
+  
+  // Check for high contrast mode and apply patterns
+  function applyHighContrastPatterns() {
+    const isHighContrast = window.matchMedia('screen and (-ms-high-contrast: active), screen and (forced-colors: active)').matches;
+    
+    if (isHighContrast) {
+      // Apply patterns to chart elements
+      document.querySelectorAll('.chart-slice, .chart-bar, .legend-color').forEach(element => {
+        const pattern = element.getAttribute('data-pattern');
+        if (pattern) {
+          element.style.fill = pattern;
+        }
+      });
+    }
+  }
+  
+  // Apply on load and when media query changes
+  applyHighContrastPatterns();
+  window.matchMedia('screen and (-ms-high-contrast: active), screen and (forced-colors: active)').addListener(applyHighContrastPatterns);
 });
