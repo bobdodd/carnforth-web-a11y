@@ -2599,7 +2599,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const swatchHeight = 20; // ~80% of 28px font height for visual separation
         const swatchY = legendY + (42 - swatchHeight) / 2; // Center swatch in line height
-        const legendX = centerX - 100; // Center legend with pie chart (adjust based on typical legend width)
+        const legendX = 20; // Position legend with left padding to prevent clipping
         legendIndicator.setAttribute('x', legendX);
         legendIndicator.setAttribute('y', swatchY);
         legendIndicator.setAttribute('width', '20');
