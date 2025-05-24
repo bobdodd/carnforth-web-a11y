@@ -2472,8 +2472,14 @@ document.addEventListener('DOMContentLoaded', function() {
       text.textContent = 'No data';
       svg.appendChild(text);
     } else {
-      // Create pie slices
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      // Create two groups - one for slices, one for labels
+      const slicesG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const labelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      
+      // Store label data while drawing slices
+      const labelData = [];
+      
+      // First pass: Draw all pie slices
       let currentAngle = -Math.PI / 2; // Start at top
       
       data.forEach((item, index) => {
@@ -2507,21 +2513,34 @@ document.addEventListener('DOMContentLoaded', function() {
         path.setAttribute('role', 'img');
         path.setAttribute('aria-label', `${item.label}: ${item.value} (${Math.round(item.value/total*100)}%)`);
         
-        g.appendChild(path);
+        slicesG.appendChild(path);
         
-        // Add value label with background for contrast
+        // Store label data for second pass
         const labelAngle = currentAngle + sliceAngle / 2;
+        labelData.push({
+          value: item.value,
+          angle: labelAngle
+        });
+        
+        currentAngle = endAngle;
+      });
+      
+      // Add slices group first
+      svg.appendChild(slicesG);
+      
+      // Second pass: Draw all labels on top
+      labelData.forEach(label => {
         // Position labels closer to center to avoid clipping
-        const labelRadius = radius * 0.6; // Reduced from 0.7
-        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
-        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+        const labelRadius = radius * 0.6;
+        const labelX = centerX + Math.cos(label.angle) * labelRadius;
+        const labelY = centerY + Math.sin(label.angle) * labelRadius;
         
         // Create a group for the label
         const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         
         // Add white background rect for contrast with proper sizing
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        const labelText = item.value.toString();
+        const labelText = label.value.toString();
         const textWidth = labelText.length * 12 + 20; // Add more padding for 1px border
         const textHeight = 30; // Taller to provide padding above text
         
@@ -2548,12 +2567,11 @@ document.addEventListener('DOMContentLoaded', function() {
         text.textContent = labelText;
         labelG.appendChild(text);
         
-        g.appendChild(labelG);
-        
-        currentAngle = endAngle;
+        labelsG.appendChild(labelG);
       });
       
-      svg.appendChild(g);
+      // Add labels group on top
+      svg.appendChild(labelsG);
     }
     
     // Add legend below the chart with better spacing
