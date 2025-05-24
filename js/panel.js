@@ -1678,6 +1678,7 @@ document.addEventListener('DOMContentLoaded', function() {
     header.className = 'accordion-header';
     header.setAttribute('role', 'button');
     header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', `content-guideline-${index}`);
     header.setAttribute('tabindex', '0');
 
     // Add expand/collapse icon
@@ -1724,6 +1725,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create accordion content
     const content = document.createElement('div');
     content.className = 'accordion-content';
+    content.setAttribute('id', `content-guideline-${index}`);
     
     // Group issues by touchpoint within this guideline
     const issuesByTouchpoint = {};
@@ -1754,14 +1756,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add click handler for accordion
-    header.addEventListener('click', function() {
-      toggleAccordion(this);
-    });
+    header.addEventListener('click', toggleAccordion);
 
     header.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        toggleAccordion(this);
+        toggleAccordion.call(this);
       }
     });
 
@@ -1798,6 +1798,7 @@ document.addEventListener('DOMContentLoaded', function() {
     header.className = 'accordion-header';
     header.setAttribute('role', 'button');
     header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', `content-criteria-${index}`);
     header.setAttribute('tabindex', '0');
 
     // Add expand/collapse icon
@@ -1844,6 +1845,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create accordion content
     const content = document.createElement('div');
     content.className = 'accordion-content';
+    content.setAttribute('id', `content-criteria-${index}`);
     
     // Group issues by touchpoint within this criteria
     const issuesByTouchpoint = {};
@@ -1874,14 +1876,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add click handler for accordion
-    header.addEventListener('click', function() {
-      toggleAccordion(this);
-    });
+    header.addEventListener('click', toggleAccordion);
 
     header.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        toggleAccordion(this);
+        toggleAccordion.call(this);
       }
     });
 
