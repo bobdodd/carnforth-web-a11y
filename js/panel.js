@@ -2579,8 +2579,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
-    // Calculate legend height based on number of items with 1.5 line spacing
-    const legendItemHeight = 21; // 14px font * 1.5 = 21px line height
+    // Calculate legend height based on number of items with proper spacing
+    const legendItemHeight = 28; // Space between legend items
     const activeItems = data.filter(item => item.value > 0).length;
     const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
     
@@ -2600,9 +2600,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Single pattern indicator that combines color and pattern
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         legendIndicator.setAttribute('x', 10);
-        legendIndicator.setAttribute('y', legendY - 6); // Center with text baseline
+        legendIndicator.setAttribute('y', legendY - 10.5); // Center 21px height rect with text
         legendIndicator.setAttribute('width', '20');
-        legendIndicator.setAttribute('height', '12');
+        legendIndicator.setAttribute('height', '21'); // 1.5x font height (14px * 1.5 = 21px)
         legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
         legendIndicator.setAttribute('stroke', '#333');
         legendIndicator.setAttribute('stroke-width', '1');
@@ -2613,14 +2613,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 35);
-        text.setAttribute('y', legendY + 3); // Adjust for better baseline alignment
+        text.setAttribute('y', legendY); // Text baseline aligned with center of rect
         text.setAttribute('class', 'legend-text');
         text.setAttribute('dominant-baseline', 'middle');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
         
         legendG.appendChild(itemG);
-        legendY += 21; // 1.5x line height (14px font * 1.5 = 21px)
+        legendY += 28; // Add spacing between legend items for better readability
       }
     });
     
