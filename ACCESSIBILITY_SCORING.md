@@ -2,101 +2,104 @@
 
 ## Overview
 
-The Carnforth Web A11y extension calculates two accessibility scores for each tested page:
-1. **Raw Page Score** - A simple ratio of success criteria passed vs failed
-2. **Weighted Score** - A score that considers impact severity and violation frequency
+The Carnforth Web A11y extension displays three distinct metrics to provide a nuanced view of accessibility:
 
-## Scoring Calculation
+1. **Critical Barriers** - Count of show-stopping issues that prevent access
+2. **Breadth Score** - Percentage of relevant guidelines with violations  
+3. **A11y Index** - Combined metric showing overall direction of accessibility
 
-### Step 1: Determine Applicable Success Criteria (A)
+**Important**: Conformance to WCAG is binary - you either conform or you don't. These metrics are directional indicators to help prioritize remediation efforts, not a measure of compliance.
 
-1. Start with the full list of WCAG success criteria for the selected version and level
-2. Eliminate any success criteria we do not currently test for
-3. Eliminate any success criteria that we tested for but found no elements to test (not relevant to this page)
-4. The remaining count = **A** (Applicable Success Criteria)
+## The Three Metrics
 
-### Step 2: Count Failed Success Criteria (B)
+### 1. Critical Barriers (Show-Stopper Count)
 
-Count the number of unique WCAG success criteria that had violations during testing.
-- Each success criterion is only counted once, regardless of how many violations it had
-- This count = **B** (Failed Success Criteria)
+A direct count of issues that completely prevent access for users. The only acceptable number is **zero**.
 
-### Step 3: Calculate Raw Page Score
+Critical barriers include:
+- Missing accessible names on interactive elements
+- Keyboard traps that prevent navigation
+- Missing form labels
+- Interactive content hidden with `aria-hidden="true"`
+- Images conveying critical information without text alternatives  
+- Focus order that prevents task completion
+- Controls with touch targets too small to activate
 
-```
-Raw Page Score = (A - B) / A × 100%
-```
+### 2. Breadth Score
 
-This gives the percentage of applicable success criteria that passed.
-
-### Step 4: Calculate Weighted Violations (C)
-
-For each unique success criterion with violations, calculate a weighted score:
+Measures how widely accessibility issues are distributed across different guidelines:
 
 ```
-Base Weight = Impact Weight + Level Weight + Frequency Weight
+Breadth Score = (Touchpoints with failures / Touchpoints with testable elements found) × 100
+```
+
+**Key points:**
+- Only includes touchpoints that found elements to test
+- Excludes touchpoints that found no relevant elements (e.g., video tests on pages without video)
+- Shows what percentage of relevant accessibility areas have issues
+- Higher percentage means issues affect more diverse user needs
+
+### 3. A11y Index
+
+A weighted combination providing an overall directional indicator:
+
+```
+A11y Index = 100 - ((Breadth × 0.5) + (Friction × 0.3) + (Principle Weights × 0.2))
 
 Where:
-- Impact Weight:
-  - Low impact = 1
-  - Medium impact = 2  
-  - High impact = 3
-
-- Level Weight:
-  - Level A = +1
-  - Level AA = 0
-  - Level AAA = 0
-
-- Frequency Weight:
-  - Single occurrence = 0
-  - Multiple occurrences = +1
+- Breadth = Breadth Score (as calculated above)
+- Friction = (Total issues / Total elements tested) × 100
+- Principle Weights = Issues weighted by WCAG principle
 ```
 
-Sum all weighted scores = **C** (Total Weighted Violations)
+#### WCAG Principle Weighting
 
-### Step 5: Calculate Weighted Score
+Issues are weighted by which WCAG principle they violate:
+- **Perceivable**: 1.0 (fundamental to accessing content)
+- **Operable**: 1.0 (fundamental to using interface)
+- **Understandable**: 0.8 (important but sometimes workable)
+- **Robust**: 0.7 (technical compliance)
+
+## Display Format
+
+The three metrics are displayed prominently:
 
 ```
-Weighted Score = (A - C) / A × 100%
+Critical Barriers: 3 ❌ (Must be zero)
+Breadth: 45% (Issues across 45% of relevant guidelines)
+A11y Index: 72 (Higher is better - directional only)
 ```
 
-If the weighted score would be negative, it is capped at 0%.
+## Important Considerations
+
+1. **No Partial Conformance**: These numbers do NOT represent percentage conformance. A site with any critical barriers is non-conformant, period.
+
+2. **Direction, Not Destination**: Use these metrics to track improvement over time, not as a final score.
+
+3. **Context Matters**: A low A11y Index might mean many minor issues or few severe ones. Always review the detailed results.
+
+4. **Relevant Guidelines Only**: The scoring system automatically excludes guidelines that don't apply to the current page, ensuring fair assessment.
 
 ## Example Calculation
 
-Given:
-- 20 applicable success criteria for the page (A = 20)
-- 5 success criteria had violations (B = 5)
-- Violations breakdown:
-  - SC 1.1.1 (Level A): 3 high impact violations → Weight = 3 + 1 + 1 = 5
-  - SC 1.4.3 (Level AA): 1 medium impact violation → Weight = 2 + 0 + 0 = 2
-  - SC 2.4.4 (Level A): 2 low impact violations → Weight = 1 + 1 + 1 = 3
-  - SC 3.3.2 (Level A): 1 high impact violation → Weight = 3 + 1 + 0 = 4
-  - SC 4.1.2 (Level A): 5 medium impact violations → Weight = 2 + 1 + 1 = 4
-- Total weighted violations (C) = 5 + 2 + 3 + 4 + 4 = 18
+Given a page with:
+- 3 critical barriers (automatic fail for conformance)
+- 15 touchpoints found testable elements
+- 7 touchpoints have failures (Breadth = 46.7%)
+- 150 total elements tested
+- 25 total issues found (Friction = 16.7%)
+- Issues distributed across principles with weighted score of 12.5
 
 Results:
-- Raw Page Score = (20 - 5) / 20 × 100% = 75%
-- Weighted Score = (20 - 18) / 20 × 100% = 10%
+```
+Critical Barriers: 3 ❌
+Breadth: 47%
+A11y Index: 100 - ((46.7 × 0.5) + (16.7 × 0.3) + (12.5 × 0.2)) = 69
+```
 
-## Score Interpretation
+## Using the Metrics
 
-### Raw Page Score
-- **90-100%**: Excellent - Very few accessibility issues
-- **70-89%**: Good - Some issues to address
-- **50-69%**: Fair - Significant improvements needed
-- **Below 50%**: Poor - Major accessibility barriers
-
-### Weighted Score
-The weighted score provides context about severity:
-- A low weighted score indicates serious issues (high impact, Level A, or frequent violations)
-- The gap between raw and weighted scores shows the severity concentration
-- Large gap = Few but serious issues
-- Small gap = Many minor issues
-
-## Implementation Notes
-
-1. **Success Criteria Mapping**: Each touchpoint must declare which WCAG success criteria it tests
-2. **No Elements Found**: Track when a test runs but finds no applicable elements
-3. **Impact Level**: Use the highest impact level when a success criterion has multiple violations
-4. **Frequency**: Count unique elements, not total violation instances
+- **Fix Critical Barriers First**: These must be zero before considering the site accessible
+- **Use Breadth to Prioritize**: High breadth means many different user groups are affected
+- **Track A11y Index Over Time**: Shows if accessibility is improving with each iteration
+- **Review Detailed Results**: The metrics guide priority but don't replace thorough review

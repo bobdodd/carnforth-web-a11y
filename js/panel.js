@@ -697,13 +697,25 @@ document.addEventListener('DOMContentLoaded', function() {
     scoreInfoButton.addEventListener('click', function() {
       if (window.scoringDetails) {
         const details = window.scoringDetails;
-        const message = `Accessibility Scoring Methodology:\n\n` +
-          `Applicable Success Criteria (A): ${details.applicableCriteria}\n` +
-          `Failed Success Criteria (B): ${details.failedCriteria}\n` +
-          `Raw Score: (A - B) / A = ${Math.round(details.rawScore)}%\n\n` +
-          `Weighted Violations (C): ${details.weightedViolations}\n` +
-          `Weighted Score: (A - C) / A = ${Math.round(details.weightedScore)}%\n\n` +
-          `The weighted score considers impact severity, WCAG level, and frequency of violations.\n` +
+        const message = `Accessibility Metrics Explained:\n\n` +
+          `1. CRITICAL BARRIERS: ${details.criticalBarriers}\n` +
+          `   • Count of show-stopping issues that prevent access\n` +
+          `   • Must be ZERO for accessibility\n` +
+          `   • Examples: missing labels, keyboard traps, aria-hidden on interactive content\n\n` +
+          
+          `2. BREADTH SCORE: ${Math.round(details.breadthScore)}%\n` +
+          `   • ${details.touchpointsWithFailures} of ${details.touchpointsWithTestableElements} touchpoints have failures\n` +
+          `   • Shows how widely issues are distributed\n` +
+          `   • Higher % means more diverse areas affected\n\n` +
+          
+          `3. A11Y INDEX: ${Math.round(details.a11yIndex)}\n` +
+          `   • Combined directional indicator (0-100, higher is better)\n` +
+          `   • Based on: breadth (50%), friction (30%), principles (20%)\n` +
+          `   • Track over time to measure improvement\n\n` +
+          
+          `IMPORTANT: Conformance to WCAG is binary - you either conform or you don't.\n` +
+          `These metrics help prioritize fixes but do NOT represent % compliance.\n\n` +
+          
           `See ACCESSIBILITY_SCORING.md for full methodology.`;
         alert(message);
       }
@@ -2094,143 +2106,188 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /**
+   * Get WCAG principle from criterion number
+   * @param {string} criterionNumber - WCAG criterion number (e.g., "1.1.1")
+   * @returns {string|null} - The principle name or null
+   */
+  function getPrincipleFromCriterion(criterionNumber) {
+    if (!criterionNumber) return null;
+    
+    const firstDigit = criterionNumber.charAt(0);
+    switch (firstDigit) {
+      case '1': return 'perceivable';
+      case '2': return 'operable';
+      case '3': return 'understandable';
+      case '4': return 'robust';
+      default: return null;
+    }
+  }
+
+  /**
    * Calculate and display accessibility scores
    * @param {Object} results - Test results
    */
   function calculateAndDisplayScores(results) {
-    // Get current filter settings
-    const activeVersion = document.querySelector('[data-wcag-version][aria-pressed="true"]')?.dataset.wcagVersion || '2.2';
-    const activeLevels = Array.from(document.querySelectorAll('[data-wcag-level][aria-pressed="true"]'))
-      .map(btn => btn.dataset.wcagLevel)
-      .filter(level => level !== 'all');
+    // Critical barriers that completely prevent access
+    const criticalBarrierPatterns = [
+      'no accessible name',
+      'missing accessible name',
+      'keyboard trap',
+      'missing form label',
+      'aria-hidden="true"',
+      'focus order prevents',
+      'touch target.*too small',
+      'insufficient touch target'
+    ];
     
-    // If no levels selected, default to A and AA
-    if (activeLevels.length === 0) {
-      activeLevels.push('A', 'AA');
-    }
+    // Count metrics
+    let criticalBarriers = 0;
+    let touchpointsWithFailures = 0;
+    let touchpointsWithTestableElements = 0;
+    let totalIssues = 0;
+    let totalElementsTested = 0;
+    let principleWeightedScore = 0;
     
-    // Track which success criteria were violated and not applicable
-    const violatedCriteria = new Set();
-    const notApplicableCriteria = new Set();
-    const criteriaViolations = {}; // Map of SC to violation details
+    // Track principle violations
+    const principleViolations = {
+      perceivable: 0,
+      operable: 0,
+      understandable: 0,
+      robust: 0
+    };
     
-    // Analyze results to find violations and applicable criteria
+    // Analyze results
     Object.entries(results).forEach(([touchpoint, data]) => {
       if (touchpoint === '__summary') return;
       
-      const touchpointCriteria = window.WCAGMapping.TOUCHPOINT_WCAG_MAPPING[touchpoint] || [];
       const issues = data.issues || [];
       
-      // Check if touchpoint found no elements to test
+      // Check if touchpoint found elements to test
       const hasNoElementsInfo = issues.some(issue => 
         issue.type === 'info' && 
         (issue.title.includes('No') || issue.title.includes('no elements'))
       );
       
-      if (hasNoElementsInfo) {
-        // Mark all criteria for this touchpoint as not applicable
-        touchpointCriteria.forEach(sc => notApplicableCriteria.add(sc));
-      } else {
+      if (!hasNoElementsInfo && issues.length > 0) {
+        touchpointsWithTestableElements++;
+        
         // Check for failures
         const failures = issues.filter(issue => issue.type === 'fail');
-        
         if (failures.length > 0) {
-          touchpointCriteria.forEach(sc => {
-            const criterion = window.WCAGMapping.WCAG_SUCCESS_CRITERIA[sc];
-            if (criterion && 
-                activeLevels.includes(criterion.level) &&
-                window.WCAGMapping.isVersionCompatible(criterion.version, activeVersion)) {
-              violatedCriteria.add(sc);
-              
-              // Track violation details for weighted scoring
-              if (!criteriaViolations[sc]) {
-                criteriaViolations[sc] = {
-                  level: criterion.level,
-                  impacts: [],
-                  count: 0
-                };
-              }
-              
-              // Add impact levels from failures
-              failures.forEach(failure => {
-                criteriaViolations[sc].count++;
-                if (failure.impact) {
-                  const impactLevel = failure.impact.level || failure.impact;
-                  criteriaViolations[sc].impacts.push(impactLevel);
-                }
-              });
-            }
-          });
+          touchpointsWithFailures++;
         }
-      }
-    });
-    
-    // Get applicable success criteria (A)
-    const applicableCriteria = window.WCAGMapping.getApplicableSuccessCriteria(
-      activeVersion, 
-      activeLevels, 
-      notApplicableCriteria
-    );
-    
-    const A = applicableCriteria.size;
-    const B = violatedCriteria.size;
-    
-    // Calculate Raw Page Score
-    const rawScore = A > 0 ? ((A - B) / A) * 100 : 100;
-    
-    // Calculate weighted violations (C)
-    let C = 0;
-    Object.entries(criteriaViolations).forEach(([_, details]) => {
-      // Base weight from highest impact
-      let weight = 1; // Default to low
-      if (details.impacts.length > 0) {
-        const hasHigh = details.impacts.some(i => i === 'high');
-        const hasMedium = details.impacts.some(i => i === 'medium');
         
-        if (hasHigh) weight = 3;
-        else if (hasMedium) weight = 2;
+        // Count all issues
+        totalIssues += issues.length;
+        
+        // Count critical barriers
+        issues.forEach(issue => {
+          if (issue.type === 'fail') {
+            const isCritical = criticalBarrierPatterns.some(pattern => {
+              const regex = new RegExp(pattern, 'i');
+              return regex.test(issue.title) || regex.test(issue.description);
+            });
+            if (isCritical) {
+              criticalBarriers++;
+            }
+            
+            // Track principle violations
+            if (issue.wcag && issue.wcag.criteria) {
+              const criterionNumber = issue.wcag.criteria.split(' ')[0];
+              const principle = getPrincipleFromCriterion(criterionNumber);
+              if (principle) {
+                principleViolations[principle]++;
+              }
+            }
+          }
+        });
       }
       
-      // Add level weight
-      if (details.level === 'A') weight += 1;
-      
-      // Add frequency weight
-      if (details.count > 1) weight += 1;
-      
-      C += weight;
+      // Estimate elements tested (approximate based on touchpoint)
+      if (data.metadata && data.metadata.elementsChecked) {
+        totalElementsTested += data.metadata.elementsChecked;
+      } else if (!hasNoElementsInfo) {
+        // Rough estimate if metadata not available
+        totalElementsTested += Math.max(issues.length, 1);
+      }
     });
     
-    // Calculate Weighted Score
-    const weightedScore = A > 0 ? Math.max(0, ((A - C) / A) * 100) : 100;
+    // Calculate the three metrics
     
-    // Display scores
-    const rawScoreElement = document.getElementById('raw-score');
-    const weightedScoreElement = document.getElementById('weighted-score');
+    // 1. Critical Barriers - raw count
+    const criticalBarriersCount = criticalBarriers;
     
-    if (rawScoreElement) {
-      rawScoreElement.textContent = `${Math.round(rawScore)}%`;
-      rawScoreElement.className = 'score-value';
-      if (rawScore >= 90) rawScoreElement.classList.add('good');
-      else if (rawScore >= 70) rawScoreElement.classList.add('fair');
-      else rawScoreElement.classList.add('poor');
+    // 2. Breadth Score - percentage of touchpoints with failures
+    const breadthScore = touchpointsWithTestableElements > 0 
+      ? (touchpointsWithFailures / touchpointsWithTestableElements) * 100 
+      : 0;
+    
+    // 3. Calculate principle weighted score
+    const principleWeights = {
+      perceivable: 1.0,
+      operable: 1.0,
+      understandable: 0.8,
+      robust: 0.7
+    };
+    
+    Object.entries(principleViolations).forEach(([principle, count]) => {
+      principleWeightedScore += count * principleWeights[principle];
+    });
+    
+    // Normalize principle score to 0-100 scale
+    const maxPossiblePrincipleScore = totalIssues * 1.0; // All issues at max weight
+    const normalizedPrincipleScore = maxPossiblePrincipleScore > 0 
+      ? (principleWeightedScore / maxPossiblePrincipleScore) * 100 
+      : 0;
+    
+    // Calculate friction score
+    const frictionScore = totalElementsTested > 0 
+      ? (totalIssues / totalElementsTested) * 100 
+      : 0;
+    
+    // 3. A11y Index - combined metric
+    const a11yIndex = Math.max(0, 100 - (
+      (breadthScore * 0.5) + 
+      (frictionScore * 0.3) + 
+      (normalizedPrincipleScore * 0.2)
+    ));
+    
+    // Display the new three metrics
+    const criticalBarriersElement = document.getElementById('critical-barriers');
+    const breadthScoreElement = document.getElementById('breadth-score');
+    const a11yIndexElement = document.getElementById('a11y-index');
+    
+    if (criticalBarriersElement) {
+      criticalBarriersElement.innerHTML = `
+        <span class="metric-value ${criticalBarriersCount === 0 ? 'good' : 'fail'}">${criticalBarriersCount}</span>
+        <span class="metric-status">${criticalBarriersCount === 0 ? '✓' : '❌'}</span>
+      `;
     }
     
-    if (weightedScoreElement) {
-      weightedScoreElement.textContent = `${Math.round(weightedScore)}%`;
-      weightedScoreElement.className = 'score-value';
-      if (weightedScore >= 70) weightedScoreElement.classList.add('good');
-      else if (weightedScore >= 40) weightedScoreElement.classList.add('fair');
-      else weightedScoreElement.classList.add('poor');
+    if (breadthScoreElement) {
+      breadthScoreElement.innerHTML = `
+        <span class="metric-value">${Math.round(breadthScore)}%</span>
+        <span class="metric-description">of relevant guidelines</span>
+      `;
+    }
+    
+    if (a11yIndexElement) {
+      a11yIndexElement.innerHTML = `
+        <span class="metric-value">${Math.round(a11yIndex)}</span>
+        <span class="metric-description">directional indicator</span>
+      `;
     }
     
     // Store scoring details for info button
     window.scoringDetails = {
-      applicableCriteria: A,
-      failedCriteria: B,
-      weightedViolations: C,
-      rawScore: rawScore,
-      weightedScore: weightedScore,
-      criteriaViolations: criteriaViolations
+      criticalBarriers: criticalBarriersCount,
+      breadthScore: breadthScore,
+      a11yIndex: a11yIndex,
+      touchpointsWithFailures: touchpointsWithFailures,
+      touchpointsWithTestableElements: touchpointsWithTestableElements,
+      totalIssues: totalIssues,
+      totalElementsTested: totalElementsTested,
+      principleViolations: principleViolations
     };
   }
 

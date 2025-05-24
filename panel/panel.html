@@ -48,15 +48,28 @@
   <div class="results-summary-console hidden">
     <div class="scores-section">
       <div class="score-card">
-        <h3>Accessibility Scores</h3>
-        <div class="score-display">
-          <div class="score-item">
-            <span class="score-label">Raw Score</span>
-            <span class="score-value" id="raw-score">--</span>
+        <h3>Accessibility Metrics</h3>
+        <div class="metrics-display">
+          <div class="metric-item critical-barriers">
+            <span class="metric-label">Critical Barriers</span>
+            <div id="critical-barriers" class="metric-content">
+              <span class="metric-value">--</span>
+            </div>
+            <span class="metric-note">Must be zero for accessibility</span>
           </div>
-          <div class="score-item">
-            <span class="score-label">Weighted Score</span>
-            <span class="score-value" id="weighted-score">--</span>
+          <div class="metric-item breadth-score">
+            <span class="metric-label">Breadth Score</span>
+            <div id="breadth-score" class="metric-content">
+              <span class="metric-value">--</span>
+            </div>
+            <span class="metric-note">Issues across guidelines</span>
+          </div>
+          <div class="metric-item a11y-index">
+            <span class="metric-label">A11y Index</span>
+            <div id="a11y-index" class="metric-content">
+              <span class="metric-value">--</span>
+            </div>
+            <span class="metric-note">Higher is better</span>
           </div>
         </div>
         <button class="score-info-button" id="score-info-button" aria-label="Learn about scoring methodology">?</button>
