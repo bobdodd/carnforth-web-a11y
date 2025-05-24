@@ -2599,8 +2599,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Single pattern indicator that combines color and pattern
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const rectY = legendY;
         legendIndicator.setAttribute('x', 10);
-        legendIndicator.setAttribute('y', legendY - 14); // Position rect to span full line height
+        legendIndicator.setAttribute('y', rectY);
         legendIndicator.setAttribute('width', '20');
         legendIndicator.setAttribute('height', '21'); // 1.5x font height (14px * 1.5 = 21px)
         legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
@@ -2613,9 +2614,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 35);
-        text.setAttribute('y', legendY - 3.5); // Center text vertically with 21px rect
+        text.setAttribute('y', rectY + 14); // Position text baseline at rect Y + font height
         text.setAttribute('class', 'legend-text');
-        text.setAttribute('dominant-baseline', 'middle');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
         
