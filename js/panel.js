@@ -2575,7 +2575,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add legend below the chart with better spacing
-    const legendStartY = chartHeight + 10; // Move legend outside main chart area
+    const legendStartY = chartHeight + 42; // One line height (42px) gap after chart
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
@@ -2599,7 +2599,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const swatchHeight = 20; // ~80% of 28px font height for visual separation
         const swatchY = legendY + (42 - swatchHeight) / 2; // Center swatch in line height
-        legendIndicator.setAttribute('x', 10);
+        const legendX = centerX - 100; // Center legend with pie chart (adjust based on typical legend width)
+        legendIndicator.setAttribute('x', legendX);
         legendIndicator.setAttribute('y', swatchY);
         legendIndicator.setAttribute('width', '20');
         legendIndicator.setAttribute('height', swatchHeight);
@@ -2612,7 +2613,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Label with percentage
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', 35);
+        text.setAttribute('x', legendX + 25); // Position text 25px after rectangle
         text.setAttribute('y', legendY + 28); // Position text baseline at legendY + font height (28px)
         text.setAttribute('class', 'legend-text');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
