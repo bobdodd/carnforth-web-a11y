@@ -746,7 +746,7 @@ function openDocumentationModal(touchpointId, options = {}) {
   }
   
   // Populate modal content based on type
-  if (modalType === 'carnforth') {
+  if (modalType === 'carnforth' || modalType === 'scoring') {
     populateCarnforthModal(modal, doc);
   } else if (modalType === 'issue') {
     populateIssueModal(modal, doc);
