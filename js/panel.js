@@ -2412,28 +2412,49 @@ document.addEventListener('DOMContentLoaded', function() {
       // Different patterns for different data types
       if (item.pattern.includes('high') || item.pattern.includes('fail')) {
         // Diagonal stripes for high/fail
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', 'M0,10 L10,0 M0,0 L10,10');
-        path.setAttribute('stroke', 'currentColor');
-        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke', 'white');
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('opacity', '0.4');
         pattern.appendChild(path);
       } else if (item.pattern.includes('medium') || item.pattern.includes('warning')) {
         // Dots for medium/warning
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '5');
         circle.setAttribute('cy', '5');
         circle.setAttribute('r', '2');
-        circle.setAttribute('fill', 'currentColor');
+        circle.setAttribute('fill', 'white');
+        circle.setAttribute('opacity', '0.4');
         pattern.appendChild(circle);
       } else {
         // Horizontal lines for low/info
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', '0');
         line.setAttribute('y1', '5');
         line.setAttribute('x2', '10');
         line.setAttribute('y2', '5');
-        line.setAttribute('stroke', 'currentColor');
+        line.setAttribute('stroke', 'white');
         line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.4');
         pattern.appendChild(line);
       }
       
@@ -2477,21 +2498,41 @@ document.addEventListener('DOMContentLoaded', function() {
         ].join(' ');
         
         path.setAttribute('d', d);
-        path.setAttribute('fill', item.color);
+        path.setAttribute('fill', `url(#${item.pattern})`); // Use pattern by default
         path.setAttribute('stroke', '#fff');
         path.setAttribute('stroke-width', '2');
         path.setAttribute('class', 'chart-slice');
-        path.setAttribute('data-pattern', `url(#${item.pattern})`);
+        path.setAttribute('data-color', item.color); // Store original color
         path.setAttribute('tabindex', '0');
         path.setAttribute('role', 'img');
         path.setAttribute('aria-label', `${item.label}: ${item.value} (${Math.round(item.value/total*100)}%)`);
         
         g.appendChild(path);
         
-        // Add value label
+        // Add value label with background for contrast
         const labelAngle = currentAngle + sliceAngle / 2;
         const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
         const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+        
+        // Create a group for the label
+        const labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        // Add white background rect for contrast
+        const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const labelText = item.value.toString();
+        const textWidth = labelText.length * 10 + 8; // Approximate width
+        const textHeight = 20;
+        
+        labelBg.setAttribute('x', labelX - textWidth/2);
+        labelBg.setAttribute('y', labelY - textHeight/2);
+        labelBg.setAttribute('width', textWidth);
+        labelBg.setAttribute('height', textHeight);
+        labelBg.setAttribute('fill', 'white');
+        labelBg.setAttribute('stroke', '#333');
+        labelBg.setAttribute('stroke-width', '1');
+        labelBg.setAttribute('rx', '3');
+        labelBg.setAttribute('ry', '3');
+        labelG.appendChild(labelBg);
         
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', labelX);
@@ -2499,9 +2540,12 @@ document.addEventListener('DOMContentLoaded', function() {
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'middle');
         text.setAttribute('class', 'chart-value');
+        text.setAttribute('fill', '#333'); // Dark text on white background
         text.setAttribute('aria-hidden', 'true');
-        text.textContent = item.value.toString();
-        g.appendChild(text);
+        text.textContent = labelText;
+        labelG.appendChild(text);
+        
+        g.appendChild(labelG);
         
         currentAngle = endAngle;
       });
@@ -2509,38 +2553,54 @@ document.addEventListener('DOMContentLoaded', function() {
       svg.appendChild(g);
     }
     
-    // Add legend
-    const legendY = height - 15;
+    // Add legend below the chart with better spacing
+    const legendStartY = height + 10; // Move legend outside main chart area
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
-    let legendX = 10;
+    // Update SVG height to accommodate legend
+    svg.setAttribute('height', height + 60);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height + 60}`);
+    
+    // Create legend items vertically to avoid overlap
+    let legendY = legendStartY;
     data.forEach((item, index) => {
       if (item.value > 0) {
         // Legend item group
         const itemG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         
+        // Add pattern indicator (stripes, dots, lines) in addition to color
+        const patternIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        patternIndicator.setAttribute('x', 10);
+        patternIndicator.setAttribute('y', legendY - 8);
+        patternIndicator.setAttribute('width', '15');
+        patternIndicator.setAttribute('height', '10');
+        patternIndicator.setAttribute('fill', `url(#${item.pattern})`);
+        patternIndicator.setAttribute('stroke', item.color);
+        patternIndicator.setAttribute('stroke-width', '2');
+        itemG.appendChild(patternIndicator);
+        
         // Color square
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', legendX);
+        rect.setAttribute('x', 30);
         rect.setAttribute('y', legendY - 8);
         rect.setAttribute('width', '10');
         rect.setAttribute('height', '10');
         rect.setAttribute('fill', item.color);
         rect.setAttribute('class', 'legend-color');
-        rect.setAttribute('data-pattern', `url(#${item.pattern})`);
         itemG.appendChild(rect);
         
-        // Label
+        // Label with percentage
+        const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('x', legendX + 15);
+        text.setAttribute('x', 45);
         text.setAttribute('y', legendY);
         text.setAttribute('class', 'legend-text');
-        text.textContent = item.label.split(' ')[0]; // Just first word for space
+        text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
         
         legendG.appendChild(itemG);
-        legendX += 70;
+        legendY += 18; // Space between legend items
       }
     });
     
@@ -2638,28 +2698,49 @@ document.addEventListener('DOMContentLoaded', function() {
       // Different patterns for different levels
       if (item.pattern.includes('level-a')) {
         // Diagonal stripes for Level A
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', 'M0,10 L10,0 M0,0 L10,10');
-        path.setAttribute('stroke', 'currentColor');
-        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke', 'white');
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('opacity', '0.4');
         pattern.appendChild(path);
       } else if (item.pattern.includes('level-aa')) {
         // Dots for Level AA
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '5');
         circle.setAttribute('cy', '5');
         circle.setAttribute('r', '2');
-        circle.setAttribute('fill', 'currentColor');
+        circle.setAttribute('fill', 'white');
+        circle.setAttribute('opacity', '0.4');
         pattern.appendChild(circle);
       } else {
         // Horizontal lines for Level AAA
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('width', '10');
+        rect.setAttribute('height', '10');
+        rect.setAttribute('fill', item.color);
+        pattern.appendChild(rect);
+        
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', '0');
         line.setAttribute('y1', '5');
         line.setAttribute('x2', '10');
         line.setAttribute('y2', '5');
-        line.setAttribute('stroke', 'currentColor');
+        line.setAttribute('stroke', 'white');
         line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.4');
         pattern.appendChild(line);
       }
       
@@ -2689,11 +2770,11 @@ document.addEventListener('DOMContentLoaded', function() {
       rect.setAttribute('y', barY);
       rect.setAttribute('width', barWidth);
       rect.setAttribute('height', barHeight);
-      rect.setAttribute('fill', item.color);
-      rect.setAttribute('stroke', '#fff');
+      rect.setAttribute('fill', `url(#${item.pattern})`); // Use pattern by default
+      rect.setAttribute('stroke', '#333');
       rect.setAttribute('stroke-width', '1');
       rect.setAttribute('class', 'chart-bar');
-      rect.setAttribute('data-pattern', `url(#${item.pattern})`);
+      rect.setAttribute('data-color', item.color); // Store original color
       barG.appendChild(rect);
       
       // Draw value on top
@@ -4400,22 +4481,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Check for high contrast mode and apply patterns
-  function applyHighContrastPatterns() {
-    const isHighContrast = window.matchMedia('screen and (-ms-high-contrast: active), screen and (forced-colors: active)').matches;
-    
-    if (isHighContrast) {
-      // Apply patterns to chart elements
-      document.querySelectorAll('.chart-slice, .chart-bar, .legend-color').forEach(element => {
-        const pattern = element.getAttribute('data-pattern');
-        if (pattern) {
-          element.style.fill = pattern;
-        }
-      });
-    }
-  }
-  
-  // Apply on load and when media query changes
-  applyHighContrastPatterns();
-  window.matchMedia('screen and (-ms-high-contrast: active), screen and (forced-colors: active)').addListener(applyHighContrastPatterns);
+  // We're now using patterns by default, so no need for special high contrast handling
 });

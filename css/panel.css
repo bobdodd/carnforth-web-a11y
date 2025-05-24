@@ -918,7 +918,7 @@ main {
 .chart-value {
   font-size: 1rem; /* 16px minimum */
   font-weight: bold;
-  fill: white;
+  fill: #333; /* Dark text for contrast */
   pointer-events: none;
 }
 
