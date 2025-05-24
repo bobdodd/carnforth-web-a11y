@@ -2522,8 +2522,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add white background rect for contrast with proper sizing
         const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const labelText = item.value.toString();
-        const textWidth = labelText.length * 12 + 16; // Better width calculation
-        const textHeight = 24; // Taller to accommodate text
+        const textWidth = labelText.length * 12 + 20; // Add more padding for 1px border
+        const textHeight = 26; // Slightly taller for better padding
         
         labelBg.setAttribute('x', labelX - textWidth/2);
         labelBg.setAttribute('y', labelY - textHeight/2);
@@ -2561,14 +2561,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
-    // Calculate legend height based on number of items
-    const legendItemHeight = 18;
+    // Calculate legend height based on number of items with 1.5 line spacing
+    const legendItemHeight = 27; // Increased from 18 to provide 1.5 line spacing
     const activeItems = data.filter(item => item.value > 0).length;
     const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
     
-    // Update SVG height to accommodate legend
+    // Update SVG dimensions to accommodate legend with wider width
+    const svgWidth = 300; // Increased from 200 to prevent text cropping
+    svg.setAttribute('width', svgWidth);
     svg.setAttribute('height', height + legendHeight);
-    svg.setAttribute('viewBox', `0 0 ${width} ${height + legendHeight}`);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${height + legendHeight}`);
     
     // Create legend items vertically to avoid overlap
     let legendY = legendStartY;
@@ -2599,7 +2601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         itemG.appendChild(text);
         
         legendG.appendChild(itemG);
-        legendY += 18; // Space between legend items
+        legendY += 27; // Space between legend items - 1.5 line spacing
       }
     });
     
