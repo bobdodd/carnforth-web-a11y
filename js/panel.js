@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('issue-search');
   const filterResultsText = document.getElementById('filter-results-text');
   const filterStatus = document.getElementById('filter-status');
-  const groupByRegionCheckbox = document.getElementById('group-by-region');
+  const groupingButtons = document.querySelectorAll('.grouping-button');
   
   // Preferences elements
   const preferencesButton = document.getElementById('preferences-button');
@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultIssueTypes: ['fail', 'warning', 'info'],
     selectedTouchpoints: [...touchpoints], // All touchpoints by default
     accordionDefault: 'closed',
-    groupByRegionDefault: false // Group by region off by default
+    groupByRegionDefault: false, // Group by region off by default
+    defaultGrouping: 'none' // Default grouping mode
   };
 
   // Initialize to default state
@@ -138,6 +139,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
       searchInput.value = '';
     }
+    
+    // Apply grouping preference
+    groupingButtons.forEach(btn => {
+      const grouping = btn.dataset.grouping;
+      if (grouping === preferences.defaultGrouping) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    });
     
     // Clear current results and test status
     currentTestResults = null;
@@ -239,17 +252,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store results for export
     currentTestResults = results;
     
-    // Set the group by region checkbox based on preference
-    if (groupByRegionCheckbox) {
-      groupByRegionCheckbox.checked = preferences.groupByRegionDefault;
-    }
-    
     // Display results in UI based on preference
     console.log('Displaying results in UI');
-    if (preferences.groupByRegionDefault) {
-      displayResultsGroupedByRegion(results);
-    } else {
-      displayResults(results);
+    switch (preferences.defaultGrouping) {
+      case 'region':
+        displayResultsGroupedByRegion(results);
+        break;
+      case 'guideline':
+        displayResultsGroupedByGuideline(results);
+        break;
+      case 'criteria':
+        displayResultsGroupedByCriteria(results);
+        break;
+      case 'none':
+      default:
+        displayResults(results);
+        break;
     }
     updateSummary(results);
     
@@ -864,16 +882,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Handle group by region checkbox
-  if (groupByRegionCheckbox) {
-    groupByRegionCheckbox.addEventListener('change', function() {
-      if (currentTestResults) {
-        if (this.checked) {
-          displayResultsGroupedByRegion(currentTestResults);
-        } else {
-          displayResults(currentTestResults);
+  // Handle grouping buttons
+  if (groupingButtons.length > 0) {
+    let currentGrouping = 'none';
+    
+    groupingButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Update active state
+        groupingButtons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
+        
+        // Apply grouping
+        currentGrouping = this.dataset.grouping;
+        
+        // Save preference
+        preferences.defaultGrouping = currentGrouping;
+        savePreferences();
+        
+        if (currentTestResults) {
+          switch (currentGrouping) {
+            case 'none':
+              displayResults(currentTestResults);
+              break;
+            case 'region':
+              displayResultsGroupedByRegion(currentTestResults);
+              break;
+            case 'guideline':
+              displayResultsGroupedByGuideline(currentTestResults);
+              break;
+            case 'criteria':
+              displayResultsGroupedByCriteria(currentTestResults);
+              break;
+          }
         }
-      }
+      });
     });
   }
 
@@ -1297,6 +1343,185 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Get WCAG guideline number from success criteria
+   * @param {string} criteria - Success criteria (e.g., "1.1.1", "2.4.1")
+   * @returns {string} Guideline number (e.g., "1.1", "2.4")
+   */
+  function getGuidelineFromCriteria(criteria) {
+    if (!criteria || typeof criteria !== 'string') return '';
+    const parts = criteria.split('.');
+    return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : '';
+  }
+  
+  /**
+   * Map of WCAG guideline numbers to their names
+   */
+  const guidelineNames = {
+    '1.1': 'Text Alternatives',
+    '1.2': 'Time-based Media',
+    '1.3': 'Adaptable',
+    '1.4': 'Distinguishable',
+    '2.1': 'Keyboard Accessible',
+    '2.2': 'Enough Time',
+    '2.3': 'Seizures and Physical Reactions',
+    '2.4': 'Navigable',
+    '2.5': 'Input Modalities',
+    '3.1': 'Readable',
+    '3.2': 'Predictable',
+    '3.3': 'Input Assistance',
+    '4.1': 'Compatible'
+  };
+  
+  /**
+   * Display the test results grouped by WCAG guideline
+   * @param {Object} results - Test results organized by touchpoint
+   */
+  function displayResultsGroupedByGuideline(results) {
+    if (!results || Object.keys(results).length === 0) {
+      resultsContainer.innerHTML = '<p class="results-message">No accessibility issues detected.</p>';
+      return;
+    }
+
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+    
+    // Collect all issues and group them by guideline
+    const issuesByGuideline = {};
+    const guidelineOrder = [];
+    
+    Object.keys(results).forEach(touchpoint => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointData = results[touchpoint];
+      if (touchpointData.issues && touchpointData.issues.length > 0) {
+        touchpointData.issues.forEach(issue => {
+          // Get guideline from each criteria
+          if (issue.wcagCriteria && issue.wcagCriteria.length > 0) {
+            issue.wcagCriteria.forEach(criteria => {
+              const guideline = getGuidelineFromCriteria(criteria);
+              if (guideline) {
+                const guidelineName = guidelineNames[guideline] || 'Unknown Guideline';
+                const guidelineKey = `${guideline} ${guidelineName}`;
+                
+                if (!issuesByGuideline[guidelineKey]) {
+                  issuesByGuideline[guidelineKey] = [];
+                  guidelineOrder.push(guidelineKey);
+                }
+                
+                // Clone the issue and set the specific criteria for this grouping
+                const issueClone = {
+                  ...issue,
+                  touchpoint: touchpoint,
+                  touchpointTitle: touchpointData.title || touchpoint,
+                  specificCriteria: criteria
+                };
+                issuesByGuideline[guidelineKey].push(issueClone);
+              }
+            });
+          }
+        });
+      }
+    });
+    
+    // Sort guidelines numerically
+    guidelineOrder.sort((a, b) => {
+      const numA = parseFloat(a.split(' ')[0]);
+      const numB = parseFloat(b.split(' ')[0]);
+      return numA - numB;
+    });
+    
+    // Create sections for each guideline
+    guidelineOrder.forEach((guideline, index) => {
+      const issues = issuesByGuideline[guideline];
+      const section = createGuidelineSection(guideline, issues, index);
+      resultsContainer.appendChild(section);
+    });
+    
+    // Apply syntax highlighting after a delay
+    setTimeout(() => {
+      try {
+        applyHtmlSyntaxHighlighting();
+      } catch (error) {
+        console.error('[Panel] Error applying syntax highlighting:', error);
+      }
+    }, 300);
+  }
+  
+  /**
+   * Display the test results grouped by WCAG success criteria
+   * @param {Object} results - Test results organized by touchpoint
+   */
+  function displayResultsGroupedByCriteria(results) {
+    if (!results || Object.keys(results).length === 0) {
+      resultsContainer.innerHTML = '<p class="results-message">No accessibility issues detected.</p>';
+      return;
+    }
+
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+    
+    // Collect all issues and group them by criteria
+    const issuesByCriteria = {};
+    const criteriaOrder = [];
+    
+    Object.keys(results).forEach(touchpoint => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointData = results[touchpoint];
+      if (touchpointData.issues && touchpointData.issues.length > 0) {
+        touchpointData.issues.forEach(issue => {
+          // Group by each criteria
+          if (issue.wcagCriteria && issue.wcagCriteria.length > 0) {
+            issue.wcagCriteria.forEach(criteria => {
+              if (!issuesByCriteria[criteria]) {
+                issuesByCriteria[criteria] = [];
+                criteriaOrder.push(criteria);
+              }
+              
+              // Clone the issue and add touchpoint info
+              const issueClone = {
+                ...issue,
+                touchpoint: touchpoint,
+                touchpointTitle: touchpointData.title || touchpoint,
+                specificCriteria: criteria
+              };
+              issuesByCriteria[criteria].push(issueClone);
+            });
+          }
+        });
+      }
+    });
+    
+    // Sort criteria numerically
+    criteriaOrder.sort((a, b) => {
+      const partsA = a.split('.').map(Number);
+      const partsB = b.split('.').map(Number);
+      for (let i = 0; i < 3; i++) {
+        if (partsA[i] !== partsB[i]) {
+          return partsA[i] - partsB[i];
+        }
+      }
+      return 0;
+    });
+    
+    // Create sections for each criteria
+    criteriaOrder.forEach((criteria, index) => {
+      const issues = issuesByCriteria[criteria];
+      const section = createCriteriaSection(criteria, issues, index);
+      resultsContainer.appendChild(section);
+    });
+    
+    // Apply syntax highlighting after a delay
+    setTimeout(() => {
+      try {
+        applyHtmlSyntaxHighlighting();
+      } catch (error) {
+        console.error('[Panel] Error applying syntax highlighting:', error);
+      }
+    }, 300);
+  }
+  
+  /**
    * Create an accordion section for a page region
    * @param {string} region - Region name
    * @param {Array} issues - Array of issues in this region
@@ -1410,6 +1635,246 @@ document.addEventListener('DOMContentLoaded', function() {
       
       subsection.appendChild(issueList);
       content.appendChild(subsection);
+    });
+
+    accordion.appendChild(content);
+    return accordion;
+  }
+
+  /**
+   * Create a section for a WCAG guideline
+   * @param {string} guideline - Guideline key (e.g., "1.1 Text Alternatives")
+   * @param {Array} issues - Array of issues for this guideline
+   * @param {number} index - Section index
+   * @returns {HTMLElement} - The section element
+   */
+  function createGuidelineSection(guideline, issues, index) {
+    // Count issues by type
+    const counts = {
+      fail: 0,
+      warning: 0,
+      info: 0
+    };
+
+    issues.forEach(issue => {
+      counts[issue.type]++;
+    });
+
+    // Create accordion element
+    const accordion = document.createElement('div');
+    accordion.className = 'accordion guideline-accordion';
+    accordion.setAttribute('id', `accordion-guideline-${index}`);
+
+    // Create accordion header
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('tabindex', '0');
+
+    // Add expand/collapse icon
+    const icon = document.createElement('span');
+    icon.className = 'accordion-icon';
+    icon.innerHTML = '▶';
+    icon.setAttribute('aria-hidden', 'true');
+    header.appendChild(icon);
+
+    // Add guideline name
+    const title = document.createElement('h2');
+    title.className = 'accordion-title';
+    title.textContent = `WCAG ${guideline}`;
+    header.appendChild(title);
+
+    // Add summary counts
+    const summary = document.createElement('div');
+    summary.className = 'accordion-summary';
+
+    if (counts.fail > 0) {
+      const failCount = document.createElement('span');
+      failCount.className = 'issue-count fail-count';
+      failCount.innerHTML = `<span class="issue-icon" aria-hidden="true">✗</span> ${counts.fail} Failed`;
+      summary.appendChild(failCount);
+    }
+
+    if (counts.warning > 0) {
+      const warningCount = document.createElement('span');
+      warningCount.className = 'issue-count warning-count';
+      warningCount.innerHTML = `<span class="issue-icon" aria-hidden="true">⚠</span> ${counts.warning} Warning`;
+      summary.appendChild(warningCount);
+    }
+
+    if (counts.info > 0) {
+      const infoCount = document.createElement('span');
+      infoCount.className = 'issue-count info-count';
+      infoCount.innerHTML = `<span class="issue-icon" aria-hidden="true">ⓘ</span> ${counts.info} Info`;
+      summary.appendChild(infoCount);
+    }
+
+    header.appendChild(summary);
+    accordion.appendChild(header);
+
+    // Create accordion content
+    const content = document.createElement('div');
+    content.className = 'accordion-content';
+    
+    // Group issues by touchpoint within this guideline
+    const issuesByTouchpoint = {};
+    issues.forEach(issue => {
+      const key = issue.touchpointTitle;
+      if (!issuesByTouchpoint[key]) {
+        issuesByTouchpoint[key] = [];
+      }
+      issuesByTouchpoint[key].push(issue);
+    });
+
+    // Create subsections for each touchpoint
+    Object.entries(issuesByTouchpoint).forEach(([touchpointTitle, touchpointIssues]) => {
+      const touchpointSection = document.createElement('div');
+      touchpointSection.className = 'touchpoint-subsection';
+      
+      const touchpointHeader = document.createElement('h3');
+      touchpointHeader.className = 'touchpoint-subsection-title';
+      touchpointHeader.textContent = touchpointTitle;
+      touchpointSection.appendChild(touchpointHeader);
+      
+      touchpointIssues.forEach(issue => {
+        const issueElement = createIssueElement(issue, issue.touchpoint);
+        touchpointSection.appendChild(issueElement);
+      });
+      
+      content.appendChild(touchpointSection);
+    });
+
+    // Add click handler for accordion
+    header.addEventListener('click', function() {
+      toggleAccordion(this);
+    });
+
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleAccordion(this);
+      }
+    });
+
+    accordion.appendChild(content);
+    return accordion;
+  }
+
+  /**
+   * Create a section for a WCAG success criteria
+   * @param {string} criteria - Success criteria (e.g., "1.1.1")
+   * @param {Array} issues - Array of issues for this criteria
+   * @param {number} index - Section index
+   * @returns {HTMLElement} - The section element
+   */
+  function createCriteriaSection(criteria, issues, index) {
+    // Count issues by type
+    const counts = {
+      fail: 0,
+      warning: 0,
+      info: 0
+    };
+
+    issues.forEach(issue => {
+      counts[issue.type]++;
+    });
+
+    // Create accordion element
+    const accordion = document.createElement('div');
+    accordion.className = 'accordion criteria-accordion';
+    accordion.setAttribute('id', `accordion-criteria-${index}`);
+
+    // Create accordion header
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('tabindex', '0');
+
+    // Add expand/collapse icon
+    const icon = document.createElement('span');
+    icon.className = 'accordion-icon';
+    icon.innerHTML = '▶';
+    icon.setAttribute('aria-hidden', 'true');
+    header.appendChild(icon);
+
+    // Add criteria number
+    const title = document.createElement('h2');
+    title.className = 'accordion-title';
+    title.textContent = `WCAG ${criteria}`;
+    header.appendChild(title);
+
+    // Add summary counts
+    const summary = document.createElement('div');
+    summary.className = 'accordion-summary';
+
+    if (counts.fail > 0) {
+      const failCount = document.createElement('span');
+      failCount.className = 'issue-count fail-count';
+      failCount.innerHTML = `<span class="issue-icon" aria-hidden="true">✗</span> ${counts.fail} Failed`;
+      summary.appendChild(failCount);
+    }
+
+    if (counts.warning > 0) {
+      const warningCount = document.createElement('span');
+      warningCount.className = 'issue-count warning-count';
+      warningCount.innerHTML = `<span class="issue-icon" aria-hidden="true">⚠</span> ${counts.warning} Warning`;
+      summary.appendChild(warningCount);
+    }
+
+    if (counts.info > 0) {
+      const infoCount = document.createElement('span');
+      infoCount.className = 'issue-count info-count';
+      infoCount.innerHTML = `<span class="issue-icon" aria-hidden="true">ⓘ</span> ${counts.info} Info`;
+      summary.appendChild(infoCount);
+    }
+
+    header.appendChild(summary);
+    accordion.appendChild(header);
+
+    // Create accordion content
+    const content = document.createElement('div');
+    content.className = 'accordion-content';
+    
+    // Group issues by touchpoint within this criteria
+    const issuesByTouchpoint = {};
+    issues.forEach(issue => {
+      const key = issue.touchpointTitle;
+      if (!issuesByTouchpoint[key]) {
+        issuesByTouchpoint[key] = [];
+      }
+      issuesByTouchpoint[key].push(issue);
+    });
+
+    // Create subsections for each touchpoint
+    Object.entries(issuesByTouchpoint).forEach(([touchpointTitle, touchpointIssues]) => {
+      const touchpointSection = document.createElement('div');
+      touchpointSection.className = 'touchpoint-subsection';
+      
+      const touchpointHeader = document.createElement('h3');
+      touchpointHeader.className = 'touchpoint-subsection-title';
+      touchpointHeader.textContent = touchpointTitle;
+      touchpointSection.appendChild(touchpointHeader);
+      
+      touchpointIssues.forEach(issue => {
+        const issueElement = createIssueElement(issue, issue.touchpoint);
+        touchpointSection.appendChild(issueElement);
+      });
+      
+      content.appendChild(touchpointSection);
+    });
+
+    // Add click handler for accordion
+    header.addEventListener('click', function() {
+      toggleAccordion(this);
+    });
+
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleAccordion(this);
+      }
     });
 
     accordion.appendChild(content);
@@ -4399,11 +4864,11 @@ document.addEventListener('DOMContentLoaded', function() {
       accordionRadio.checked = true;
     }
     
-    // Update group by region checkbox
-    const groupByRegionCheckbox = document.getElementById('pref-group-by-region');
-    if (groupByRegionCheckbox) {
-      groupByRegionCheckbox.checked = preferences.groupByRegionDefault;
-    }
+    // Update grouping radio buttons
+    const groupingRadios = document.querySelectorAll('input[name="pref-grouping"]');
+    groupingRadios.forEach(radio => {
+      radio.checked = radio.value === preferences.defaultGrouping;
+    });
     
     // Update select all touchpoints checkbox
     const selectAllCheckbox = document.getElementById('pref-select-all-touchpoints');
@@ -4449,10 +4914,10 @@ document.addEventListener('DOMContentLoaded', function() {
       preferences.accordionDefault = accordionRadio.value;
     }
     
-    // Get group by region default
-    const groupByRegionCheckbox = document.getElementById('pref-group-by-region');
-    if (groupByRegionCheckbox) {
-      preferences.groupByRegionDefault = groupByRegionCheckbox.checked;
+    // Get grouping preference
+    const selectedGrouping = document.querySelector('input[name="pref-grouping"]:checked');
+    if (selectedGrouping) {
+      preferences.defaultGrouping = selectedGrouping.value;
     }
     
     // Save preferences

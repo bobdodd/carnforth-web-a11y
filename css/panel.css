@@ -521,6 +521,24 @@ main {
   box-shadow: inset 0 0 0 2px var(--focus-outline-color);
 }
 
+/* Subsection styles for grouped content */
+.touchpoint-subsection {
+  margin-bottom: var(--margin-large);
+}
+
+.touchpoint-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.touchpoint-subsection-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary-color);
+  margin-bottom: var(--margin-medium);
+  padding-bottom: var(--padding-small);
+  border-bottom: 1px solid var(--border-color);
+}
+
 .touchpoint-description {
   margin-bottom: var(--margin-large);
   padding: var(--padding-medium);

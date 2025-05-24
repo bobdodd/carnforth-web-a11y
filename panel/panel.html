@@ -122,10 +122,13 @@
         <input type="search" id="issue-search" placeholder="Search issues..." class="search-input">
       </div>
       <div class="filter-options">
-        <label class="checkbox-label">
-          <input type="checkbox" id="group-by-region" class="filter-checkbox">
-          <span>Group by page region</span>
-        </label>
+        <div class="filter-group">
+          <label class="filter-label">Group by:</label>
+          <button class="filter-button grouping-button active" data-grouping="none" aria-pressed="true">None</button>
+          <button class="filter-button grouping-button" data-grouping="region" aria-pressed="false">Region</button>
+          <button class="filter-button grouping-button" data-grouping="guideline" aria-pressed="false">Guideline</button>
+          <button class="filter-button grouping-button" data-grouping="criteria" aria-pressed="false">Criteria</button>
+        </div>
       </div>
       <div class="filter-results-count">
         <span id="filter-results-text">Showing all issues</span>
@@ -260,11 +263,26 @@
               Accordions open by default
             </label>
           </div>
-          <div class="pref-checkboxes" style="margin-top: 1rem;">
-            <label>
-              <input type="checkbox" id="pref-group-by-region" value="true">
-              Group issues by page region by default
-            </label>
+          <div class="pref-group" style="margin-top: 1rem;">
+            <label class="pref-label">Default grouping:</label>
+            <div class="pref-radio-group">
+              <label class="pref-radio-label">
+                <input type="radio" name="pref-grouping" value="none" id="pref-grouping-none" checked>
+                None
+              </label>
+              <label class="pref-radio-label">
+                <input type="radio" name="pref-grouping" value="region" id="pref-grouping-region">
+                Page Region
+              </label>
+              <label class="pref-radio-label">
+                <input type="radio" name="pref-grouping" value="guideline" id="pref-grouping-guideline">
+                WCAG Guideline
+              </label>
+              <label class="pref-radio-label">
+                <input type="radio" name="pref-grouping" value="criteria" id="pref-grouping-criteria">
+                Success Criteria
+              </label>
+            </div>
           </div>
         </fieldset>
       </div>
