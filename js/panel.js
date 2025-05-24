@@ -2678,8 +2678,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear existing content
     container.innerHTML = '';
     
-    // Calculate dimensions - match pie chart height for alignment
-    const width = 300;
+    // Calculate dimensions - match pie chart dimensions for consistency
+    const width = 400; // Match pie chart width
     const height = 240; // Match pie chart height
     const padding = 40;
     const chartTop = 10; // Add consistent top padding
@@ -2810,14 +2810,7 @@ document.addEventListener('DOMContentLoaded', function() {
         barG.appendChild(valueText);
       }
       
-      // Draw label
-      const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      labelText.setAttribute('x', barX + barWidth / 2);
-      labelText.setAttribute('y', height - padding + 15);
-      labelText.setAttribute('text-anchor', 'middle');
-      labelText.setAttribute('class', 'chart-label');
-      labelText.textContent = item.label;
-      barG.appendChild(labelText);
+      // Labels will be shown in legend instead
       
       barsG.appendChild(barG);
     });
@@ -2835,6 +2828,52 @@ document.addEventListener('DOMContentLoaded', function() {
     axisLine.setAttribute('class', 'chart-axis');
     svg.appendChild(axisLine);
     
+    // Add legend below the chart
+    const legendStartY = height + 42; // One line height gap after chart
+    const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    legendG.setAttribute('class', 'chart-legend');
+    
+    // Calculate legend height
+    const legendItemHeight = 42; // 1.5x line height
+    const legendHeight = (data.length * legendItemHeight) + 20; // Add padding
+    
+    // Update SVG height to accommodate legend
+    svg.setAttribute('height', height + legendHeight);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height + legendHeight}`);
+    
+    // Create legend items
+    let legendY = legendStartY;
+    data.forEach((item, index) => {
+      const itemG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      
+      // Color indicator
+      const legendIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const swatchHeight = 20;
+      const swatchY = legendY + (42 - swatchHeight) / 2;
+      const legendX = 20;
+      legendIndicator.setAttribute('x', legendX);
+      legendIndicator.setAttribute('y', swatchY);
+      legendIndicator.setAttribute('width', '20');
+      legendIndicator.setAttribute('height', swatchHeight);
+      legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
+      legendIndicator.setAttribute('stroke', '#333');
+      legendIndicator.setAttribute('stroke-width', '1');
+      legendIndicator.setAttribute('class', 'legend-color');
+      itemG.appendChild(legendIndicator);
+      
+      // Label text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', legendX + 25);
+      text.setAttribute('y', legendY + 28);
+      text.setAttribute('class', 'legend-text');
+      text.textContent = `${item.label}: ${item.value}`;
+      itemG.appendChild(text);
+      
+      legendG.appendChild(itemG);
+      legendY += 42;
+    });
+    
+    svg.appendChild(legendG);
     container.appendChild(svg);
     
     // Add accessible data table (visually hidden but available to screen readers)
