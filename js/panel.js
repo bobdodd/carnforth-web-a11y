@@ -1395,10 +1395,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const touchpointData = results[touchpoint];
       if (touchpointData.issues && touchpointData.issues.length > 0) {
         touchpointData.issues.forEach(issue => {
-          // Get guideline from each criteria
-          if (issue.wcagCriteria && issue.wcagCriteria.length > 0) {
-            issue.wcagCriteria.forEach(criteria => {
-              const guideline = getGuidelineFromCriteria(criteria);
+          // Get guideline from WCAG information
+          if (issue.wcag && issue.wcag.successCriterion) {
+            // Extract the criteria number from the successCriterion string (e.g., "1.1.1 Non-text Content" -> "1.1.1")
+            const criteriaMatch = issue.wcag.successCriterion.match(/^(\d+\.\d+\.\d+)/);
+            const criteriaNum = criteriaMatch ? criteriaMatch[1] : null;
+            
+            if (criteriaNum) {
+              const guideline = getGuidelineFromCriteria(criteriaNum);
               if (guideline) {
                 const guidelineName = guidelineNames[guideline] || 'Unknown Guideline';
                 const guidelineKey = `${guideline} ${guidelineName}`;
@@ -1412,12 +1416,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const issueClone = {
                   ...issue,
                   touchpoint: touchpoint,
-                  touchpointTitle: touchpointData.title || touchpoint,
-                  specificCriteria: criteria
+                  touchpointTitle: touchpointData.title || touchpoint
                 };
                 issuesByGuideline[guidelineKey].push(issueClone);
               }
-            });
+            }
           }
         });
       }
@@ -1470,35 +1473,40 @@ document.addEventListener('DOMContentLoaded', function() {
       const touchpointData = results[touchpoint];
       if (touchpointData.issues && touchpointData.issues.length > 0) {
         touchpointData.issues.forEach(issue => {
-          // Group by each criteria
-          if (issue.wcagCriteria && issue.wcagCriteria.length > 0) {
-            issue.wcagCriteria.forEach(criteria => {
-              if (!issuesByCriteria[criteria]) {
-                issuesByCriteria[criteria] = [];
-                criteriaOrder.push(criteria);
-              }
-              
-              // Clone the issue and add touchpoint info
-              const issueClone = {
-                ...issue,
-                touchpoint: touchpoint,
-                touchpointTitle: touchpointData.title || touchpoint,
-                specificCriteria: criteria
-              };
-              issuesByCriteria[criteria].push(issueClone);
-            });
+          // Group by criteria
+          if (issue.wcag && issue.wcag.successCriterion) {
+            const criteriaKey = issue.wcag.successCriterion;
+            
+            if (!issuesByCriteria[criteriaKey]) {
+              issuesByCriteria[criteriaKey] = [];
+              criteriaOrder.push(criteriaKey);
+            }
+            
+            // Clone the issue and add touchpoint info
+            const issueClone = {
+              ...issue,
+              touchpoint: touchpoint,
+              touchpointTitle: touchpointData.title || touchpoint
+            };
+            issuesByCriteria[criteriaKey].push(issueClone);
           }
         });
       }
     });
     
-    // Sort criteria numerically
+    // Sort criteria numerically by extracting the number part
     criteriaOrder.sort((a, b) => {
-      const partsA = a.split('.').map(Number);
-      const partsB = b.split('.').map(Number);
-      for (let i = 0; i < 3; i++) {
-        if (partsA[i] !== partsB[i]) {
-          return partsA[i] - partsB[i];
+      const matchA = a.match(/^(\d+)\.(\d+)\.(\d+)/);
+      const matchB = b.match(/^(\d+)\.(\d+)\.(\d+)/);
+      
+      if (matchA && matchB) {
+        const partsA = [parseInt(matchA[1]), parseInt(matchA[2]), parseInt(matchA[3])];
+        const partsB = [parseInt(matchB[1]), parseInt(matchB[2]), parseInt(matchB[3])];
+        
+        for (let i = 0; i < 3; i++) {
+          if (partsA[i] !== partsB[i]) {
+            return partsA[i] - partsB[i];
+          }
         }
       }
       return 0;
