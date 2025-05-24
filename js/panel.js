@@ -2371,21 +2371,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear existing content
     container.innerHTML = '';
     
-    // Calculate dimensions
-    const width = 200;
-    const height = 200;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(width, height) / 2 - 20;
+    // Calculate dimensions - larger pie chart, centered
+    const svgWidth = 400;
+    const chartHeight = 280; // Larger chart area
+    const centerX = svgWidth / 2; // Center horizontally in the full width
+    const centerY = chartHeight / 2 - 20; // Move up closer to heading
+    const radius = 120; // Larger radius for better visibility
     
     // Calculate total
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     // Create SVG element
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', chartHeight);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${chartHeight}`);
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', description);
     
@@ -2575,7 +2575,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add legend below the chart with better spacing
-    const legendStartY = height + 10; // Move legend outside main chart area
+    const legendStartY = chartHeight + 10; // Move legend outside main chart area
     const legendG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     legendG.setAttribute('class', 'chart-legend');
     
@@ -2584,11 +2584,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeItems = data.filter(item => item.value > 0).length;
     const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
     
-    // Update SVG dimensions to accommodate legend with wider width
-    const svgWidth = 400; // Increased to prevent text cropping
-    svg.setAttribute('width', '100%'); // Use full container width
-    svg.setAttribute('height', height + legendHeight);
-    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${height + legendHeight}`);
+    // Update SVG height to accommodate legend
+    svg.setAttribute('height', chartHeight + legendHeight);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${chartHeight + legendHeight}`);
     
     // Create legend items vertically to avoid overlap
     let legendY = legendStartY;
@@ -2690,9 +2688,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create SVG element
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', chartHeight);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${chartHeight}`);
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', description);
     
