@@ -852,14 +852,23 @@ main {
   font-style: italic;
 }
 
-/* Score info button now uses header-help-button styles */
-.score-section .score-info-button {
-  position: absolute;
-  top: var(--padding-medium);
-  right: var(--padding-medium);
+/* Score card header with help button */
+.score-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--margin-small);
+  margin-bottom: var(--margin-medium);
+}
+
+.score-card-header h3 {
+  margin: 0;
+}
+
+.score-card-header .score-info-button {
   width: 24px;
   height: 24px;
   margin: 0;
+  flex-shrink: 0;
 }
 
 /* Charts Section */
