@@ -2580,7 +2580,7 @@ document.addEventListener('DOMContentLoaded', function() {
     legendG.setAttribute('class', 'chart-legend');
     
     // Calculate legend height based on number of items with proper spacing
-    const legendItemHeight = 28; // Space between legend items
+    const legendItemHeight = 42; // 1.5x line height (28px * 1.5 = 42px)
     const activeItems = data.filter(item => item.value > 0).length;
     const legendHeight = (activeItems * legendItemHeight) + 20; // Add padding
     
@@ -2603,7 +2603,7 @@ document.addEventListener('DOMContentLoaded', function() {
         legendIndicator.setAttribute('x', 10);
         legendIndicator.setAttribute('y', rectY);
         legendIndicator.setAttribute('width', '20');
-        legendIndicator.setAttribute('height', '21'); // 1.5x font height (14px * 1.5 = 21px)
+        legendIndicator.setAttribute('height', '42'); // 1.5x font height (28px * 1.5 = 42px)
         legendIndicator.setAttribute('fill', `url(#${item.pattern})`);
         legendIndicator.setAttribute('stroke', '#333');
         legendIndicator.setAttribute('stroke-width', '1');
@@ -2614,13 +2614,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 35);
-        text.setAttribute('y', rectY + 14); // Position text baseline at rect Y + font height
+        text.setAttribute('y', rectY + 28); // Position text baseline at rect Y + font height (28px)
         text.setAttribute('class', 'legend-text');
         text.textContent = `${item.label}: ${item.value} (${percentage}%)`;
         itemG.appendChild(text);
         
         legendG.appendChild(itemG);
-        legendY += 28; // Add spacing between legend items for better readability
+        legendY += 42; // 1.5x line height (28px * 1.5 = 42px)
       }
     });
     
