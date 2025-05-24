@@ -852,22 +852,14 @@ main {
   font-style: italic;
 }
 
-.score-info-button {
+/* Score info button now uses header-help-button styles */
+.score-section .score-info-button {
   position: absolute;
   top: var(--padding-medium);
   right: var(--padding-medium);
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  border: 1px solid #bdbdbd;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.score-info-button:hover {
-  background-color: #d0d0d0;
+  margin: 0;
 }
 
 /* Charts Section */

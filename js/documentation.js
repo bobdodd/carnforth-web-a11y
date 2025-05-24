@@ -92,6 +92,82 @@ const carnforthProjectDocumentation = {
   ]
 };
 
+// Accessibility Scoring Methodology Documentation
+const accessibilityScoringDocumentation = {
+  title: 'Accessibility Metrics Explained',
+  overview: 'Carnforth uses three complementary metrics to help you understand and prioritize accessibility improvements. These metrics are directional indicators, not compliance measures.',
+  sections: [
+    {
+      heading: 'Critical Barriers',
+      content: [
+        '<strong>What it measures:</strong> Count of show-stopping issues that prevent access',
+        '<strong>Target:</strong> Must be ZERO for accessibility',
+        '<strong>Examples:</strong>',
+        '• Missing labels on form controls',
+        '• Keyboard traps that prevent navigation',
+        '• Interactive elements hidden from assistive technology',
+        '• Images without alt text in critical contexts',
+        '',
+        '<em>Think of these as locked doors - no matter how beautiful your building, if people can\'t get in, nothing else matters.</em>'
+      ]
+    },
+    {
+      heading: 'Breadth Score',
+      content: [
+        '<strong>What it measures:</strong> Percentage of touchpoints with failures',
+        '<strong>How it\'s calculated:</strong> (Touchpoints with failures / Total testable touchpoints) × 100',
+        '<strong>What it tells you:</strong>',
+        '• Lower percentage = issues are concentrated in fewer areas',
+        '• Higher percentage = issues are spread across many aspects',
+        '',
+        '<strong>Example:</strong> If 5 of 20 touchpoints have failures, Breadth Score = 25%',
+        '',
+        '<em>This helps you understand if you have a few problem areas to focus on, or if accessibility issues are widespread throughout your site.</em>'
+      ]
+    },
+    {
+      heading: 'A11y Index',
+      content: [
+        '<strong>What it measures:</strong> Combined directional indicator (0-100, higher is better)',
+        '<strong>How it\'s calculated:</strong>',
+        '• 50% based on breadth (how widespread issues are)',
+        '• 30% based on friction (severity-weighted issue count)',
+        '• 20% based on WCAG principles affected',
+        '',
+        '<strong>Principle weights:</strong>',
+        '• Perceivable & Operable: 1.0 (most critical)',
+        '• Understandable: 0.8',
+        '• Robust: 0.7',
+        '',
+        '<em>Track this score over time to measure improvement. It\'s designed to show progress even before achieving full compliance.</em>'
+      ]
+    },
+    {
+      heading: 'Important Philosophy',
+      content: [
+        '<strong>Conformance is Binary:</strong>',
+        '"You can no more be 80% conformant than you can be 80% alive" - these metrics don\'t represent partial compliance.',
+        '',
+        '<strong>What these metrics ARE:</strong>',
+        '• Tools for prioritizing remediation efforts',
+        '• Indicators of progress over time',
+        '• Ways to understand the scope of work needed',
+        '',
+        '<strong>What these metrics ARE NOT:</strong>',
+        '• Compliance percentages',
+        '• Certification scores',
+        '• Substitutes for proper accessibility testing',
+        '',
+        '<em>Use these metrics to guide your journey toward accessibility, not as a destination.</em>'
+      ]
+    }
+  ],
+  relatedLinks: [
+    { text: 'WCAG Understanding Conformance', url: 'https://www.w3.org/WAI/WCAG21/Understanding/conformance' },
+    { text: 'WebAIM: WCAG 2 Checklist', url: 'https://webaim.org/standards/wcag/checklist' }
+  ]
+};
+
 // Documentation content for each touchpoint
 const touchpointDocumentation = {
   maps: {
@@ -630,6 +706,10 @@ function openDocumentationModal(touchpointId, options = {}) {
     // Carnforth Project documentation
     doc = carnforthProjectDocumentation;
     modalType = 'carnforth';
+  } else if (touchpointId === 'accessibility-scoring') {
+    // Accessibility Scoring Methodology documentation
+    doc = accessibilityScoringDocumentation;
+    modalType = 'scoring';
   } else if (options.issueKey && issueDocumentation[options.issueKey]) {
     // Issue-specific documentation
     doc = issueDocumentation[options.issueKey];

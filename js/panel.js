@@ -695,29 +695,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const scoreInfoButton = document.getElementById('score-info-button');
   if (scoreInfoButton) {
     scoreInfoButton.addEventListener('click', function() {
-      if (window.scoringDetails) {
-        const details = window.scoringDetails;
-        const message = `Accessibility Metrics Explained:\n\n` +
-          `1. CRITICAL BARRIERS: ${details.criticalBarriers}\n` +
-          `   • Count of show-stopping issues that prevent access\n` +
-          `   • Must be ZERO for accessibility\n` +
-          `   • Examples: missing labels, keyboard traps, aria-hidden on interactive content\n\n` +
-          
-          `2. BREADTH SCORE: ${Math.round(details.breadthScore)}%\n` +
-          `   • ${details.touchpointsWithFailures} of ${details.touchpointsWithTestableElements} touchpoints have failures\n` +
-          `   • Shows how widely issues are distributed\n` +
-          `   • Higher % means more diverse areas affected\n\n` +
-          
-          `3. A11Y INDEX: ${Math.round(details.a11yIndex)}\n` +
-          `   • Combined directional indicator (0-100, higher is better)\n` +
-          `   • Based on: breadth (50%), friction (30%), principles (20%)\n` +
-          `   • Track over time to measure improvement\n\n` +
-          
-          `IMPORTANT: Conformance to WCAG is binary - you either conform or you don't.\n` +
-          `These metrics help prioritize fixes but do NOT represent % compliance.\n\n` +
-          
-          `See ACCESSIBILITY_SCORING.md for full methodology.`;
-        alert(message);
+      if (window.CarnforthDocumentation && window.CarnforthDocumentation.openDocumentationModal) {
+        window.CarnforthDocumentation.openDocumentationModal('accessibility-scoring');
       }
     });
   }
