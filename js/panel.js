@@ -2373,10 +2373,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate dimensions - larger pie chart, centered
     const svgWidth = 400;
-    const chartHeight = 280; // Larger chart area
-    const centerX = svgWidth / 2; // Center horizontally in the full width
-    const centerY = chartHeight / 2 - 20; // Move up closer to heading
+    const chartHeight = 240; // Reduced height to minimize whitespace
     const radius = 120; // Larger radius for better visibility
+    const centerX = svgWidth / 2; // Center horizontally in the full width
+    const centerY = radius + 10; // Position based on radius to minimize top space
     
     // Calculate total
     const total = data.reduce((sum, item) => sum + item.value, 0);
@@ -2677,10 +2677,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear existing content
     container.innerHTML = '';
     
-    // Calculate dimensions
+    // Calculate dimensions - match pie chart height for alignment
     const width = 300;
-    const height = 200;
+    const height = 240; // Match pie chart height
     const padding = 40;
+    const chartTop = 10; // Add consistent top padding
     const barWidth = (width - padding * 2) / data.length - 10;
     
     // Find max value
@@ -2689,8 +2690,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create SVG element
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '100%');
-    svg.setAttribute('height', chartHeight);
-    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${chartHeight}`);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', description);
     
@@ -2774,7 +2775,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Draw bars
     data.forEach((item, index) => {
       const barX = padding + index * (barWidth + 10);
-      const barHeight = item.value > 0 ? (item.value / maxValue) * (height - padding * 2) : 0;
+      const barHeight = item.value > 0 ? (item.value / maxValue) * (height - padding * 2 - chartTop) : 0;
       const barY = height - padding - barHeight;
       
       // Create bar group
