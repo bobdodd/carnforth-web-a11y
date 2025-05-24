@@ -3,16 +3,19 @@
 ## Current TODO List:
 | ID | Task | Status | Priority |
 |----|------|--------|----------|
-| 1 | Add radio button group for grouping options styled like WCAG version filter | in_progress | high |
-| 2 | Create getGuidelineFromCriteria helper function | pending | high |
-| 3 | Create guideline name mapping (1.1 -> Text Alternatives) | pending | high |
-| 4 | Implement displayResultsGroupedByGuideline function | pending | high |
-| 5 | Implement displayResultsGroupedByCriteria function | pending | high |
-| 6 | Update event handlers for new radio buttons | pending | high |
-| 7 | Add CSS styles for WCAG group headers | pending | high |
-| 8 | Update preferences to save grouping selection | pending | medium |
-| 9 | Test all grouping modes with real data | pending | high |
-| 10 | Update SESSION_STATE with implementation details | pending | low |
+| 1 | Add radio button group for grouping options styled like WCAG version filter | ✅ completed | high |
+| 2 | Create getGuidelineFromCriteria helper function | ✅ completed | high |
+| 3 | Create guideline name mapping (1.1 -> Text Alternatives) | ✅ completed | high |
+| 4 | Implement displayResultsGroupedByGuideline function | ✅ completed | high |
+| 5 | Implement displayResultsGroupedByCriteria function | ✅ completed | high |
+| 6 | Update event handlers for new radio buttons | ✅ completed | high |
+| 7 | Add CSS styles for WCAG group headers | ✅ completed | high |
+| 8 | Update preferences to save grouping selection | ✅ completed | medium |
+| 9 | Test all grouping modes with real data | ✅ completed | high |
+| 10 | Update SESSION_STATE with implementation details | ✅ completed | low |
+| 11 | Implement color contrast touchpoint | pending | high |
+| 12 | Implement heading order touchpoint | pending | high |
+| 13 | Review map identification for SVG maps | pending | medium |
 
 ## Completed Work in This Session:
 
@@ -40,10 +43,21 @@
 - **Created comprehensive documentation** in documentation.js
 - **Positioned button next to heading** instead of absolute positioning
 
-### 5. Started WCAG Grouping Feature 🚧
-- **Planning**: Replace checkbox with radio buttons for grouping options
+### 5. Implemented WCAG Grouping Feature ✅
+- **UI**: Replaced checkbox with radio buttons for grouping options
 - **Options**: None, Region, Guideline, Success Criteria
-- **Style**: Match WCAG version filter buttons
+- **Style**: Matches WCAG version filter buttons
+- **Implementation Details**:
+  - Created `getGuidelineFromCriteria()` helper function
+  - Added complete guideline name mapping (1.1-4.1)
+  - Implemented `displayResultsGroupedByGuideline()` function
+  - Implemented `displayResultsGroupedByCriteria()` function
+  - Fixed issue structure discovery (uses `issue.wcag.successCriterion` not `wcagCriteria`)
+  - Added proper accordion functionality with aria-controls
+  - Styled summary counts to match existing accordions
+  - Added alphabetical sorting for touchpoints and issues
+  - Integrated with preferences system for persistence
+- **Sorting**: Touchpoints alphabetically, issues by type then alphabetically
 
 ## Technical Decisions Made:
 
@@ -55,33 +69,48 @@
 ## File Changes Summary:
 
 ### Modified Files:
-1. `js/panel.js` - Chart fixes, modal integration
-2. `css/panel.css` - Chart alignment, button positioning
-3. `panel/panel.html` - Button repositioning, starting grouping UI
+1. `js/panel.js` - Chart fixes, modal integration, WCAG grouping implementation
+2. `css/panel.css` - Chart alignment, button positioning, touchpoint subsection styles
+3. `panel/panel.html` - Button repositioning, grouping radio buttons, preferences update
 4. `js/documentation.js` - Added accessibility scoring documentation
+5. `js/accordion.js` - No changes (used existing functionality)
 
 ### Key Code Locations:
 - Pie chart function: `panel.js:2367` (createAccessiblePieChart)
 - Bar chart function: `panel.js:2673` (createAccessibleBarChart)
 - Scoring documentation: `documentation.js:96`
-- Group by region: `panel.js` (search for displayResultsGroupedByRegion)
+- Grouping functions:
+  - `panel.js:1233` (displayResultsGroupedByRegion)
+  - `panel.js:1356` (displayResultsGroupedByGuideline)
+  - `panel.js:1431` (displayResultsGroupedByCriteria)
+  - `panel.js:1327` (getGuidelineFromCriteria)
+  - `panel.js:1336` (guidelineNames mapping)
+- Grouping UI: `panel.html:125-131`
+- Grouping event handler: `panel.js:867`
 
 ## Environment State:
 - Working directory: `/Users/bob3/Documents/Bob/demos/puppeteer/Carnforth/CarnforthGPL/chrome_carnforth_plugin/carnforth-web-a11y`
-- Latest commit: "Position help button next to Accessibility Metrics heading"
+- Latest commit: "Add alphabetical sorting to WCAG grouping views"
 - Git status: Clean (all changes committed)
 
-## Next Steps:
-1. Complete radio button implementation for grouping
-2. Extract WCAG guideline numbers from criteria
-3. Create guideline name mapping
-4. Implement grouping functions
+## Remaining Work:
+1. **Implement color contrast touchpoint** - Check text/background color combinations
+2. **Implement heading order touchpoint** - Validate proper heading hierarchy
+3. **Enhance map detection** - Comprehensive improvements planned in MAP_DETECTION_IMPROVEMENTS.md
+   - SVG: Choropleth patterns, geographic coordinates, GeoJSON/TopoJSON, D3.js patterns
+   - Div: Web Components, Shadow DOM, WebGL context, custom implementations
+   - General: New libraries, ARIA landmarks, performance optimization
 
-## Context for WCAG Grouping:
-- Need to replace checkbox at line 126 in panel.html
-- Pattern to follow: WCAG version buttons (lines 98-103)
-- Current grouping only supports "by region"
-- Each issue has wcagCriteria array to work with
+## Summary of Session Achievements:
+- Fixed all chart display issues (backgrounds, spacing, alignment)
+- Implemented complete WCAG grouping feature with guideline and criteria options
+- Added comprehensive accessibility scoring documentation
+- Improved UI consistency across all components
+- All work tested and functioning correctly
+- Created detailed map detection improvement plan
+
+## Files Created:
+- `MAP_DETECTION_IMPROVEMENTS.md` - Comprehensive plan for enhancing map detection
 
 ---
-*Session state saved on January 24, 2025 at ~17:30 - Ready for compaction*
+*Session state updated on January 24, 2025 at ~19:30 - Ready for context compaction*
