@@ -4480,52 +4480,38 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 1.5rem;
     }
     
-    .summary-stats {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      padding: 1.5rem;
-      background: #f5f5f5;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-    }
-    
-    .summary-label {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #333;
-    }
-    
     .summary-counts {
       display: flex;
       gap: 1rem;
+      margin-bottom: 2rem;
       flex-wrap: wrap;
     }
     
     .summary-count {
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-size: 1.25rem;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 1rem;
       font-weight: bold;
-      border: 2px solid;
+      border: 1px solid;
+      white-space: nowrap;
     }
     
     .summary-count.fail {
       background-color: #ffebee;
       color: #b71c1c;
-      border-color: #ef5350;
+      border-color: #ffcdd2;
     }
     
     .summary-count.warning {
       background-color: #fff8e1;
       color: #f57c00;
-      border-color: #ffb74d;
+      border-color: #ffe0b2;
     }
     
     .summary-count.info {
       background-color: #e3f2fd;
       color: #1976d2;
-      border-color: #64b5f6;
+      border-color: #bbdefb;
     }
     
     .wcag-at-risk {
@@ -4864,13 +4850,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <section aria-labelledby="summary-heading">
     <h2 id="summary-heading"><span class="section-number">1.</span>Summary</h2>
     
-    <div class="summary-stats">
-      <span class="summary-label">Summary:</span>
-      <div class="summary-counts">
-        <span class="summary-count fail">${fails} ${fails === 1 ? 'Fail' : 'Fails'}</span>
-        <span class="summary-count warning">${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}</span>
-        <span class="summary-count info">${infos} Info</span>
-      </div>
+    <div class="summary-counts">
+      <span class="summary-count fail">${fails} ${fails === 1 ? 'Fail' : 'Fails'}</span>
+      <span class="summary-count warning">${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}</span>
+      <span class="summary-count info">${infos} Info</span>
     </div>
     
     ${wcagCriteriaAtRisk.size > 0 ? `
