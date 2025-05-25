@@ -4886,7 +4886,30 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="wcag-at-risk">
       <h3>WCAG Success Criteria at Risk</h3>
       <ol class="wcag-criteria-list">
-        ${Array.from(wcagCriteriaAtRisk.values()).map(criterion => `
+        ${Array.from(wcagCriteriaAtRisk.values())
+          .sort((a, b) => {
+            // Extract numeric parts for sorting (e.g., "1.1.1" from "1.1.1 Non-text Content")
+            const getNumericParts = (criterion) => {
+              const match = criterion.match(/^(\d+)\.(\d+)\.(\d+)/);
+              if (match) {
+                return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
+              }
+              return [999, 999, 999]; // Put non-standard format at end
+            };
+            
+            const aParts = getNumericParts(a.criterion);
+            const bParts = getNumericParts(b.criterion);
+            
+            // Compare each numeric part
+            for (let i = 0; i < 3; i++) {
+              if (aParts[i] !== bParts[i]) {
+                return aParts[i] - bParts[i];
+              }
+            }
+            
+            return 0; // Equal
+          })
+          .map(criterion => `
         <li class="wcag-criterion level-${criterion.level.toLowerCase()}">
           <strong>${escapeHtml(criterion.criterion)}</strong> (Level ${escapeHtml(criterion.level)})
           <br><small>${escapeHtml(criterion.description)}</small>
