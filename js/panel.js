@@ -4310,9 +4310,167 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
+    /* Executive Summary Styles */
+    .executive-summary {
+      background-color: #f0f7ff;
+      border: 2px solid #0d47a1;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .executive-summary h2 {
+      color: #0d47a1;
+      margin-bottom: 1.5rem;
+    }
+    
+    .exec-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .exec-metric {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .exec-metric h3 {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    
+    .exec-metric .metric-value {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+    
+    .exec-metric.fail .metric-value {
+      color: #b71c1c;
+    }
+    
+    .exec-metric.warning .metric-value {
+      color: #f57f17;
+    }
+    
+    .exec-metric.info .metric-value {
+      color: #0d47a1;
+    }
+    
+    .wcag-at-risk {
+      margin-top: 2rem;
+    }
+    
+    .wcag-criteria-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .wcag-criterion {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+    }
+    
+    .wcag-criterion.level-a {
+      border-left: 4px solid #4caf50;
+    }
+    
+    .wcag-criterion.level-aa {
+      border-left: 4px solid #ff9800;
+    }
+    
+    .wcag-criterion.level-aaa {
+      border-left: 4px solid #9c27b0;
+    }
+    
+    .critical-barriers {
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .critical-barriers h3 {
+      color: #c62828;
+      margin-bottom: 1rem;
+    }
+    
+    .aria-level-breakdown {
+      margin-top: 2rem;
+    }
+    
+    .aria-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 200px;
+      border-left: 2px solid #666;
+      border-bottom: 2px solid #666;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .aria-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      margin: 0 1rem;
+    }
+    
+    .aria-bar-fill {
+      width: 60px;
+      background: #1976d2;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+      position: relative;
+    }
+    
+    .aria-bar-fill.level-a {
+      background: #4caf50;
+    }
+    
+    .aria-bar-fill.level-aa {
+      background: #ff9800;
+    }
+    
+    .aria-bar-fill.level-aaa {
+      background: #9c27b0;
+    }
+    
+    .aria-bar-value {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: bold;
+    }
+    
+    .aria-bar-label {
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+    
     @media print {
       body {
         padding: 0;
+      }
+      
+      .executive-summary {
+        page-break-after: always;
       }
       
       .touchpoint {
@@ -4362,9 +4520,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <h2 id="toc-heading">Table of Contents</h2>
     <nav class="toc" aria-label="Table of contents">
       <ul>
-        <li><a href="#summary-heading"><span class="section-number">1</span>Summary</a></li>
+        <li><a href="#executive-summary"><span class="section-number">1</span>Executive Summary</a></li>
+        <li><a href="#summary-heading"><span class="section-number">2</span>Summary</a></li>
         <li>
-          <a href="#details-heading"><span class="section-number">2</span>Detailed Results</a>
+          <a href="#details-heading"><span class="section-number">3</span>Detailed Results</a>
           <ul>`;
       
       // Add touchpoint links to table of contents
@@ -4383,16 +4542,16 @@ document.addEventListener('DOMContentLoaded', function() {
           .replace(/\b\w/g, l => l.toUpperCase());
         
         htmlTemplate += `
-            <li><a href="#${touchpoint}-heading"><span class="section-number">2.${touchpointIndex}</span>${displayName}</a></li>`;
+            <li><a href="#${touchpoint}-heading"><span class="section-number">3.${touchpointIndex}</span>${displayName}</a></li>`;
         touchpointIndex++;
       });
       
       htmlTemplate += `
           </ul>
         </li>
-        <li><a href="#about-carnforth"><span class="section-number">3</span>About Carnforth Web A11y</a></li>
+        <li><a href="#about-carnforth"><span class="section-number">4</span>About Carnforth Web A11y</a></li>
         <li>
-          <a href="#about-touchpoints"><span class="section-number">4</span>About Touchpoints</a>
+          <a href="#about-touchpoints"><span class="section-number">5</span>About Touchpoints</a>
           <ul>`;
       
       // Add touchpoint documentation links
@@ -4401,7 +4560,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const doc = getTouchpointDocumentation(touchpoint);
         if (doc) {
           htmlTemplate += `
-            <li><a href="#touchpoint-${touchpoint}"><span class="section-number">4.${docIndex}</span>${escapeHtml(doc.title || touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}</a></li>`;
+            <li><a href="#touchpoint-${touchpoint}"><span class="section-number">5.${docIndex}</span>${escapeHtml(doc.title || touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}</a></li>`;
           docIndex++;
         }
       });
@@ -4413,9 +4572,149 @@ document.addEventListener('DOMContentLoaded', function() {
     </nav>
   </section>
 
-  <main id="main-content">
+  <main id="main-content">`; 
+      
+      // Calculate metrics for executive summary
+      const wcagCriteriaAtRisk = new Map();
+      const criticalBarriers = [];
+      const ariaLevelCounts = { 'A': 0, 'AA': 0, 'AAA': 0, 'Unknown': 0 };
+      
+      // Analyze issues for WCAG criteria and ARIA levels
+      Object.entries(currentTestResults).forEach(([touchpoint, touchpointData]) => {
+        (touchpointData.issues || []).forEach(issue => {
+          if (issue.type === 'fail') {
+            // Extract WCAG criteria from issue
+            if (issue.wcag) {
+              const key = `${issue.wcag.successCriterion} - ${issue.wcag.level}`;
+              wcagCriteriaAtRisk.set(key, {
+                criterion: issue.wcag.successCriterion,
+                level: issue.wcag.level,
+                description: `${issue.wcag.principle} - ${issue.wcag.guideline}`
+              });
+              
+              // Count by WCAG level
+              if (issue.wcag.level) {
+                ariaLevelCounts[issue.wcag.level] = (ariaLevelCounts[issue.wcag.level] || 0) + 1;
+              } else {
+                ariaLevelCounts['Unknown']++;
+              }
+            } else if (issue.wcagCriteria) {
+              // Support legacy format if any
+              issue.wcagCriteria.forEach(criterion => {
+                const key = `${criterion.criterion} - ${criterion.level}`;
+                wcagCriteriaAtRisk.set(key, {
+                  criterion: criterion.criterion,
+                  level: criterion.level,
+                  description: criterion.description
+                });
+                
+                // Count by ARIA level
+                if (criterion.level) {
+                  ariaLevelCounts[criterion.level] = (ariaLevelCounts[criterion.level] || 0) + 1;
+                } else {
+                  ariaLevelCounts['Unknown']++;
+                }
+              });
+            } else {
+              // For touchpoints without explicit WCAG criteria mapping
+              ariaLevelCounts['Unknown']++;
+            }
+            
+            // Identify critical barriers
+            if (issue.severity === 'critical' || 
+                (issue.impact && issue.impact.level === 'high') ||
+                issue.title.toLowerCase().includes('missing') || 
+                issue.title.toLowerCase().includes('no alternative') || 
+                issue.title.toLowerCase().includes('inaccessible')) {
+              criticalBarriers.push({
+                title: issue.title,
+                description: issue.description,
+                touchpoint: touchpoint
+              });
+            }
+          }
+        });
+      });
+      
+      // Add Executive Summary section
+      htmlTemplate += `
+  <section class="executive-summary" aria-labelledby="executive-summary">
+    <h2 id="executive-summary"><span class="section-number">1.</span>Executive Summary</h2>
+    
+    <div class="exec-summary-grid">
+      <div class="exec-metric fail">
+        <h3>Critical Issues</h3>
+        <div class="metric-value">${fails}</div>
+        <p>Accessibility barriers found</p>
+      </div>
+      
+      <div class="exec-metric warning">
+        <h3>Warnings</h3>
+        <div class="metric-value">${warnings}</div>
+        <p>Potential issues to review</p>
+      </div>
+      
+      <div class="exec-metric info">
+        <h3>Informational</h3>
+        <div class="metric-value">${infos}</div>
+        <p>Best practice recommendations</p>
+      </div>
+      
+      <div class="exec-metric">
+        <h3>WCAG Criteria at Risk</h3>
+        <div class="metric-value">${wcagCriteriaAtRisk.size}</div>
+        <p>Success criteria affected</p>
+      </div>
+    </div>
+    
+    ${wcagCriteriaAtRisk.size > 0 ? `
+    <div class="wcag-at-risk">
+      <h3>WCAG Success Criteria at Risk</h3>
+      <div class="wcag-criteria-list">
+        ${Array.from(wcagCriteriaAtRisk.values()).map(criterion => `
+        <div class="wcag-criterion level-${criterion.level.toLowerCase()}">
+          <strong>${escapeHtml(criterion.criterion)}</strong> (Level ${escapeHtml(criterion.level)})<br>
+          <small>${escapeHtml(criterion.description)}</small>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+    
+    ${criticalBarriers.length > 0 ? `
+    <div class="critical-barriers">
+      <h3>Critical Accessibility Barriers</h3>
+      <p>The following issues represent significant barriers that may prevent users from accessing content or functionality:</p>
+      <ul>
+        ${criticalBarriers.slice(0, 5).map(barrier => `
+        <li>
+          <strong>${escapeHtml(barrier.title)}</strong> (${escapeHtml(barrier.touchpoint.replace(/_/g, ' '))})<br>
+          <small>${escapeHtml(barrier.description.substring(0, 150))}${barrier.description.length > 150 ? '...' : ''}</small>
+        </li>`).join('')}
+      </ul>
+      ${criticalBarriers.length > 5 ? `<p><em>And ${criticalBarriers.length - 5} more critical issues...</em></p>` : ''}
+    </div>` : ''}
+    
+    <div class="aria-level-breakdown">
+      <h3>Issues by WCAG Level</h3>
+      <div class="aria-chart">
+        ${['A', 'AA', 'AAA'].map(level => {
+          const count = ariaLevelCounts[level] || 0;
+          const maxCount = Math.max(...Object.values(ariaLevelCounts));
+          const height = maxCount > 0 ? (count / maxCount) * 150 : 0;
+          return `
+        <div class="aria-bar">
+          <div class="aria-bar-fill level-${level.toLowerCase()}" style="height: ${height}px;">
+            <span class="aria-bar-value">${count}</span>
+          </div>
+          <span class="aria-bar-label">Level ${level}</span>
+        </div>`;
+        }).join('')}
+      </div>
+      ${ariaLevelCounts['Unknown'] > 0 ? `<p><small>Note: ${ariaLevelCounts['Unknown']} issues could not be mapped to specific WCAG levels.</small></p>` : ''}
+    </div>
+  </section>
+  
   <section aria-labelledby="summary-heading">
-    <h2 id="summary-heading"><span class="section-number">1.</span>Summary</h2>
+    <h2 id="summary-heading"><span class="section-number">2.</span>Summary</h2>
     <div class="summary">
       <div class="fail">
         <h3>Failures</h3>
@@ -4433,7 +4732,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section aria-labelledby="details-heading">
-    <h2 id="details-heading"><span class="section-number">2.</span>Detailed Results</h2>`;
+    <h2 id="details-heading"><span class="section-number">3.</span>Detailed Results</h2>`;
       
       // Add each touchpoint section
       let sectionIndex = 1;
@@ -4460,7 +4759,7 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     <div class="touchpoint">
       <div class="touchpoint-header">
-        <h3 class="touchpoint-title" id="${touchpoint}-heading"><span class="section-number">2.${sectionIndex}</span>${displayName}</h3>
+        <h3 class="touchpoint-title" id="${touchpoint}-heading"><span class="section-number">3.${sectionIndex}</span>${displayName}</h3>
         <div class="touchpoint-counts">`;
         
         if (counts.fail > 0) {
@@ -4691,10 +4990,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section class="about-section" aria-labelledby="about-carnforth">
-    <h2 id="about-carnforth"><span class="section-number">3.</span>About Carnforth Web A11y</h2>
+    <h2 id="about-carnforth"><span class="section-number">4.</span>About Carnforth Web A11y</h2>
     <p>Carnforth Web A11y is an educational Chrome extension designed to help developers understand and fix web accessibility issues.</p>
     
-    <h3><span class="section-number">3.1</span>Project Goals</h3>
+    <h3><span class="section-number">4.1</span>Project Goals</h3>
     <ul>
       <li>Provide clear, actionable feedback about accessibility issues</li>
       <li>Educate developers about WCAG standards and best practices</li>
@@ -4768,7 +5067,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section aria-labelledby="about-touchpoints">
-    <h2 id="about-touchpoints"><span class="section-number">4.</span>About Touchpoints</h2>
+    <h2 id="about-touchpoints"><span class="section-number">5.</span>About Touchpoints</h2>
     <p>Touchpoints are individual accessibility tests that focus on specific aspects of web accessibility. Each touchpoint checks for compliance with one or more WCAG success criteria.</p>`;
     
     // Add documentation for each implemented touchpoint
@@ -4784,12 +5083,12 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     
     <div class="touchpoint-doc">
-      <h3 id="touchpoint-${touchpoint}"><span class="section-number">4.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
+      <h3 id="touchpoint-${touchpoint}"><span class="section-number">5.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
       <p>${escapeHtml(doc.overview)}</p>`;
       
       if (doc.whatItTests && doc.whatItTests.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">4.${touchpointDocIndex}.1</span>What it Tests</h4>
+      <h4><span class="section-number">5.${touchpointDocIndex}.1</span>What it Tests</h4>
       <ul>`;
         doc.whatItTests.forEach(test => {
           htmlTemplate += `
@@ -4801,7 +5100,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.wcagCriteria && doc.wcagCriteria.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">4.${touchpointDocIndex}.2</span>WCAG Success Criteria</h4>
+      <h4><span class="section-number">5.${touchpointDocIndex}.2</span>WCAG Success Criteria</h4>
       <ul>`;
         doc.wcagCriteria.forEach(criteria => {
           htmlTemplate += `
@@ -4813,7 +5112,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.commonIssues && doc.commonIssues.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">4.${touchpointDocIndex}.3</span>Common Issues</h4>
+      <h4><span class="section-number">5.${touchpointDocIndex}.3</span>Common Issues</h4>
       <ul>`;
         doc.commonIssues.forEach(issue => {
           htmlTemplate += `
@@ -4825,7 +5124,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.bestPractices && doc.bestPractices.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">4.${touchpointDocIndex}.4</span>Best Practices</h4>
+      <h4><span class="section-number">5.${touchpointDocIndex}.4</span>Best Practices</h4>
       <ul>`;
         doc.bestPractices.forEach(practice => {
           htmlTemplate += `
@@ -4837,7 +5136,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.examples) {
         htmlTemplate += `
-      <h4><span class="section-number">4.${touchpointDocIndex}.5</span>Code Examples</h4>`;
+      <h4><span class="section-number">5.${touchpointDocIndex}.5</span>Code Examples</h4>`;
         
         if (doc.examples.good && doc.examples.good.length > 0) {
           htmlTemplate += `
