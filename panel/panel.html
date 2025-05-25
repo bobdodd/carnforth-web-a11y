@@ -115,6 +115,13 @@
         <button class="filter-button active" data-issue-type="warning" aria-pressed="true">Warnings</button>
         <button class="filter-button active" data-issue-type="info" aria-pressed="true">Info</button>
       </div>
+      <div class="filter-group">
+        <label class="filter-label">Impact:</label>
+        <button class="filter-button" data-impact="all" aria-pressed="false">All</button>
+        <button class="filter-button active" data-impact="high" aria-pressed="true">High</button>
+        <button class="filter-button active" data-impact="medium" aria-pressed="true">Medium</button>
+        <button class="filter-button active" data-impact="low" aria-pressed="true">Low</button>
+      </div>
     </div>
     <div class="filter-search-section">
       <div class="filter-search">
@@ -234,6 +241,24 @@
             <label>
               <input type="checkbox" id="pref-type-info" value="info" checked>
               Info
+            </label>
+          </div>
+        </fieldset>
+        
+        <fieldset class="pref-section">
+          <legend>Default Impact Filters</legend>
+          <div class="pref-checkboxes">
+            <label>
+              <input type="checkbox" id="pref-impact-high" value="high" checked>
+              High Impact
+            </label>
+            <label>
+              <input type="checkbox" id="pref-impact-medium" value="medium" checked>
+              Medium Impact
+            </label>
+            <label>
+              <input type="checkbox" id="pref-impact-low" value="low" checked>
+              Low Impact
             </label>
           </div>
         </fieldset>

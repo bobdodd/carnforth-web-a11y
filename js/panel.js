@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const wcagVersionButtons = document.querySelectorAll('[data-wcag-version]');
   const wcagFilterButtons = document.querySelectorAll('[data-wcag-level]');
   const issueTypeButtons = document.querySelectorAll('[data-issue-type]');
+  const impactLevelButtons = document.querySelectorAll('[data-impact]');
   const searchInput = document.getElementById('issue-search');
   const filterResultsText = document.getElementById('filter-results-text');
   const filterStatus = document.getElementById('filter-status');
@@ -105,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
     wcagVersion: '2.2', // Single WCAG version selected (default to latest)
     wcagLevels: new Set(['A', 'AA', 'AAA']), // All levels selected by default
     issueTypes: new Set(['fail', 'warning', 'info']), // All types selected by default
+    impactLevels: new Set(['high', 'medium', 'low']), // All impact levels selected by default
     searchText: ''
   };
   
@@ -113,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultWcagVersion: '2.2', // Single WCAG version (default to latest)
     defaultWcagLevels: ['A', 'AA', 'AAA'],
     defaultIssueTypes: ['fail', 'warning', 'info'],
+    defaultImpactLevels: ['high', 'medium', 'low'],
     selectedTouchpoints: [...touchpoints], // All touchpoints by default
     accordionDefault: 'closed',
     groupByRegionDefault: false, // Group by region off by default
@@ -147,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
       wcagVersion: preferences.defaultWcagVersion,
       wcagLevels: new Set(preferences.defaultWcagLevels),
       issueTypes: new Set(preferences.defaultIssueTypes),
+      impactLevels: new Set(preferences.defaultImpactLevels),
       searchText: ''
     };
     
@@ -182,6 +186,20 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
       } else if (preferences.defaultIssueTypes.includes(type)) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    });
+    
+    impactLevelButtons.forEach(btn => {
+      const impact = btn.dataset.impact;
+      if (impact === 'all') {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      } else if (preferences.defaultImpactLevels.includes(impact)) {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
       } else {
@@ -928,6 +946,70 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Handle impact level buttons
+  impactLevelButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const impact = this.dataset.impact;
+      
+      if (impact === 'all') {
+        // "All" button toggles all other buttons
+        const allButton = this;
+        const isCurrentlyActive = allButton.classList.contains('active');
+        
+        if (!isCurrentlyActive) {
+          // Select all impact levels
+          activeFilters.impactLevels = new Set(['high', 'medium', 'low']);
+          impactLevelButtons.forEach(btn => {
+            if (btn.dataset.impact !== 'all') {
+              btn.classList.add('active');
+              btn.setAttribute('aria-pressed', 'true');
+            }
+          });
+        } else {
+          // Deselect all impact levels
+          activeFilters.impactLevels.clear();
+          impactLevelButtons.forEach(btn => {
+            if (btn.dataset.impact !== 'all') {
+              btn.classList.remove('active');
+              btn.setAttribute('aria-pressed', 'false');
+            }
+          });
+        }
+        
+        // Toggle "All" button state
+        allButton.classList.toggle('active');
+        allButton.setAttribute('aria-pressed', allButton.classList.contains('active') ? 'true' : 'false');
+      } else {
+        // Individual impact button
+        const isActive = this.classList.contains('active');
+        
+        if (isActive) {
+          // Deselect this impact level
+          activeFilters.impactLevels.delete(impact);
+          this.classList.remove('active');
+          this.setAttribute('aria-pressed', 'false');
+        } else {
+          // Select this impact level
+          activeFilters.impactLevels.add(impact);
+          this.classList.add('active');
+          this.setAttribute('aria-pressed', 'true');
+        }
+        
+        // Update "All" button state based on individual selections
+        const allButton = document.querySelector('[data-impact="all"]');
+        if (activeFilters.impactLevels.size === 3) {
+          allButton.classList.add('active');
+          allButton.setAttribute('aria-pressed', 'true');
+        } else {
+          allButton.classList.remove('active');
+          allButton.setAttribute('aria-pressed', 'false');
+        }
+      }
+      
+      applyFilters();
+    });
+  });
+
   // Handle search input
   if (searchInput) {
     searchInput.addEventListener('input', function() {
@@ -1001,6 +1083,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Filter by issue type
         if (activeFilters.issueTypes.size > 0 && !activeFilters.issueTypes.has(issue.type)) {
           return false;
+        }
+
+        // Filter by impact level
+        if (activeFilters.impactLevels && activeFilters.impactLevels.size > 0) {
+          // Only filter fails and warnings by impact (info issues don't have impact)
+          if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact && issue.impact.level) {
+            if (!activeFilters.impactLevels.has(issue.impact.level)) {
+              return false;
+            }
+          } else if (issue.type === 'fail' || issue.type === 'warning') {
+            // If a fail/warning doesn't have impact data, exclude it when impact filter is active
+            return false;
+          }
+          // Info issues pass through when impact filter is active
         }
 
         // Filter by WCAG level
@@ -1106,6 +1202,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (activeFilters.issueTypes.size < 3 && activeFilters.issueTypes.size > 0) {
       const types = Array.from(activeFilters.issueTypes).join(', ');
       filterDescriptions.push(`issue types: ${types}`);
+    }
+    
+    // Impact levels
+    if (activeFilters.impactLevels && activeFilters.impactLevels.size < 3 && activeFilters.impactLevels.size > 0) {
+      const impacts = Array.from(activeFilters.impactLevels).join(', ');
+      filterDescriptions.push(`impact levels: ${impacts}`);
     }
     
     // Search text
@@ -5858,6 +5960,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    // Update impact level checkboxes
+    document.querySelectorAll('#preferences-modal input[id^="pref-impact-"]').forEach(checkbox => {
+      if (checkbox.value) {
+        checkbox.checked = preferences.defaultImpactLevels.includes(checkbox.value);
+      }
+    });
+    
     // Update accordion default
     const accordionRadio = document.querySelector(`input[name="accordion-default"][value="${preferences.accordionDefault}"]`);
     if (accordionRadio) {
@@ -5900,6 +6009,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    // Get impact levels
+    preferences.defaultImpactLevels = [];
+    document.querySelectorAll('#preferences-modal input[id^="pref-impact-"]:checked').forEach(checkbox => {
+      if (checkbox.value) {
+        preferences.defaultImpactLevels.push(checkbox.value);
+      }
+    });
+    
     // Get selected touchpoints
     preferences.selectedTouchpoints = [];
     document.querySelectorAll('#touchpoint-list input:checked').forEach(checkbox => {
@@ -5936,9 +6053,11 @@ document.addEventListener('DOMContentLoaded', function() {
       defaultWcagVersion: '2.2',
       defaultWcagLevels: ['A', 'AA', 'AAA'],
       defaultIssueTypes: ['fail', 'warning', 'info'],
+      defaultImpactLevels: ['high', 'medium', 'low'],
       selectedTouchpoints: [...touchpoints],
       accordionDefault: 'closed',
-      groupByRegionDefault: false
+      groupByRegionDefault: false,
+      defaultGrouping: 'none'
     };
     
     // Update form
