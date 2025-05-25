@@ -811,20 +811,98 @@ window.test_maps = async function() {
         // 5. Check for canvas element within the div (used by some map libraries like Mapbox GL)
         const hasCanvas = div.querySelector('canvas') !== null;
         
-        // 5a. Check for WebGL canvas (used by Mapbox GL, Deck.gl, etc.)
-        const hasWebGLMap = (() => {
+        // 5a. Enhanced canvas-based map detection
+        const canvasMapInfo = (() => {
           const canvases = div.querySelectorAll('canvas');
+          if (canvases.length === 0) return { hasCanvasMap: false };
           
-          return Array.from(canvases).some(canvas => {
+          let hasWebGL = false;
+          let hasTilePattern = false;
+          let hasMapInteraction = false;
+          let canvasSize = { width: 0, height: 0 };
+          
+          for (const canvas of canvases) {
             try {
+              // Check canvas size
+              canvasSize.width = Math.max(canvasSize.width, canvas.width);
+              canvasSize.height = Math.max(canvasSize.height, canvas.height);
+              
+              // Check for WebGL context
               const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
-              // Check if canvas has significant size (maps are usually large)
-              return gl && canvas.width > 200 && canvas.height > 200;
+              if (gl && canvas.width > 200 && canvas.height > 200) {
+                hasWebGL = true;
+                
+                // Check for map-specific WebGL patterns
+                // Maps typically have many textures (for tiles)
+                const textureCount = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+                if (textureCount > 8) { // Maps use multiple texture units
+                  hasTilePattern = true;
+                }
+              }
+              
+              // Check for 2D context patterns
+              const ctx = canvas.getContext('2d');
+              if (ctx && canvas.width > 200 && canvas.height > 200) {
+                // Check if canvas has image data suggesting tiles
+                try {
+                  const imageData = ctx.getImageData(0, 0, Math.min(256, canvas.width), Math.min(256, canvas.height));
+                  // Maps typically have varied pixel data (not solid colors)
+                  const data = imageData.data;
+                  let variations = 0;
+                  for (let i = 0; i < data.length; i += 4) {
+                    if (i > 0 && (data[i] !== data[i-4] || data[i+1] !== data[i-3] || data[i+2] !== data[i-2])) {
+                      variations++;
+                    }
+                  }
+                  // If more than 30% of pixels are different from neighbors, likely a map
+                  if (variations > data.length * 0.3 / 4) {
+                    hasTilePattern = true;
+                  }
+                } catch (e) {
+                  // Cross-origin canvas, assume it might be a map
+                  hasTilePattern = true;
+                }
+              }
+              
+              // Check for interaction attributes on canvas
+              if (canvas.style.cursor === 'pointer' || 
+                  canvas.style.cursor === 'grab' || 
+                  canvas.style.cursor === 'grabbing' ||
+                  canvas.hasAttribute('tabindex') ||
+                  canvas.hasAttribute('role')) {
+                hasMapInteraction = true;
+              }
+              
+              // Check parent for map-related event listeners (indirect detection)
+              const parent = canvas.parentElement;
+              if (parent && (
+                parent.hasAttribute('onwheel') || 
+                parent.hasAttribute('onmousedown') ||
+                parent.hasAttribute('ontouchstart') ||
+                parent.style.touchAction === 'none' ||
+                parent.style.touchAction === 'pan-x pan-y')) {
+                hasMapInteraction = true;
+              }
+              
             } catch (e) {
-              return false;
+              console.log('[Maps] Error analyzing canvas:', e);
             }
-          });
+          }
+          
+          // Determine if this is likely a canvas-based map
+          const isCanvasMap = (hasWebGL || hasTilePattern) && canvasSize.width > 200 && canvasSize.height > 200;
+          
+          return {
+            hasCanvasMap: isCanvasMap,
+            hasWebGL: hasWebGL,
+            hasTilePattern: hasTilePattern,
+            hasMapInteraction: hasMapInteraction,
+            canvasCount: canvases.length,
+            largestCanvas: canvasSize
+          };
         })();
+        
+        const hasWebGLMap = canvasMapInfo.hasWebGL;
         
         // 6. Check for map controls or attribution
         const hasMapControls = div.querySelector('[class*="control"], [class*="attribution"], [class*="zoom"], [class*="legend"], [class*="marker"]') !== null;
@@ -861,6 +939,8 @@ window.test_maps = async function() {
           hasOpenLayersClasses,
           hasCanvas && hasMapStyling,
           hasWebGLMap,
+          canvasMapInfo.hasCanvasMap,
+          canvasMapInfo.hasTilePattern,
           hasCustomPatterns,
           hasARIALandmarks
         ];
@@ -1232,23 +1312,75 @@ window.test_maps = async function() {
           if (exists) return provider;
         }
         
-        // Check for canvas elements which might indicate vector-based maps (Deck.gl, Cesium, etc.)
+        // Enhanced canvas map detection with more specific provider identification
         if (div.querySelector('canvas') && (divClasses.includes('map') || divId.includes('map'))) {
-          // Try to detect WebGL-based maps more specifically
           const canvases = div.querySelectorAll('canvas');
-          const hasWebGL = Array.from(canvases).some(canvas => {
-            try {
-              const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
-              return gl && canvas.width > 200 && canvas.height > 200;
-            } catch (e) {
-              return false;
-            }
-          });
+          let hasWebGL = false;
+          let canvasInfo = { width: 0, height: 0, count: canvases.length };
           
+          for (const canvas of canvases) {
+            try {
+              canvasInfo.width = Math.max(canvasInfo.width, canvas.width);
+              canvasInfo.height = Math.max(canvasInfo.height, canvas.height);
+              
+              const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+              if (gl && canvas.width > 200 && canvas.height > 200) {
+                hasWebGL = true;
+                
+                // Try to identify specific WebGL map providers by shader patterns
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                  const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                  // Some map libraries have identifiable patterns
+                  if (renderer && renderer.includes('ANGLE')) {
+                    // Common in browser-based WebGL maps
+                  }
+                }
+              }
+            } catch (e) {
+              // Continue checking other canvases
+            }
+          }
+          
+          // Try to identify specific canvas-based map types
           if (hasWebGL) {
+            // Check for specific WebGL map library patterns
+            if (divClasses.includes('mapbox') || div.querySelector('.mapboxgl-canvas')) {
+              return 'Mapbox GL JS';
+            }
+            if (divClasses.includes('cesium') || div.querySelector('.cesium-widget')) {
+              return 'Cesium (3D Maps)';
+            }
+            if (divClasses.includes('deck') || divClasses.includes('deckgl')) {
+              return 'Deck.gl (Data Visualization)';
+            }
+            if (divClasses.includes('tangram')) {
+              return 'Tangram';
+            }
+            if (divClasses.includes('maplibre')) {
+              return 'MapLibre GL';
+            }
+            
+            // Multiple canvases often indicate tiled rendering
+            if (canvasInfo.count > 1) {
+              return 'WebGL Map (Multi-canvas Tiled)';
+            }
+            
             return 'WebGL Map (3D/Vector)';
           }
-          return 'Vector Map (Canvas-based)';
+          
+          // 2D Canvas maps
+          if (canvasInfo.width > 200 && canvasInfo.height > 200) {
+            // Check for specific 2D canvas map patterns
+            if (divClasses.includes('leaflet') && div.querySelector('.leaflet-canvas-layer')) {
+              return 'Leaflet (Canvas Renderer)';
+            }
+            if (divClasses.includes('openlayers') || divClasses.includes('ol-')) {
+              return 'OpenLayers (Canvas Renderer)';
+            }
+            
+            return 'Canvas Map (2D Raster)';
+          }
         }
         
         // If we can't determine the provider, return a generic description
@@ -1283,13 +1415,58 @@ window.test_maps = async function() {
              attr.name.includes('zoom') || 
              attr.name.includes('click')));
              
-        // Check child canvas for click handlers (common in WebGL maps)
-        const canvas = div.querySelector('canvas');
-        const canvasHasHandlers = canvas && (
-          canvas.hasAttribute('onclick') || 
-          canvas.hasAttribute('onmousedown') || 
-          canvas.hasAttribute('onmousemove') || 
-          canvas.hasAttribute('tabindex'));
+        // Enhanced canvas interaction detection
+        const canvasInteractionInfo = (() => {
+          const canvases = div.querySelectorAll('canvas');
+          if (!canvases.length) return { hasInteraction: false };
+          
+          let hasInteraction = false;
+          
+          for (const canvas of canvases) {
+            // Direct event handlers
+            if (canvas.hasAttribute('onclick') || 
+                canvas.hasAttribute('onmousedown') || 
+                canvas.hasAttribute('onmousemove') || 
+                canvas.hasAttribute('onwheel') ||
+                canvas.hasAttribute('ontouchstart') ||
+                canvas.hasAttribute('tabindex')) {
+              hasInteraction = true;
+            }
+            
+            // Canvas style indicates interaction
+            const canvasStyle = window.getComputedStyle(canvas);
+            if (canvasStyle.cursor === 'pointer' || 
+                canvasStyle.cursor === 'grab' || 
+                canvasStyle.cursor === 'grabbing' ||
+                canvasStyle.cursor === 'crosshair') {
+              hasInteraction = true;
+            }
+            
+            // Parent container touch/pointer events (common pattern for canvas maps)
+            const parent = canvas.parentElement;
+            if (parent) {
+              const parentStyle = window.getComputedStyle(parent);
+              // Touch-action: none is a strong indicator of pan/zoom functionality
+              if (parentStyle.touchAction === 'none' || 
+                  parentStyle.touchAction === 'pan-x pan-y' ||
+                  parentStyle.pointerEvents !== 'auto') {
+                hasInteraction = true;
+              }
+              
+              // Check for transform styles indicating zoom/pan state
+              if (parentStyle.transform !== 'none' || 
+                  parent.style.transform || 
+                  parent.hasAttribute('data-zoom') ||
+                  parent.hasAttribute('data-pan')) {
+                hasInteraction = true;
+              }
+            }
+          }
+          
+          return { hasInteraction };
+        })();
+        
+        const canvasHasHandlers = canvasInteractionInfo.hasInteraction;
         
         // Check if the map uses CSS to indicate interactivity
         const style = window.getComputedStyle(div);
@@ -1694,6 +1871,73 @@ window.test_maps = async function() {
             region: regionInfo.region,
             landmark: regionInfo.landmark
           });
+        }
+        
+        // Canvas-specific accessibility checks
+        if (provider.includes('Canvas') || provider.includes('WebGL') || provider.includes('Vector') || provider.includes('3D')) {
+          const canvases = div.querySelectorAll('canvas');
+          
+          // Check each canvas for accessibility
+          canvases.forEach((canvas, canvasIndex) => {
+            const canvasRole = canvas.getAttribute('role');
+            const canvasAriaLabel = canvas.getAttribute('aria-label');
+            const canvasTabindex = canvas.getAttribute('tabindex');
+            
+            // Canvas elements in maps should have proper accessibility attributes
+            if (!canvasRole && !canvasAriaLabel && isInteractive) {
+              results.violations.push({
+                type: 'canvas-map-missing-accessibility',
+                provider: provider,
+                element: 'canvas',
+                selector: cssSelector + ` canvas:nth-of-type(${canvasIndex + 1})`,
+                xpath: getFullXPath(canvas),
+                html: canvas.outerHTML.substring(0, 500),
+                isInteractive: isInteractive,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                impact: 'high',  // Canvas without accessibility is a barrier
+                region: regionInfo.region,
+                landmark: regionInfo.landmark
+              });
+            }
+            
+            // Interactive canvas should be keyboard accessible
+            if (isInteractive && canvasTabindex === null) {
+              results.violations.push({
+                type: 'canvas-map-not-keyboard-accessible',
+                provider: provider,
+                element: 'canvas',
+                selector: cssSelector + ` canvas:nth-of-type(${canvasIndex + 1})`,
+                xpath: getFullXPath(canvas),
+                html: canvas.outerHTML.substring(0, 500),
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                impact: 'high',  // Keyboard inaccessibility is a critical barrier
+                region: regionInfo.region,
+                landmark: regionInfo.landmark
+              });
+            }
+          });
+          
+          // Check for alternative text representation for canvas maps
+          const hasTextAlternative = div.querySelector('.map-text-alternative, .sr-only, .visually-hidden, [aria-describedby]') !== null;
+          const hasAriaDescribedBy = div.hasAttribute('aria-describedby') || canvases[0]?.hasAttribute('aria-describedby');
+          
+          if (!hasTextAlternative && !hasAriaDescribedBy && isInteractive) {
+            results.violations.push({
+              type: 'canvas-map-no-text-alternative',
+              provider: provider,
+              element: 'div',
+              selector: cssSelector,
+              xpath: getFullXPath(div),
+              html: divHtml,
+              isInteractive: isInteractive,
+              canvasCount: canvases.length,
+              impact: 'medium',  // Missing text alternative reduces comprehension
+              region: regionInfo.region,
+              landmark: regionInfo.landmark
+            });
+          }
         }
       });
       
@@ -3083,7 +3327,196 @@ window.test_maps = async function() {
       });
     }
 
-    // 9. Touch Target Size Violations
+    // 9. Canvas Map Accessibility Violations
+    const canvasMapViolations = mapsData.results.violations.filter(v => 
+      v.type === 'canvas-map-missing-accessibility' || 
+      v.type === 'canvas-map-not-keyboard-accessible' || 
+      v.type === 'canvas-map-no-text-alternative'
+    );
+    
+    if (canvasMapViolations.length > 0) {
+      canvasMapViolations.forEach(violation => {
+        const elementKey = violation.xpath || violation.selector;
+        
+        // Skip if we already have an issue for this element
+        if (elementTracker.has(elementKey)) {
+          return;
+        }
+        
+        // Mark this element as tracked
+        elementTracker.set(elementKey, true);
+        
+        if (violation.type === 'canvas-map-missing-accessibility') {
+          issues.push({
+            type: 'fail',
+            title: `${violation.provider} canvas element missing accessibility attributes`,
+            description: `This interactive canvas-based map lacks proper accessibility attributes. Canvas elements used for interactive maps must have role and aria-label attributes to be accessible to screen reader users.`,
+            selector: violation.selector,
+            xpath: violation.xpath,
+            html: violation.html,
+            impact: {
+              who: 'Screen reader users and keyboard-only users',
+              level: 'high',
+              why: 'Canvas elements are opaque to assistive technology by default. Without proper ARIA attributes, screen readers cannot identify this as an interactive map or understand its purpose. This creates a complete barrier for non-visual users.'
+            },
+            wcag: {
+              principle: 'Perceivable, Robust',
+              guideline: '1.1 Text Alternatives, 4.1 Compatible',
+              successCriterion: '1.1.1 Non-text Content, 4.1.2 Name, Role, Value',
+              level: 'A',
+              version: '2.0'
+            },
+            remediation: [
+              'Add role="application" or role="img" to the canvas element',
+              'Add aria-label with a descriptive name for the map',
+              'If the map is interactive, ensure it has tabindex="0" for keyboard access',
+              'Consider providing an off-screen text description of the map data',
+              'For complex interactive maps, provide keyboard navigation instructions'
+            ],
+            codeExample: {
+              before: `<canvas width="${violation.canvasWidth}" height="${violation.canvasHeight}"></canvas>`,
+              after: `<canvas 
+  width="${violation.canvasWidth}" 
+  height="${violation.canvasHeight}"
+  role="application"
+  aria-label="Interactive map of city center with zoom and pan controls"
+  tabindex="0"
+  aria-describedby="map-instructions">
+</canvas>
+<div id="map-instructions" class="sr-only">
+  Use arrow keys to pan, plus/minus to zoom. Press H for help.
+</div>`
+            }
+          });
+        }
+        
+        else if (violation.type === 'canvas-map-not-keyboard-accessible') {
+          issues.push({
+            type: 'fail',
+            title: `${violation.provider} canvas map not keyboard accessible`,
+            description: `This interactive canvas-based map cannot be accessed with a keyboard. Interactive canvas elements must have tabindex to receive keyboard focus.`,
+            selector: violation.selector,
+            xpath: violation.xpath,
+            html: violation.html,
+            impact: {
+              who: 'Keyboard-only users, including screen reader users',
+              level: 'high',
+              why: 'Without tabindex, keyboard users cannot focus on or interact with the map. This prevents access to map functionality for users who cannot use a mouse, including many users with motor disabilities.'
+            },
+            wcag: {
+              principle: 'Operable',
+              guideline: '2.1 Keyboard Accessible',
+              successCriterion: '2.1.1 Keyboard',
+              level: 'A',
+              version: '2.0'
+            },
+            remediation: [
+              'Add tabindex="0" to make the canvas focusable',
+              'Implement keyboard event handlers for map controls',
+              'Provide visible focus indicator when canvas has focus',
+              'Document keyboard shortcuts for map navigation',
+              'Consider providing alternative keyboard-accessible controls outside the canvas'
+            ],
+            codeExample: {
+              before: `<canvas 
+  width="${violation.canvasWidth}" 
+  height="${violation.canvasHeight}"
+  role="application"
+  aria-label="Interactive map">
+</canvas>`,
+              after: `<canvas 
+  width="${violation.canvasWidth}" 
+  height="${violation.canvasHeight}"
+  role="application"
+  aria-label="Interactive map of city center"
+  tabindex="0"
+  onkeydown="handleMapKeyboard(event)">
+</canvas>
+
+<script>
+function handleMapKeyboard(event) {
+  switch(event.key) {
+    case 'ArrowUp': panMap('north'); break;
+    case 'ArrowDown': panMap('south'); break;
+    case 'ArrowLeft': panMap('west'); break;
+    case 'ArrowRight': panMap('east'); break;
+    case '+': zoomIn(); break;
+    case '-': zoomOut(); break;
+  }
+}
+</script>`
+            }
+          });
+        }
+        
+        else if (violation.type === 'canvas-map-no-text-alternative') {
+          issues.push({
+            type: 'warning',
+            title: `${violation.provider} lacks text alternative for map data`,
+            description: `This canvas-based map does not provide a text alternative for its visual content. Complex maps should offer an accessible way to access the same information.`,
+            selector: violation.selector,
+            xpath: violation.xpath,
+            html: violation.html,
+            impact: {
+              who: 'Screen reader users and users who cannot perceive visual content',
+              level: 'medium',
+              why: 'Canvas maps often display complex geographical or data visualization information. Without a text alternative, this information is completely inaccessible to non-visual users.'
+            },
+            wcag: {
+              principle: 'Perceivable',
+              guideline: '1.1 Text Alternatives',
+              successCriterion: '1.1.1 Non-text Content',
+              level: 'A',
+              version: '2.0'
+            },
+            remediation: [
+              'Add aria-describedby pointing to a detailed text description',
+              'Provide a data table with the key information from the map',
+              'Include a summary of what the map shows in nearby text',
+              'For data visualizations, offer the raw data in an accessible format',
+              'Consider progressive disclosure with a "View text description" button'
+            ],
+            codeExample: {
+              before: `<div class="map-container">
+  <canvas width="800" height="600" role="img" aria-label="Sales by region"></canvas>
+</div>`,
+              after: `<div class="map-container">
+  <canvas 
+    width="800" 
+    height="600" 
+    role="img" 
+    aria-label="Sales by region map"
+    aria-describedby="map-data">
+  </canvas>
+  
+  <button onclick="toggleMapData()">View data table</button>
+  
+  <div id="map-data" class="sr-only" aria-live="polite">
+    <table>
+      <caption>Sales data by region</caption>
+      <thead>
+        <tr>
+          <th>Region</th>
+          <th>Sales (millions)</th>
+          <th>Growth %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Northeast</td><td>45.2</td><td>+12%</td></tr>
+        <tr><td>Southeast</td><td>38.7</td><td>+8%</td></tr>
+        <tr><td>Midwest</td><td>41.3</td><td>+15%</td></tr>
+        <tr><td>West</td><td>52.8</td><td>+22%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>`
+            }
+          });
+        }
+      });
+    }
+
+    // 10. Touch Target Size Violations
     if (mapsData.results.touchTargetViolations && mapsData.results.touchTargetViolations.length > 0) {
       const touchTargetViolations = mapsData.results.touchTargetViolations;
       

@@ -664,13 +664,219 @@
             </div>
         </section>
 
+        <!-- CANVAS-BASED MAPS -->
+        <section class="section" aria-labelledby="canvas-maps-heading">
+            <h2 id="canvas-maps-heading">8. Canvas-based Maps</h2>
+            
+            <div class="grid">
+                <!-- Properly Accessible Canvas Map -->
+                <div class="map-container">
+                    <h3>Canvas Map - Fully Accessible</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Has role, aria-label, and tabindex</div>
+                    <div id="accessible-canvas-map" class="mapbox-gl-map" aria-label="Mapbox GL canvas map container">
+                        <canvas 
+                            width="800" 
+                            height="400" 
+                            role="application"
+                            aria-label="Interactive street map of San Francisco with zoom and pan controls"
+                            tabindex="0"
+                            aria-describedby="canvas-map-instructions"
+                            style="width: 100%; height: 400px; cursor: grab;">
+                        </canvas>
+                        <div id="canvas-map-instructions" class="sr-only">
+                            Use arrow keys to pan, plus/minus to zoom. Press H for help.
+                        </div>
+                    </div>
+                    <div class="test-ref">Tests: Canvas with all accessibility attributes</div>
+                </div>
+
+                <!-- Canvas Map Missing Accessibility -->
+                <div class="map-container">
+                    <h3>Canvas Map - Missing Accessibility</h3>
+                    <div class="test-info"><span class="fail">FAIL</span>: Interactive canvas without role/aria-label</div>
+                    <div id="inaccessible-canvas-map" class="mapboxgl-map">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            style="width: 100%; height: 400px; cursor: pointer;">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: canvas-map-missing-accessibility violation</div>
+                </div>
+
+                <!-- Canvas Map Not Keyboard Accessible -->
+                <div class="map-container">
+                    <h3>Canvas Map - Not Keyboard Accessible</h3>
+                    <div class="test-info"><span class="fail">FAIL</span>: Canvas without tabindex</div>
+                    <div id="no-keyboard-canvas-map" class="leaflet-canvas-layer">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="Interactive map"
+                            style="width: 100%; height: 400px; cursor: grab;">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: canvas-map-not-keyboard-accessible violation</div>
+                </div>
+
+                <!-- Canvas Map No Text Alternative -->
+                <div class="map-container">
+                    <h3>Canvas Map - No Text Alternative</h3>
+                    <div class="test-info"><span class="warn">WARNING</span>: No text description of map data</div>
+                    <div id="no-text-alt-canvas-map" class="data-viz-map">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            role="img"
+                            aria-label="Sales by region map"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: canvas-map-no-text-alternative violation</div>
+                </div>
+
+                <!-- WebGL Canvas Map with Tile Pattern -->
+                <div class="map-container">
+                    <h3>WebGL Canvas Map - Tile Rendering</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Detected via WebGL context</div>
+                    <div id="webgl-tile-map" class="mapbox-gl-map">
+                        <canvas 
+                            id="webgl-canvas"
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="3D terrain map with WebGL rendering"
+                            tabindex="0"
+                            style="width: 100%; height: 400px; touch-action: none;">
+                        </canvas>
+                        <script>
+                            // Simulate WebGL context
+                            const webglCanvas = document.getElementById('webgl-canvas');
+                            if (webglCanvas) {
+                                try {
+                                    const gl = webglCanvas.getContext('webgl') || webglCanvas.getContext('experimental-webgl');
+                                    if (gl) {
+                                        // Simulate tile rendering pattern
+                                        gl.clearColor(0.9, 0.9, 0.9, 1.0);
+                                        gl.clear(gl.COLOR_BUFFER_BIT);
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: WebGL detection with tile pattern</div>
+                </div>
+
+                <!-- 2D Canvas Map with Varied Pixels -->
+                <div class="map-container">
+                    <h3>2D Canvas Map - Raster Tiles</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Detected via pixel variation</div>
+                    <div id="canvas-2d-map" class="leaflet-container">
+                        <canvas 
+                            id="canvas-2d"
+                            width="800" 
+                            height="400"
+                            role="img"
+                            aria-label="Street map rendered with 2D canvas"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // Simulate 2D map rendering with varied pixels
+                            const canvas2d = document.getElementById('canvas-2d');
+                            if (canvas2d) {
+                                const ctx = canvas2d.getContext('2d');
+                                if (ctx) {
+                                    // Draw varied patterns to simulate map tiles
+                                    for(let i = 0; i < 10; i++) {
+                                        for(let j = 0; j < 10; j++) {
+                                            ctx.fillStyle = `rgb(${200 + Math.random()*55}, ${200 + Math.random()*55}, ${200 + Math.random()*55})`;
+                                            ctx.fillRect(i * 80, j * 40, 80, 40);
+                                        }
+                                    }
+                                }
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: 2D canvas with pixel variation detection</div>
+                </div>
+
+                <!-- Canvas with Touch/Pan Interaction -->
+                <div class="map-container">
+                    <h3>Canvas Map - Touch Interaction Patterns</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Detected via touch-action style</div>
+                    <div id="touch-canvas-map" class="touch-map-container" style="touch-action: none;">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="Touch-enabled map canvas"
+                            tabindex="0"
+                            style="width: 100%; height: 400px; cursor: grabbing; transform: translate3d(-10px, -5px, 0) scale(1.1);"
+                            data-zoom="11"
+                            data-pan="active">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: Touch interaction pattern detection</div>
+                </div>
+
+                <!-- Multi-Canvas Tiled Map -->
+                <div class="map-container">
+                    <h3>Multi-Canvas Tiled Rendering</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Multiple canvases for tiles</div>
+                    <div id="multi-canvas-map" class="tiled-canvas-map">
+                        <div style="position: relative; width: 100%; height: 400px;">
+                            <canvas width="256" height="256" style="position: absolute; left: 0; top: 0;"></canvas>
+                            <canvas width="256" height="256" style="position: absolute; left: 256px; top: 0;"></canvas>
+                            <canvas width="256" height="256" style="position: absolute; left: 512px; top: 0;"></canvas>
+                            <canvas width="256" height="256" style="position: absolute; left: 0; top: 256px;"></canvas>
+                        </div>
+                    </div>
+                    <div class="test-ref">Tests: Multi-canvas tile detection</div>
+                </div>
+
+                <!-- Canvas Map with Event Handlers -->
+                <div class="map-container">
+                    <h3>Canvas Map - Event Handler Detection</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Has mouse/wheel event handlers</div>
+                    <div id="event-canvas-map" class="event-map-container" onwheel="return false;">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            onmousedown="startPan(event)"
+                            onmousemove="doPan(event)"
+                            onmouseup="endPan(event)"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: Event handler detection for interactivity</div>
+                </div>
+
+                <!-- False Positive - Game Canvas -->
+                <div class="map-container">
+                    <h3>False Positive - Game Canvas</h3>
+                    <div class="test-info">Should NOT be detected as a map</div>
+                    <div id="game-canvas" class="game-container">
+                        <canvas 
+                            width="800" 
+                            height="400"
+                            role="img"
+                            aria-label="Space invaders game"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                    </div>
+                    <div class="test-ref">Tests: Canvas without map indicators</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Coverage Summary -->
         <section aria-labelledby="coverage-heading">
             <h2 id="coverage-heading">Coverage Summary</h2>
             <ul>
                 <li>✓ All 30+ map providers (including new: Cesium, Deck.gl, MapLibre GL, Tangram, Maps4HTML)</li>
-                <li>✓ All violation types (8 types)</li>
-                <li>✓ All detection methods (iframe, div, img, svg)</li>
+                <li>✓ All violation types (11 types including 3 new canvas-specific)</li>
+                <li>✓ All detection methods (iframe, div, img, svg, canvas)</li>
                 <li>✓ Interactive vs non-interactive</li>
                 <li>✓ Landmark and heading context</li>
                 <li>✓ Generic name detection</li>
@@ -681,6 +887,11 @@
                 <li>✓ Web Components detection (Phase 1)</li>
                 <li>✓ Shadow DOM content inspection (Phase 1)</li>
                 <li>✓ WebGL canvas detection (Phase 1/2)</li>
+                <li>✓ Canvas tile pattern detection (NEW)</li>
+                <li>✓ Canvas pixel variation detection (NEW)</li>
+                <li>✓ Canvas touch interaction detection (NEW)</li>
+                <li>✓ Multi-canvas tile rendering (NEW)</li>
+                <li>✓ Canvas accessibility violations (NEW)</li>
                 <li>✓ Custom map pattern detection (Phase 2)</li>
                 <li>✓ ARIA landmark detection for maps (Phase 2)</li>
                 <li>✓ Tile structure detection (Phase 2)</li>
