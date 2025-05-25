@@ -679,6 +679,62 @@ window.test_maps = async function() {
         }
       }
 
+      // Helper function to detect custom map implementation patterns
+      function hasCustomMapPatterns(element) {
+        // Check for tile loading patterns
+        const hasTileImages = element.querySelectorAll('img[src*="tile"], img[src*="/z/"], img[src*="/{z}/"], img[src*="/tiles/"]').length > 0;
+        
+        // Check for coordinate-based positioning
+        const hasCoordinateStyles = Array.from(element.querySelectorAll('*')).some(el => {
+          const style = el.style;
+          return style.left && style.top && 
+                 (style.position === 'absolute' || style.position === 'fixed');
+        });
+        
+        // Check for pan/zoom event listeners (indirect check via attributes)
+        const hasPanZoomAttrs = element.querySelector('[draggable], [data-zoom], [data-pan], [data-drag]') !== null;
+        
+        // Check for tile layer structure (common in custom implementations)
+        const hasTileStructure = element.querySelector('[class*="tile-layer"], [class*="tile-container"], [id*="tile-layer"]') !== null;
+        
+        // Check for coordinate attributes
+        const hasCoordinateAttrs = Array.from(element.querySelectorAll('*')).some(el => {
+          return el.hasAttribute('data-lat') || el.hasAttribute('data-lng') || 
+                 el.hasAttribute('data-x') || el.hasAttribute('data-y') ||
+                 el.hasAttribute('data-coords') || el.hasAttribute('data-position');
+        });
+        
+        return hasTileImages || (hasCoordinateStyles && hasPanZoomAttrs) || hasTileStructure || hasCoordinateAttrs;
+      }
+
+      // Helper function to check for ARIA landmarks indicating maps
+      function hasMapLandmarks(element) {
+        // Check for explicit map-related ARIA landmarks
+        const landmarks = element.querySelectorAll('[role="region"][aria-label*="map" i], [role="application"][aria-label*="map" i]');
+        if (landmarks.length > 0) return true;
+        
+        // Check if the element itself has map-related ARIA attributes
+        const ariaLabel = (element.getAttribute('aria-label') || '').toLowerCase();
+        const ariaDescribedBy = element.getAttribute('aria-describedby');
+        
+        if (ariaLabel.includes('map') || ariaLabel.includes('location') || ariaLabel.includes('geographic')) {
+          return true;
+        }
+        
+        // Check aria-describedby reference
+        if (ariaDescribedBy) {
+          const describedByElement = document.getElementById(ariaDescribedBy);
+          if (describedByElement) {
+            const text = describedByElement.textContent.toLowerCase();
+            if (text.includes('map') || text.includes('location') || text.includes('geographic')) {
+              return true;
+            }
+          }
+        }
+        
+        return false;
+      }
+
       // Detection Strategy 2: Div-based Maps
       // Modern JavaScript map libraries often render into div containers
       // This requires more sophisticated detection than iframe maps
@@ -781,6 +837,12 @@ window.test_maps = async function() {
           return true;
         }
         
+        // Check for custom map patterns
+        const hasCustomPatterns = hasCustomMapPatterns(div);
+        
+        // Check for ARIA landmarks
+        const hasARIALandmarks = hasMapLandmarks(div);
+        
         // For other cases, use multiple signals to reduce false positives
         // Need at least two strong signals to consider it a map
         const strongSignals = [
@@ -791,7 +853,9 @@ window.test_maps = async function() {
           hasMapboxClasses,
           hasOpenLayersClasses,
           hasCanvas && hasMapStyling,
-          hasWebGLMap
+          hasWebGLMap,
+          hasCustomPatterns,
+          hasARIALandmarks
         ];
         
         const signalCount = strongSignals.filter(signal => signal === true).length;
@@ -907,6 +971,9 @@ window.test_maps = async function() {
           // 8. Check for GeoJSON/TopoJSON data references
           const hasGeoData = hasGeoDataReference();
           
+          // 9. Check for ARIA landmarks
+          const hasARIAMapLandmarks = hasMapLandmarks(svg);
+          
           // Exclude SVGs that are definitely not maps
           const excludedTypes = ['icon', 'logo', 'chart', 'graph', 'avatar', 'illustration', 'button', 'social', 'arrow', 'chevron', 'infographic', 'diagram', 'stats', 'metric'];
           const isExcludedType = excludedTypes.some(type => classAndId.includes(type));
@@ -946,13 +1013,13 @@ window.test_maps = async function() {
           
           // For SVGs to be considered maps, we need very strong evidence
           // Require explicit map indication AND additional evidence
-          return explicitlyMap && (
+          return (explicitlyMap && (
                    (hasGeoPaths && hasMapElements) ||    // Has map class AND geographic elements
                    (hasGeoTermsInTitle && hasGeoPaths) || // Has geographic title AND paths
                    (isChoropleth) ||                       // Choropleth pattern detected
                    (hasGeoData && hasGeoPaths) ||          // GeoJSON/TopoJSON detected
                    (hasZoomControls && hasGeoPaths)        // Interactive map with zoom
-                 );
+                 )) || hasARIAMapLandmarks;                // Explicit ARIA landmark
         });
 
       // Process static image maps
