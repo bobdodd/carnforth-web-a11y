@@ -45,14 +45,19 @@ window.test_maps = async function() {
         // Count position among siblings of same tag type
         // This ensures unique identification even without IDs or classes
         function getElementPosition(el) {
+          if (!el.parentElement) return 1;
+          
           let count = 1;
-          let sibling = el.previousElementSibling;
-          while (sibling) {
+          const siblings = Array.from(el.parentElement.children);
+          
+          for (let i = 0; i < siblings.length; i++) {
+            if (siblings[i] === el) {
+              break;
+            }
             // Count only elements with the same tag name
-            if (sibling.tagName === el.tagName) {
+            if (siblings[i].tagName === el.tagName) {
               count++;
             }
-            sibling = sibling.previousElementSibling;
           }
           return count;
         }
