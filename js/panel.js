@@ -4614,8 +4614,23 @@ document.addEventListener('DOMContentLoaded', function() {
       font-weight: bold;
     }
     
-    .chart-section {
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
       margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .chart-section {
+      min-height: 320px;
+    }
+    
+    .chart-section h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      color: #333;
     }
     
     .chart-container {
@@ -4623,7 +4638,11 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 1.5rem;
-      margin-top: 1rem;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     
     .chart-slice {
@@ -4856,6 +4875,51 @@ document.addEventListener('DOMContentLoaded', function() {
       <span class="summary-count info">${infos} Info</span>
     </div>
     
+    <div class="charts-row">
+      <div class="chart-section">
+        <h3>Impact Distribution</h3>
+        <div class="chart-container">
+          ${generateSVGPieChart(
+            'Distribution of issues by impact severity',
+            [
+              { label: 'High Impact', value: impactCounts.high, color: '#d32f2f', pattern: 'high-impact' },
+              { label: 'Medium Impact', value: impactCounts.medium, color: '#f57c00', pattern: 'medium-impact' },
+              { label: 'Low Impact', value: impactCounts.low, color: '#388e3c', pattern: 'low-impact' }
+            ]
+          )}
+        </div>
+      </div>
+      
+      <div class="chart-section">
+        <h3>Issue Type Distribution</h3>
+        <div class="chart-container">
+          ${generateSVGPieChart(
+            'Distribution of issues by type',
+            [
+              { label: 'Failures', value: typeCounts.fail, color: '#b71c1c', pattern: 'fail-type' },
+              { label: 'Warnings', value: typeCounts.warning, color: '#ff6f00', pattern: 'warning-type' },
+              { label: 'Information', value: typeCounts.info, color: '#1976d2', pattern: 'info-type' }
+            ]
+          )}
+        </div>
+      </div>
+      
+      <div class="chart-section">
+        <h3>Issues by WCAG Level</h3>
+        <div class="chart-container">
+          ${generateSVGBarChart(
+            'Number of failures by WCAG level',
+            [
+              { label: 'Level A', value: ariaLevelCounts.A, color: '#b71c1c', pattern: 'level-a' },
+              { label: 'Level AA', value: ariaLevelCounts.AA, color: '#ff6f00', pattern: 'level-aa' },
+              { label: 'Level AAA', value: ariaLevelCounts.AAA, color: '#388e3c', pattern: 'level-aaa' }
+          ]
+          )}
+        </div>
+        ${ariaLevelCounts['Unknown'] > 0 ? `<p><small>Note: ${ariaLevelCounts['Unknown']} issues could not be mapped to specific WCAG levels.</small></p>` : ''}
+      </div>
+    </div>
+    
     ${wcagCriteriaAtRisk.size > 0 ? `
     <div class="wcag-at-risk">
       <h3>WCAG Success Criteria at Risk</h3>
@@ -4904,49 +4968,6 @@ document.addEventListener('DOMContentLoaded', function() {
       </ul>
       ${criticalBarriers.length > 5 ? `<p><em>And ${criticalBarriers.length - 5} more critical issues...</em></p>` : ''}
     </div>` : ''}
-    
-    <div class="chart-section">
-      <h3>Impact Distribution</h3>
-      <div class="chart-container">
-        ${generateSVGPieChart(
-          'Distribution of issues by impact severity',
-          [
-            { label: 'High Impact', value: impactCounts.high, color: '#d32f2f', pattern: 'high-impact' },
-            { label: 'Medium Impact', value: impactCounts.medium, color: '#f57c00', pattern: 'medium-impact' },
-            { label: 'Low Impact', value: impactCounts.low, color: '#388e3c', pattern: 'low-impact' }
-          ]
-        )}
-      </div>
-    </div>
-    
-    <div class="chart-section">
-      <h3>Issue Type Distribution</h3>
-      <div class="chart-container">
-        ${generateSVGPieChart(
-          'Distribution of issues by type',
-          [
-            { label: 'Failures', value: typeCounts.fail, color: '#b71c1c', pattern: 'fail-type' },
-            { label: 'Warnings', value: typeCounts.warning, color: '#ff6f00', pattern: 'warning-type' },
-            { label: 'Information', value: typeCounts.info, color: '#1976d2', pattern: 'info-type' }
-          ]
-        )}
-      </div>
-    </div>
-    
-    <div class="aria-level-breakdown">
-      <h3>Issues by WCAG Level</h3>
-      <div class="chart-container">
-        ${generateSVGBarChart(
-          'Number of failures by WCAG level',
-          [
-            { label: 'Level A', value: ariaLevelCounts.A, color: '#b71c1c', pattern: 'level-a' },
-            { label: 'Level AA', value: ariaLevelCounts.AA, color: '#ff6f00', pattern: 'level-aa' },
-            { label: 'Level AAA', value: ariaLevelCounts.AAA, color: '#388e3c', pattern: 'level-aaa' }
-          ]
-        )}
-      </div>
-      ${ariaLevelCounts['Unknown'] > 0 ? `<p><small>Note: ${ariaLevelCounts['Unknown']} issues could not be mapped to specific WCAG levels.</small></p>` : ''}
-    </div>
   </section>
   
   <section aria-labelledby="details-heading">
