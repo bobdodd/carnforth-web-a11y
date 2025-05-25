@@ -3797,7 +3797,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (total === 0) {
       svg += `<text x="${centerX}" y="${centerY}" text-anchor="middle" class="chart-no-data">No data</text>`;
     } else {
+      // First pass: Draw all pie slices
       let currentAngle = -Math.PI / 2;
+      const labelData = [];
       
       data.forEach((item) => {
         if (item.value === 0) return;
@@ -3815,24 +3817,43 @@ document.addEventListener('DOMContentLoaded', function() {
         
         svg += `<path d="${d}" fill="url(#${item.pattern})" stroke="#fff" stroke-width="2" class="chart-slice" data-color="${item.color}"/>`;
         
-        // Add label
+        // Store label data for second pass
         const labelAngle = currentAngle + sliceAngle / 2;
-        const labelRadius = radius * 0.7;
-        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
-        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
         const percentage = Math.round(item.value / total * 100);
-        
         if (percentage > 5) {
-          svg += `<text x="${labelX}" y="${labelY}" text-anchor="middle" alignment-baseline="middle" class="chart-label" fill="white" font-weight="bold">${percentage}%</text>`;
+          labelData.push({
+            angle: labelAngle,
+            percentage: percentage
+          });
         }
         
         currentAngle = endAngle;
       });
+      
+      // Second pass: Draw all labels on top
+      labelData.forEach(label => {
+        const labelRadius = radius * 0.6; // Closer to center to avoid clipping
+        const labelX = centerX + Math.cos(label.angle) * labelRadius;
+        const labelY = centerY + Math.sin(label.angle) * labelRadius;
+        
+        // Add white background rect for contrast
+        const textWidth = label.percentage.toString().length * 12 + 20;
+        const textHeight = 30;
+        
+        svg += `
+          <g>
+            <rect x="${labelX - textWidth/2}" y="${labelY - textHeight/2}" 
+                  width="${textWidth}" height="${textHeight}" 
+                  fill="white" stroke="#333" stroke-width="1" rx="2"/>
+            <text x="${labelX}" y="${labelY}" text-anchor="middle" alignment-baseline="middle" 
+                  class="chart-label" fill="#333" font-weight="bold">${label.percentage}%</text>
+          </g>`;
+      });
     }
     
-    // Add legend below the chart
-    const legendStartY = chartHeight + 20;
-    const legendItemHeight = 25;
+    // Add legend below the chart with proper spacing
+    const legendStartY = chartHeight + 42; // One line height gap
+    const legendItemHeight = 42; // 1.5x line height for proper spacing
     const activeItems = data.filter(item => item.value > 0);
     const legendHeight = (activeItems.length * legendItemHeight) + 20;
     
@@ -3844,11 +3865,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let legendY = legendStartY;
     activeItems.forEach((item) => {
       const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
+      const swatchHeight = 20;
+      const swatchY = legendY + (42 - swatchHeight) / 2; // Center swatch in line height
       svg += `
         <g>
-          <rect x="20" y="${legendY}" width="20" height="16" 
+          <rect x="20" y="${swatchY}" width="20" height="${swatchHeight}" 
                 fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
-          <text x="45" y="${legendY + 12}" class="legend-text" style="font-size: 1rem;">
+          <text x="45" y="${legendY + 28}" class="legend-text" style="font-size: 1rem;">
             ${escapeHtml(item.label)}: ${item.value} (${percentage}%)
           </text>
         </g>`;
@@ -3925,9 +3948,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Add legend below the chart
-    const legendStartY = height + 20;
-    const legendItemHeight = 25;
+    // Add legend below the chart with proper spacing
+    const legendStartY = height + 42; // One line height gap
+    const legendItemHeight = 42; // 1.5x line height for proper spacing
     const legendHeight = (data.length * legendItemHeight) + 20;
     
     // Update SVG height to accommodate legend
@@ -3937,11 +3960,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add legend group
     let legendY = legendStartY;
     data.forEach((item) => {
+      const swatchHeight = 20;
+      const swatchY = legendY + (42 - swatchHeight) / 2; // Center swatch in line height
       svg += `
         <g>
-          <rect x="20" y="${legendY}" width="20" height="16" 
+          <rect x="20" y="${swatchY}" width="20" height="${swatchHeight}" 
                 fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
-          <text x="45" y="${legendY + 12}" class="legend-text" style="font-size: 1rem;">
+          <text x="45" y="${legendY + 28}" class="legend-text" style="font-size: 1rem;">
             ${escapeHtml(item.label)}: ${item.value}
           </text>
         </g>`;
@@ -4670,7 +4695,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .chart-section {
-      min-height: 400px;
+      min-height: 450px;
     }
     
     .chart-section h3 {
@@ -4685,7 +4710,7 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 1.5rem;
-      min-height: 350px;
+      min-height: 400px;
       display: flex;
       flex-direction: column;
       align-items: center;
