@@ -3848,7 +3848,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <g>
           <rect x="20" y="${legendY}" width="20" height="16" 
                 fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
-          <text x="45" y="${legendY + 12}" class="legend-text" font-size="14px">
+          <text x="45" y="${legendY + 12}" class="legend-text" style="font-size: 1rem;">
             ${escapeHtml(item.label)}: ${item.value} (${percentage}%)
           </text>
         </g>`;
@@ -3941,7 +3941,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <g>
           <rect x="20" y="${legendY}" width="20" height="16" 
                 fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
-          <text x="45" y="${legendY + 12}" class="legend-text" font-size="14px">
+          <text x="45" y="${legendY + 12}" class="legend-text" style="font-size: 1rem;">
             ${escapeHtml(item.label)}: ${item.value}
           </text>
         </g>`;
@@ -4711,18 +4711,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .chart-label {
-      font-size: 14px;
+      font-size: 1rem;
       fill: #333;
     }
     
     .chart-value {
-      font-size: 14px;
+      font-size: 1rem;
       font-weight: bold;
       fill: #333;
     }
     
     .chart-no-data {
-      font-size: 16px;
+      font-size: 1rem;
       fill: #999;
     }
     
