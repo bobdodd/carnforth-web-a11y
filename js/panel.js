@@ -4715,6 +4715,99 @@ document.addEventListener('DOMContentLoaded', function() {
       justify-content: flex-start;
     }
     
+    /* Accessibility Metrics Styles */
+    .summary-metrics {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    
+    .summary-metrics h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: #0d47a1;
+    }
+    
+    .metrics-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .metric-item {
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    .metric-label {
+      display: block;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+      display: block;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.25rem;
+    }
+    
+    .metric-value.good {
+      color: #2e7d32;
+    }
+    
+    .metric-value.fail {
+      color: #d32f2f;
+    }
+    
+    .metric-status {
+      font-size: 1.5rem;
+      margin-left: 0.5rem;
+    }
+    
+    .metric-description {
+      display: block;
+      font-size: 0.875rem;
+      color: #666;
+    }
+    
+    /* Metrics documentation section */
+    .metrics-doc {
+      background-color: #f0f7ff;
+      border: 2px solid #0d47a1;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .metrics-doc h2 {
+      color: #0d47a1;
+      margin-bottom: 1.5rem;
+    }
+    
+    .metrics-doc h3 {
+      color: #0d47a1;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .metrics-doc .doc-overview {
+      font-style: italic;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: white;
+      border-left: 4px solid #0d47a1;
+      border-radius: 4px;
+    }
+    
     .chart-slice {
       cursor: pointer;
       transition: opacity 0.2s;
@@ -4852,6 +4945,7 @@ document.addEventListener('DOMContentLoaded', function() {
       htmlTemplate += `
           </ul>
         </li>
+        <li><a href="#accessibility-metrics-explained"><span class="section-number">5</span>Accessibility Metrics Explained</a></li>
       </ul>
     </nav>
   </section>
@@ -4865,9 +4959,61 @@ document.addEventListener('DOMContentLoaded', function() {
       const impactCounts = { 'high': 0, 'medium': 0, 'low': 0 };
       const typeCounts = { 'fail': 0, 'warning': 0, 'info': 0 };
       
-      // Analyze issues for WCAG criteria and ARIA levels
+      // Critical barrier patterns (same as panel uses)
+      const criticalBarrierPatterns = [
+        'no accessible name',
+        'missing accessible name',
+        'keyboard trap',
+        'missing form label',
+        'aria-hidden="true"',
+        'focus order prevents',
+        'touch target.*too small',
+        'insufficient touch target'
+      ];
+      
+      // Metrics for breadth score and a11y index
+      let touchpointsWithFailures = 0;
+      let touchpointsWithTestableElements = 0;
+      let totalIssues = 0;
+      let totalElementsTested = 0;
+      const principleViolations = {
+        perceivable: 0,
+        operable: 0,
+        understandable: 0,
+        robust: 0
+      };
+      
+      // Function to get principle from WCAG criterion number
+      function getPrincipleFromCriterion(criterion) {
+        if (!criterion) return null;
+        const firstDigit = criterion.charAt(0);
+        switch (firstDigit) {
+          case '1': return 'perceivable';
+          case '2': return 'operable';
+          case '3': return 'understandable';
+          case '4': return 'robust';
+          default: return null;
+        }
+      }
+      
+      // Analyze issues for metrics
       Object.entries(currentTestResults).forEach(([touchpoint, touchpointData]) => {
-        (touchpointData.issues || []).forEach(issue => {
+        const issues = touchpointData.issues || [];
+        const failures = issues.filter(issue => issue.type === 'fail');
+        
+        if (touchpointData.elementsChecked && touchpointData.elementsChecked > 0) {
+          touchpointsWithTestableElements++;
+          totalElementsTested += touchpointData.elementsChecked;
+          
+          if (failures.length > 0) {
+            touchpointsWithFailures++;
+          }
+        }
+        
+        // Count all issues
+        totalIssues += issues.length;
+        
+        issues.forEach(issue => {
           // Count by type
           if (typeCounts[issue.type] !== undefined) {
             typeCounts[issue.type]++;
@@ -4881,6 +5027,19 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           if (issue.type === 'fail') {
+            // Check if this is a critical barrier
+            const isCritical = criticalBarrierPatterns.some(pattern => {
+              const regex = new RegExp(pattern, 'i');
+              return regex.test(issue.title) || regex.test(issue.description);
+            });
+            if (isCritical) {
+              criticalBarriers.push({
+                title: issue.title,
+                description: issue.description,
+                touchpoint: touchpoint
+              });
+            }
+            
             // Extract WCAG criteria from issue
             if (issue.wcag) {
               const key = `${issue.wcag.successCriterion} - ${issue.wcag.level}`;
@@ -4895,6 +5054,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 ariaLevelCounts[issue.wcag.level] = (ariaLevelCounts[issue.wcag.level] || 0) + 1;
               } else {
                 ariaLevelCounts['Unknown']++;
+              }
+              
+              // Track principle violations
+              if (issue.wcag.successCriterion) {
+                const criterionNumber = issue.wcag.successCriterion.split(' ')[0];
+                const principle = getPrincipleFromCriterion(criterionNumber);
+                if (principle) {
+                  principleViolations[principle]++;
+                }
               }
             } else if (issue.wcagCriteria) {
               // Support legacy format if any
@@ -4917,22 +5085,46 @@ document.addEventListener('DOMContentLoaded', function() {
               // For touchpoints without explicit WCAG criteria mapping
               ariaLevelCounts['Unknown']++;
             }
-            
-            // Identify critical barriers
-            if (issue.severity === 'critical' || 
-                (issue.impact && issue.impact.level === 'high') ||
-                issue.title.toLowerCase().includes('missing') || 
-                issue.title.toLowerCase().includes('no alternative') || 
-                issue.title.toLowerCase().includes('inaccessible')) {
-              criticalBarriers.push({
-                title: issue.title,
-                description: issue.description,
-                touchpoint: touchpoint
-              });
-            }
           }
         });
       });
+      
+      // Calculate the three metrics
+      const criticalBarriersCount = criticalBarriers.length;
+      
+      // Breadth Score - percentage of touchpoints with failures
+      const breadthScore = touchpointsWithTestableElements > 0 
+        ? (touchpointsWithFailures / touchpointsWithTestableElements) * 100 
+        : 0;
+      
+      // Calculate principle weighted score
+      const principleWeights = {
+        perceivable: 1.0,
+        operable: 1.0,
+        understandable: 0.8,
+        robust: 0.7
+      };
+      
+      let principleWeightedScore = 0;
+      Object.entries(principleViolations).forEach(([principle, count]) => {
+        principleWeightedScore += count * principleWeights[principle];
+      });
+      
+      // Normalize principle score (assume max of 10 violations per principle for scaling)
+      const maxPrincipleScore = 10 * (1.0 + 1.0 + 0.8 + 0.7);
+      const normalizedPrincipleScore = Math.min((principleWeightedScore / maxPrincipleScore) * 100, 100);
+      
+      // Calculate friction score (issue density)
+      const frictionScore = totalElementsTested > 0 
+        ? (totalIssues / totalElementsTested) * 100 
+        : 0;
+      
+      // A11y Index - combined metric
+      const a11yIndex = Math.max(0, 100 - (
+        (breadthScore * 0.5) + 
+        (frictionScore * 0.3) + 
+        (normalizedPrincipleScore * 0.2)
+      ));
       
       // Add Summary section with executive summary content
       htmlTemplate += `
@@ -4943,6 +5135,27 @@ document.addEventListener('DOMContentLoaded', function() {
       <span class="summary-count fail">${fails} ${fails === 1 ? 'Fail' : 'Fails'}</span>
       <span class="summary-count warning">${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}</span>
       <span class="summary-count info">${infos} Info</span>
+    </div>
+    
+    <div class="summary-metrics">
+      <h3>Accessibility Metrics</h3>
+      <div class="metrics-row">
+        <div class="metric-item">
+          <span class="metric-label">Critical barriers:</span>
+          <span class="metric-value ${criticalBarriersCount === 0 ? 'good' : 'fail'}">${criticalBarriersCount}</span>
+          <span class="metric-status">${criticalBarriersCount === 0 ? '✓' : '❌'}</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Breadth score:</span>
+          <span class="metric-value">${Math.round(breadthScore)}%</span>
+          <span class="metric-description">of touchpoints with failures</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">A11y index:</span>
+          <span class="metric-value">${Math.round(a11yIndex)}</span>
+          <span class="metric-description">directional indicator</span>
+        </div>
+      </div>
     </div>
     
     <div class="charts-row">
@@ -5030,13 +5243,12 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3>Critical Accessibility Barriers</h3>
       <p>The following issues represent significant barriers that may prevent users from accessing content or functionality:</p>
       <ul>
-        ${criticalBarriers.slice(0, 5).map(barrier => `
+        ${criticalBarriers.map(barrier => `
         <li>
           <strong>${escapeHtml(barrier.title)}</strong> (${escapeHtml(barrier.touchpoint.replace(/_/g, ' '))})<br>
-          <small>${escapeHtml(barrier.description.substring(0, 150))}${barrier.description.length > 150 ? '...' : ''}</small>
+          <small>${escapeHtml(barrier.description)}</small>
         </li>`).join('')}
       </ul>
-      ${criticalBarriers.length > 5 ? `<p><em>And ${criticalBarriers.length - 5} more critical issues...</em></p>` : ''}
     </div>` : ''}
   </section>
   
@@ -5479,6 +5691,74 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     htmlTemplate += `
+  </section>
+  
+  <section class="metrics-doc" aria-labelledby="metrics-doc-heading">
+    <h2 id="accessibility-metrics-explained"><span class="section-number">5.</span>Accessibility Metrics Explained</h2>
+    <p class="doc-overview">Carnforth uses three complementary metrics to help you understand and prioritize accessibility improvements. These metrics are directional indicators, not compliance measures.</p>
+    
+    <h3>Critical Barriers</h3>
+    <p><strong>What it measures:</strong> Count of show-stopping issues that prevent access</p>
+    <p><strong>Target:</strong> Must be ZERO for accessibility</p>
+    <p><strong>Examples:</strong></p>
+    <ul>
+      <li>Missing labels on form controls</li>
+      <li>Keyboard traps that prevent navigation</li>
+      <li>Interactive elements hidden from assistive technology</li>
+      <li>Images without alt text in critical contexts</li>
+    </ul>
+    <p><em>Think of these as locked doors - no matter how beautiful your building, if people can't get in, nothing else matters.</em></p>
+    
+    <h3>Breadth Score</h3>
+    <p><strong>What it measures:</strong> Percentage of touchpoints with failures</p>
+    <p><strong>How it's calculated:</strong> (Touchpoints with failures / Total testable touchpoints) × 100</p>
+    <p><strong>What it tells you:</strong></p>
+    <ul>
+      <li>Lower percentage = issues are concentrated in fewer areas</li>
+      <li>Higher percentage = issues are spread across many aspects</li>
+    </ul>
+    <p><strong>Example:</strong> If 5 of 20 touchpoints have failures, Breadth Score = 25%</p>
+    <p><em>This helps you understand if you have a few problem areas to focus on, or if accessibility issues are widespread throughout your site.</em></p>
+    
+    <h3>A11y Index</h3>
+    <p><strong>What it measures:</strong> Combined directional indicator (0-100, higher is better)</p>
+    <p><strong>How it's calculated:</strong></p>
+    <ul>
+      <li>50% based on breadth (how widespread issues are)</li>
+      <li>30% based on friction (severity-weighted issue count)</li>
+      <li>20% based on WCAG principles affected</li>
+    </ul>
+    <p><strong>Principle weights:</strong></p>
+    <ul>
+      <li>Perceivable & Operable: 1.0 (most critical)</li>
+      <li>Understandable: 0.8</li>
+      <li>Robust: 0.7</li>
+    </ul>
+    <p><em>Track this score over time to measure improvement. It's designed to show progress even before achieving full compliance.</em></p>
+    
+    <h3>Important Philosophy</h3>
+    <p><strong>Conformance is Binary:</strong></p>
+    <p>"You can no more be 80% conformant than you can be 80% alive" - these metrics don't represent partial compliance.</p>
+    
+    <p><strong>What these metrics ARE:</strong></p>
+    <ul>
+      <li>Tools for prioritizing remediation efforts</li>
+      <li>Indicators of progress over time</li>
+      <li>Ways to understand the scope of work needed</li>
+    </ul>
+    
+    <p><strong>What these metrics ARE NOT:</strong></p>
+    <ul>
+      <li>Compliance percentages</li>
+      <li>Certification scores</li>
+      <li>Substitutes for proper accessibility testing</li>
+    </ul>
+    
+    <p><em>Use these metrics to guide your journey toward accessibility, not as a destination.</em></p>
+    
+    <div class="back-to-toc">
+      <a href="#toc-heading" aria-label="Back to Table of Contents">↑ Back to Table of Contents</a>
+    </div>
   </section>
   
   </main>
