@@ -47,19 +47,25 @@ window.removeAllHighlights = removeAllHighlights;
 // Clean up highlights when panel loses focus or is closed
 window.addEventListener('blur', function() {
   console.log("[Panel] Window lost focus, removing highlights");
-  removeAllHighlights();
+  if (typeof removeAllHighlights === 'function') {
+    removeAllHighlights();
+  }
 });
 
 window.addEventListener('beforeunload', function() {
   console.log("[Panel] Panel unloading, removing highlights");
-  removeAllHighlights();
+  if (typeof removeAllHighlights === 'function') {
+    removeAllHighlights();
+  }
 });
 
 // Also clean up when DevTools is hidden
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
     console.log("[Panel] Panel hidden, removing highlights");
-    removeAllHighlights();
+    if (typeof removeAllHighlights === 'function') {
+      removeAllHighlights();
+    }
   }
 });
 
@@ -1127,7 +1133,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Listen for test button click
   startTestButton.addEventListener('click', function() {
     // Remove any existing highlights before starting new test
-    removeAllHighlights();
+    if (typeof removeAllHighlights === 'function') {
+      removeAllHighlights();
+    }
     
     // Show loading state
     startTestButton.disabled = true;
