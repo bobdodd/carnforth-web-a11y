@@ -3750,6 +3750,162 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /**
+   * Generate SVG pie chart for HTML export
+   * @param {string} description - Chart description
+   * @param {Array} data - Array of {label, value, color, pattern}
+   * @returns {string} SVG HTML string
+   */
+  function generateSVGPieChart(description, data) {
+    const svgWidth = 400;
+    const chartHeight = 240;
+    const radius = 120;
+    const centerX = svgWidth / 2;
+    const centerY = radius + 10;
+    
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    
+    let svg = `<svg width="100%" height="${chartHeight}" viewBox="0 0 ${svgWidth} ${chartHeight}" role="img" aria-label="${escapeHtml(description)}">
+      <title>${escapeHtml(description)}</title>
+      <desc>${data.map(d => `${d.label}: ${d.value} (${total > 0 ? Math.round(d.value/total*100) : 0}%)`).join(', ')}</desc>
+      <defs>`;
+    
+    // Add patterns
+    data.forEach(item => {
+      if (item.pattern.includes('high') || item.pattern.includes('fail')) {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <path d="M0,10 L10,0 M0,0 L10,10" stroke="white" stroke-width="1.5" opacity="0.4"/>
+        </pattern>`;
+      } else if (item.pattern.includes('medium') || item.pattern.includes('warning')) {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <circle cx="5" cy="5" r="2" fill="white" opacity="0.4"/>
+        </pattern>`;
+      } else {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <line x1="0" y1="5" x2="10" y2="5" stroke="white" stroke-width="2" opacity="0.4"/>
+        </pattern>`;
+      }
+    });
+    
+    svg += `</defs>`;
+    
+    if (total === 0) {
+      svg += `<text x="${centerX}" y="${centerY}" text-anchor="middle" class="chart-no-data">No data</text>`;
+    } else {
+      let currentAngle = -Math.PI / 2;
+      
+      data.forEach((item) => {
+        if (item.value === 0) return;
+        
+        const sliceAngle = (item.value / total) * 2 * Math.PI;
+        const endAngle = currentAngle + sliceAngle;
+        
+        const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
+        const x1 = centerX + Math.cos(currentAngle) * radius;
+        const y1 = centerY + Math.sin(currentAngle) * radius;
+        const x2 = centerX + Math.cos(endAngle) * radius;
+        const y2 = centerY + Math.sin(endAngle) * radius;
+        
+        const d = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        
+        svg += `<path d="${d}" fill="url(#${item.pattern})" stroke="#fff" stroke-width="2" class="chart-slice" data-color="${item.color}"/>`;
+        
+        // Add label
+        const labelAngle = currentAngle + sliceAngle / 2;
+        const labelRadius = radius * 0.7;
+        const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+        const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+        const percentage = Math.round(item.value / total * 100);
+        
+        if (percentage > 5) {
+          svg += `<text x="${labelX}" y="${labelY}" text-anchor="middle" alignment-baseline="middle" class="chart-label" fill="white" font-weight="bold">${percentage}%</text>`;
+        }
+        
+        currentAngle = endAngle;
+      });
+    }
+    
+    svg += `</svg>`;
+    return svg;
+  }
+
+  /**
+   * Generate SVG bar chart for HTML export
+   * @param {string} description - Chart description
+   * @param {Array} data - Array of {label, value, color, pattern}
+   * @returns {string} SVG HTML string
+   */
+  function generateSVGBarChart(description, data) {
+    const width = 400;
+    const height = 240;
+    const padding = 40;
+    const chartTop = 10;
+    const barWidth = (width - padding * 2) / data.length - 10;
+    
+    const maxValue = Math.max(...data.map(d => d.value), 1);
+    
+    let svg = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(description)}">
+      <title>${escapeHtml(description)}</title>
+      <desc>${data.map(d => `${d.label}: ${d.value}`).join(', ')}</desc>
+      <defs>`;
+    
+    // Add patterns
+    data.forEach(item => {
+      if (item.pattern.includes('level-a')) {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <path d="M0,10 L10,0 M0,0 L10,10" stroke="white" stroke-width="1.5" opacity="0.4"/>
+        </pattern>`;
+      } else if (item.pattern.includes('level-aa')) {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <circle cx="5" cy="5" r="2" fill="white" opacity="0.4"/>
+        </pattern>`;
+      } else {
+        svg += `
+        <pattern id="${item.pattern}" patternUnits="userSpaceOnUse" width="10" height="10">
+          <rect width="10" height="10" fill="${item.color}"/>
+          <line x1="0" y1="5" x2="10" y2="5" stroke="white" stroke-width="2" opacity="0.4"/>
+        </pattern>`;
+      }
+    });
+    
+    svg += `</defs>`;
+    
+    if (maxValue === 0) {
+      svg += `<text x="${width/2}" y="${height/2}" text-anchor="middle" class="chart-no-data">No data</text>`;
+    } else {
+      const barTop = chartTop + 20;
+      const maxBarHeight = height - barTop - 60;
+      
+      data.forEach((item, index) => {
+        const x = padding + index * (barWidth + 10);
+        const barHeight = maxValue > 0 ? (item.value / maxValue) * maxBarHeight : 0;
+        const y = barTop + maxBarHeight - barHeight;
+        
+        svg += `
+          <g>
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
+                  fill="url(#${item.pattern})" stroke="#fff" stroke-width="1" 
+                  class="chart-bar" data-color="${item.color}"/>
+            <text x="${x + barWidth/2}" y="${y - 5}" text-anchor="middle" class="chart-value">${item.value}</text>
+            <text x="${x + barWidth/2}" y="${barTop + maxBarHeight + 20}" text-anchor="middle" class="chart-label">${item.label}</text>
+          </g>`;
+      });
+    }
+    
+    svg += `</svg>`;
+    return svg;
+  }
+
+  /**
    * Perform the HTML export after getting the URL
    * @param {string} pageUrl - The URL of the inspected page
    */
@@ -4310,8 +4466,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    /* Executive Summary Styles */
-    .executive-summary {
+    /* Summary Section Styles */
+    section[aria-labelledby="summary-heading"] {
       background-color: #f0f7ff;
       border: 2px solid #0d47a1;
       border-radius: 8px;
@@ -4319,7 +4475,7 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 2rem;
     }
     
-    .executive-summary h2 {
+    section[aria-labelledby="summary-heading"] h2 {
       color: #0d47a1;
       margin-bottom: 1.5rem;
     }
@@ -4369,9 +4525,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .wcag-criteria-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
+      list-style: decimal;
+      margin-left: 2rem;
       margin-top: 1rem;
     }
     
@@ -4381,6 +4536,7 @@ document.addEventListener('DOMContentLoaded', function() {
       border-radius: 4px;
       padding: 0.75rem;
       font-size: 0.95rem;
+      margin-bottom: 0.5rem;
     }
     
     .wcag-criterion.level-a {
@@ -4464,12 +4620,58 @@ document.addEventListener('DOMContentLoaded', function() {
       font-weight: bold;
     }
     
+    .chart-section {
+      margin-top: 2rem;
+    }
+    
+    .chart-container {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+    
+    .chart-slice {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    
+    .chart-slice:hover {
+      opacity: 0.8;
+    }
+    
+    .chart-bar {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    
+    .chart-bar:hover {
+      opacity: 0.8;
+    }
+    
+    .chart-label {
+      font-size: 14px;
+      fill: #333;
+    }
+    
+    .chart-value {
+      font-size: 14px;
+      font-weight: bold;
+      fill: #333;
+    }
+    
+    .chart-no-data {
+      font-size: 16px;
+      fill: #999;
+    }
+    
     @media print {
       body {
         padding: 0;
       }
       
-      .executive-summary {
+      section[aria-labelledby="summary-heading"] {
         page-break-after: always;
       }
       
@@ -4520,10 +4722,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <h2 id="toc-heading">Table of Contents</h2>
     <nav class="toc" aria-label="Table of contents">
       <ul>
-        <li><a href="#executive-summary"><span class="section-number">1</span>Executive Summary</a></li>
-        <li><a href="#summary-heading"><span class="section-number">2</span>Summary</a></li>
+        <li><a href="#summary-heading"><span class="section-number">1</span>Summary</a></li>
         <li>
-          <a href="#details-heading"><span class="section-number">3</span>Detailed Results</a>
+          <a href="#details-heading"><span class="section-number">2</span>Detailed Results</a>
           <ul>`;
       
       // Add touchpoint links to table of contents
@@ -4542,16 +4743,16 @@ document.addEventListener('DOMContentLoaded', function() {
           .replace(/\b\w/g, l => l.toUpperCase());
         
         htmlTemplate += `
-            <li><a href="#${touchpoint}-heading"><span class="section-number">3.${touchpointIndex}</span>${displayName}</a></li>`;
+            <li><a href="#${touchpoint}-heading"><span class="section-number">2.${touchpointIndex}</span>${displayName}</a></li>`;
         touchpointIndex++;
       });
       
       htmlTemplate += `
           </ul>
         </li>
-        <li><a href="#about-carnforth"><span class="section-number">4</span>About Carnforth Web A11y</a></li>
+        <li><a href="#about-carnforth"><span class="section-number">3</span>About Carnforth Web A11y</a></li>
         <li>
-          <a href="#about-touchpoints"><span class="section-number">5</span>About Touchpoints</a>
+          <a href="#about-touchpoints"><span class="section-number">4</span>About Touchpoints</a>
           <ul>`;
       
       // Add touchpoint documentation links
@@ -4560,7 +4761,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const doc = getTouchpointDocumentation(touchpoint);
         if (doc) {
           htmlTemplate += `
-            <li><a href="#touchpoint-${touchpoint}"><span class="section-number">5.${docIndex}</span>${escapeHtml(doc.title || touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}</a></li>`;
+            <li><a href="#touchpoint-${touchpoint}"><span class="section-number">4.${docIndex}</span>${escapeHtml(doc.title || touchpoint.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}</a></li>`;
           docIndex++;
         }
       });
@@ -4578,10 +4779,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const wcagCriteriaAtRisk = new Map();
       const criticalBarriers = [];
       const ariaLevelCounts = { 'A': 0, 'AA': 0, 'AAA': 0, 'Unknown': 0 };
+      const impactCounts = { 'high': 0, 'medium': 0, 'low': 0 };
+      const typeCounts = { 'fail': 0, 'warning': 0, 'info': 0 };
       
       // Analyze issues for WCAG criteria and ARIA levels
       Object.entries(currentTestResults).forEach(([touchpoint, touchpointData]) => {
         (touchpointData.issues || []).forEach(issue => {
+          // Count by type
+          if (typeCounts[issue.type] !== undefined) {
+            typeCounts[issue.type]++;
+          }
+          
+          // Count by impact (only for fails and warnings)
+          if ((issue.type === 'fail' || issue.type === 'warning') && issue.impact && issue.impact.level) {
+            if (impactCounts[issue.impact.level] !== undefined) {
+              impactCounts[issue.impact.level]++;
+            }
+          }
+          
           if (issue.type === 'fail') {
             // Extract WCAG criteria from issue
             if (issue.wcag) {
@@ -4636,10 +4851,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
       
-      // Add Executive Summary section
+      // Add Summary section with executive summary content
       htmlTemplate += `
-  <section class="executive-summary" aria-labelledby="executive-summary">
-    <h2 id="executive-summary"><span class="section-number">1.</span>Executive Summary</h2>
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading"><span class="section-number">1.</span>Summary</h2>
     
     <div class="exec-summary-grid">
       <div class="exec-metric fail">
@@ -4670,13 +4885,13 @@ document.addEventListener('DOMContentLoaded', function() {
     ${wcagCriteriaAtRisk.size > 0 ? `
     <div class="wcag-at-risk">
       <h3>WCAG Success Criteria at Risk</h3>
-      <div class="wcag-criteria-list">
+      <ol class="wcag-criteria-list">
         ${Array.from(wcagCriteriaAtRisk.values()).map(criterion => `
-        <div class="wcag-criterion level-${criterion.level.toLowerCase()}">
-          <strong>${escapeHtml(criterion.criterion)}</strong> (Level ${escapeHtml(criterion.level)})<br>
-          <small>${escapeHtml(criterion.description)}</small>
-        </div>`).join('')}
-      </div>
+        <li class="wcag-criterion level-${criterion.level.toLowerCase()}">
+          <strong>${escapeHtml(criterion.criterion)}</strong> (Level ${escapeHtml(criterion.level)})
+          <br><small>${escapeHtml(criterion.description)}</small>
+        </li>`).join('')}
+      </ol>
     </div>` : ''}
     
     ${criticalBarriers.length > 0 ? `
@@ -4693,46 +4908,52 @@ document.addEventListener('DOMContentLoaded', function() {
       ${criticalBarriers.length > 5 ? `<p><em>And ${criticalBarriers.length - 5} more critical issues...</em></p>` : ''}
     </div>` : ''}
     
+    <div class="chart-section">
+      <h3>Impact Distribution</h3>
+      <div class="chart-container">
+        ${generateSVGPieChart(
+          'Distribution of issues by impact severity',
+          [
+            { label: 'High Impact', value: impactCounts.high, color: '#d32f2f', pattern: 'high-impact' },
+            { label: 'Medium Impact', value: impactCounts.medium, color: '#f57c00', pattern: 'medium-impact' },
+            { label: 'Low Impact', value: impactCounts.low, color: '#388e3c', pattern: 'low-impact' }
+          ]
+        )}
+      </div>
+    </div>
+    
+    <div class="chart-section">
+      <h3>Issue Type Distribution</h3>
+      <div class="chart-container">
+        ${generateSVGPieChart(
+          'Distribution of issues by type',
+          [
+            { label: 'Failures', value: typeCounts.fail, color: '#b71c1c', pattern: 'fail-type' },
+            { label: 'Warnings', value: typeCounts.warning, color: '#ff6f00', pattern: 'warning-type' },
+            { label: 'Information', value: typeCounts.info, color: '#1976d2', pattern: 'info-type' }
+          ]
+        )}
+      </div>
+    </div>
+    
     <div class="aria-level-breakdown">
       <h3>Issues by WCAG Level</h3>
-      <div class="aria-chart">
-        ${['A', 'AA', 'AAA'].map(level => {
-          const count = ariaLevelCounts[level] || 0;
-          const maxCount = Math.max(...Object.values(ariaLevelCounts));
-          const height = maxCount > 0 ? (count / maxCount) * 150 : 0;
-          return `
-        <div class="aria-bar">
-          <div class="aria-bar-fill level-${level.toLowerCase()}" style="height: ${height}px;">
-            <span class="aria-bar-value">${count}</span>
-          </div>
-          <span class="aria-bar-label">Level ${level}</span>
-        </div>`;
-        }).join('')}
+      <div class="chart-container">
+        ${generateSVGBarChart(
+          'Number of failures by WCAG level',
+          [
+            { label: 'Level A', value: ariaLevelCounts.A, color: '#b71c1c', pattern: 'level-a' },
+            { label: 'Level AA', value: ariaLevelCounts.AA, color: '#ff6f00', pattern: 'level-aa' },
+            { label: 'Level AAA', value: ariaLevelCounts.AAA, color: '#388e3c', pattern: 'level-aaa' }
+          ]
+        )}
       </div>
       ${ariaLevelCounts['Unknown'] > 0 ? `<p><small>Note: ${ariaLevelCounts['Unknown']} issues could not be mapped to specific WCAG levels.</small></p>` : ''}
     </div>
   </section>
   
-  <section aria-labelledby="summary-heading">
-    <h2 id="summary-heading"><span class="section-number">2.</span>Summary</h2>
-    <div class="summary">
-      <div class="fail">
-        <h3>Failures</h3>
-        <span class="count">${fails}</span>
-      </div>
-      <div class="warning">
-        <h3>Warnings</h3>
-        <span class="count">${warnings}</span>
-      </div>
-      <div class="info">
-        <h3>Info</h3>
-        <span class="count">${infos}</span>
-      </div>
-    </div>
-  </section>
-  
   <section aria-labelledby="details-heading">
-    <h2 id="details-heading"><span class="section-number">3.</span>Detailed Results</h2>`;
+    <h2 id="details-heading"><span class="section-number">2.</span>Detailed Results</h2>`;
       
       // Add each touchpoint section
       let sectionIndex = 1;
@@ -4759,7 +4980,7 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     <div class="touchpoint">
       <div class="touchpoint-header">
-        <h3 class="touchpoint-title" id="${touchpoint}-heading"><span class="section-number">3.${sectionIndex}</span>${displayName}</h3>
+        <h3 class="touchpoint-title" id="${touchpoint}-heading"><span class="section-number">2.${sectionIndex}</span>${displayName}</h3>
         <div class="touchpoint-counts">`;
         
         if (counts.fail > 0) {
@@ -4990,10 +5211,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section class="about-section" aria-labelledby="about-carnforth">
-    <h2 id="about-carnforth"><span class="section-number">4.</span>About Carnforth Web A11y</h2>
+    <h2 id="about-carnforth"><span class="section-number">3.</span>About Carnforth Web A11y</h2>
     <p>Carnforth Web A11y is an educational Chrome extension designed to help developers understand and fix web accessibility issues.</p>
     
-    <h3><span class="section-number">4.1</span>Project Goals</h3>
+    <h3><span class="section-number">3.1</span>Project Goals</h3>
     <ul>
       <li>Provide clear, actionable feedback about accessibility issues</li>
       <li>Educate developers about WCAG standards and best practices</li>
@@ -5067,7 +5288,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </section>
   
   <section aria-labelledby="about-touchpoints">
-    <h2 id="about-touchpoints"><span class="section-number">5.</span>About Touchpoints</h2>
+    <h2 id="about-touchpoints"><span class="section-number">4.</span>About Touchpoints</h2>
     <p>Touchpoints are individual accessibility tests that focus on specific aspects of web accessibility. Each touchpoint checks for compliance with one or more WCAG success criteria.</p>`;
     
     // Add documentation for each implemented touchpoint
@@ -5083,12 +5304,12 @@ document.addEventListener('DOMContentLoaded', function() {
         htmlTemplate += `
     
     <div class="touchpoint-doc">
-      <h3 id="touchpoint-${touchpoint}"><span class="section-number">5.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
+      <h3 id="touchpoint-${touchpoint}"><span class="section-number">4.${touchpointDocIndex}</span>${escapeHtml(doc.title || displayName)}</h3>
       <p>${escapeHtml(doc.overview)}</p>`;
       
       if (doc.whatItTests && doc.whatItTests.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">5.${touchpointDocIndex}.1</span>What it Tests</h4>
+      <h4><span class="section-number">4.${touchpointDocIndex}.1</span>What it Tests</h4>
       <ul>`;
         doc.whatItTests.forEach(test => {
           htmlTemplate += `
@@ -5100,7 +5321,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.wcagCriteria && doc.wcagCriteria.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">5.${touchpointDocIndex}.2</span>WCAG Success Criteria</h4>
+      <h4><span class="section-number">4.${touchpointDocIndex}.2</span>WCAG Success Criteria</h4>
       <ul>`;
         doc.wcagCriteria.forEach(criteria => {
           htmlTemplate += `
@@ -5112,7 +5333,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.commonIssues && doc.commonIssues.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">5.${touchpointDocIndex}.3</span>Common Issues</h4>
+      <h4><span class="section-number">4.${touchpointDocIndex}.3</span>Common Issues</h4>
       <ul>`;
         doc.commonIssues.forEach(issue => {
           htmlTemplate += `
@@ -5124,7 +5345,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.bestPractices && doc.bestPractices.length > 0) {
         htmlTemplate += `
-      <h4><span class="section-number">5.${touchpointDocIndex}.4</span>Best Practices</h4>
+      <h4><span class="section-number">4.${touchpointDocIndex}.4</span>Best Practices</h4>
       <ul>`;
         doc.bestPractices.forEach(practice => {
           htmlTemplate += `
@@ -5136,7 +5357,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (doc.examples) {
         htmlTemplate += `
-      <h4><span class="section-number">5.${touchpointDocIndex}.5</span>Code Examples</h4>`;
+      <h4><span class="section-number">4.${touchpointDocIndex}.5</span>Code Examples</h4>`;
         
         if (doc.examples.good && doc.examples.good.length > 0) {
           htmlTemplate += `
