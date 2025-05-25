@@ -1723,6 +1723,221 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Display the test results grouped by impact level
+   * @param {Object} results - Test results organized by touchpoint
+   */
+  function displayResultsGroupedByImpact(results) {
+    if (!results || Object.keys(results).length === 0) {
+      resultsContainer.innerHTML = '<p class="results-message">No accessibility issues detected.</p>';
+      return;
+    }
+
+    // Clear previous results
+    resultsContainer.innerHTML = '';
+    
+    // Collect all issues and group them by impact level
+    const issuesByImpact = {
+      'high': [],
+      'medium': [],
+      'low': [],
+      'info': [] // Info issues don't have impact levels, so we'll group them separately
+    };
+    
+    Object.keys(results).forEach(touchpoint => {
+      if (touchpoint === '__summary') return;
+      
+      const touchpointData = results[touchpoint];
+      if (touchpointData.issues && touchpointData.issues.length > 0) {
+        touchpointData.issues.forEach(issue => {
+          // Clone the issue and add touchpoint info
+          const issueClone = {
+            ...issue,
+            touchpoint: touchpoint,
+            touchpointTitle: touchpointData.title || touchpoint
+          };
+          
+          // Group by impact level
+          if (issue.type === 'info') {
+            issuesByImpact['info'].push(issueClone);
+          } else if (issue.impact && issue.impact.level) {
+            const impactLevel = issue.impact.level.toLowerCase();
+            if (issuesByImpact[impactLevel]) {
+              issuesByImpact[impactLevel].push(issueClone);
+            }
+          }
+        });
+      }
+    });
+    
+    // Create sections in order: high, medium, low, info
+    const impactOrder = ['high', 'medium', 'low', 'info'];
+    const impactLabels = {
+      'high': 'High Impact',
+      'medium': 'Medium Impact', 
+      'low': 'Low Impact',
+      'info': 'Informational'
+    };
+    
+    impactOrder.forEach((impactLevel, index) => {
+      const issues = issuesByImpact[impactLevel];
+      if (issues.length > 0) {
+        const section = createImpactSection(impactLabels[impactLevel], issues, index, impactLevel);
+        resultsContainer.appendChild(section);
+      }
+    });
+    
+    // Initialize issue disclosures
+    initializeIssueDisclosures();
+    
+    // Apply syntax highlighting after a delay
+    setTimeout(() => {
+      try {
+        applyHtmlSyntaxHighlighting();
+      } catch (error) {
+        console.error('[Panel] Error applying syntax highlighting:', error);
+      }
+    }, 300);
+  }
+  
+  /**
+   * Create an accordion section for an impact level
+   * @param {string} impactLabel - Display label for the impact level
+   * @param {Array} issues - Array of issues at this impact level
+   * @param {number} index - Section index
+   * @param {string} impactLevel - Raw impact level (high, medium, low, info)
+   * @returns {HTMLElement} - The accordion element
+   */
+  function createImpactSection(impactLabel, issues, index, impactLevel) {
+    // Count issues by type
+    const counts = {
+      fail: 0,
+      warning: 0,
+      info: 0
+    };
+
+    issues.forEach(issue => {
+      counts[issue.type]++;
+    });
+
+    // Create accordion element
+    const accordion = document.createElement('div');
+    accordion.className = 'accordion impact-accordion';
+    accordion.setAttribute('id', `accordion-impact-${index}`);
+
+    // Create accordion header
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', `content-impact-${index}`);
+    header.setAttribute('tabindex', '0');
+
+    // Add expand/collapse icon
+    const icon = document.createElement('span');
+    icon.className = 'accordion-icon';
+    icon.innerHTML = '▶';
+    icon.setAttribute('aria-hidden', 'true');
+    header.appendChild(icon);
+
+    // Add impact level name
+    const title = document.createElement('h2');
+    title.className = 'accordion-title';
+    title.textContent = impactLabel;
+    header.appendChild(title);
+
+    // Add summary counts
+    const summary = document.createElement('div');
+    summary.className = 'accordion-summary';
+
+    if (counts.fail > 0) {
+      const failCount = document.createElement('span');
+      failCount.className = 'count fail';
+      failCount.textContent = `${counts.fail} ${counts.fail === 1 ? 'Fail' : 'Fails'}`;
+      failCount.setAttribute('title', `${counts.fail} ${counts.fail === 1 ? 'Failure' : 'Failures'}`);
+      summary.appendChild(failCount);
+    }
+
+    if (counts.warning > 0) {
+      const warnCount = document.createElement('span');
+      warnCount.className = 'count warning';
+      warnCount.textContent = `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`;
+      warnCount.setAttribute('title', `${counts.warning} ${counts.warning === 1 ? 'Warning' : 'Warnings'}`);
+      summary.appendChild(warnCount);
+    }
+
+    if (counts.info > 0) {
+      const infoCount = document.createElement('span');
+      infoCount.className = 'count info';
+      infoCount.textContent = `${counts.info} ${counts.info === 1 ? 'Info' : 'Info'}`;
+      infoCount.setAttribute('title', `${counts.info} Information ${counts.info === 1 ? 'item' : 'items'}`);
+      summary.appendChild(infoCount);
+    }
+
+    header.appendChild(summary);
+    accordion.appendChild(header);
+
+    // Create accordion content
+    const content = document.createElement('div');
+    content.className = 'accordion-content';
+    content.setAttribute('id', `content-impact-${index}`);
+    
+    // Group issues by touchpoint within this impact level
+    const issuesByTouchpoint = {};
+    issues.forEach(issue => {
+      const key = issue.touchpointTitle;
+      if (!issuesByTouchpoint[key]) {
+        issuesByTouchpoint[key] = [];
+      }
+      issuesByTouchpoint[key].push(issue);
+    });
+
+    // Sort touchpoints alphabetically and create subsections
+    const sortedTouchpoints = Object.entries(issuesByTouchpoint)
+      .sort(([a], [b]) => a.localeCompare(b));
+    
+    sortedTouchpoints.forEach(([touchpointTitle, touchpointIssues]) => {
+      const touchpointSection = document.createElement('div');
+      touchpointSection.className = 'touchpoint-subsection';
+      
+      const touchpointHeader = document.createElement('h3');
+      touchpointHeader.className = 'touchpoint-subsection-title';
+      touchpointHeader.textContent = touchpointTitle;
+      touchpointSection.appendChild(touchpointHeader);
+      
+      // Sort issues within touchpoint by type first, then alphabetically
+      const sortedIssues = touchpointIssues.sort((a, b) => {
+        // First sort by type (fail, warning, info)
+        const typeOrder = { fail: 0, warning: 1, info: 2 };
+        const typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff !== 0) return typeDiff;
+        
+        // Then sort alphabetically by title within the same type
+        return a.title.localeCompare(b.title);
+      });
+      
+      sortedIssues.forEach(issue => {
+        const issueElement = createIssueElement(issue, issue.touchpoint);
+        touchpointSection.appendChild(issueElement);
+      });
+      
+      content.appendChild(touchpointSection);
+    });
+
+    // Add click handler for accordion
+    header.addEventListener('click', toggleAccordion);
+
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleAccordion.call(this);
+      }
+    });
+
+    accordion.appendChild(content);
+    return accordion;
+  }
+  
+  /**
    * Create an accordion section for a page region
    * @param {string} region - Region name
    * @param {Array} issues - Array of issues in this region
