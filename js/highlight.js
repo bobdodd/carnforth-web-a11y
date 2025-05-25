@@ -25,8 +25,9 @@ function highlightElement(selector, issueId) {
   console.log('[highlight.js] Highlighting element with selector:', selector);
   
   // Execute the highlight function in the context of the inspected page
+  // Use JSON.stringify to properly escape the selector string
   chrome.devtools.inspectedWindow.eval(
-    `(${highlightFunctionToInject.toString()})("${selector}", "${safeIssueId}")`,
+    `(${highlightFunctionToInject.toString()})(${JSON.stringify(selector)}, ${JSON.stringify(safeIssueId)})`,
     function(result, isException) {
       if (isException) {
         console.error('Error highlighting element:', isException);
