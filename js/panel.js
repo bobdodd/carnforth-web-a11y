@@ -1440,6 +1440,9 @@ document.addEventListener('DOMContentLoaded', function() {
       resultsContainer.appendChild(section);
     });
     
+    // Initialize issue disclosures
+    initializeIssueDisclosures();
+    
     // Apply syntax highlighting after a delay
     setTimeout(() => {
       try {
@@ -1518,6 +1521,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const section = createCriteriaSection(criteria, issues, index);
       resultsContainer.appendChild(section);
     });
+    
+    // Initialize issue disclosures
+    initializeIssueDisclosures();
     
     // Apply syntax highlighting after a delay
     setTimeout(() => {
