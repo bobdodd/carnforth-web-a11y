@@ -47,19 +47,15 @@ window.test_maps = async function() {
         function getElementPosition(el) {
           if (!el.parentElement) return 1;
           
-          let count = 1;
+          // Get all siblings with the same tag name
           const siblings = Array.from(el.parentElement.children);
+          const sameTagSiblings = siblings.filter(sibling => sibling.tagName === el.tagName);
           
-          for (let i = 0; i < siblings.length; i++) {
-            if (siblings[i] === el) {
-              break;
-            }
-            // Count only elements with the same tag name
-            if (siblings[i].tagName === el.tagName) {
-              count++;
-            }
-          }
-          return count;
+          // Find this element's position among same-tag siblings (1-based)
+          const position = sameTagSiblings.indexOf(el) + 1;
+          
+          // Return 1 if not found (shouldn't happen, but safe fallback)
+          return position > 0 ? position : 1;
         }
 
         // Build XPath from element up to html root
@@ -2081,20 +2077,8 @@ window.test_maps = async function() {
         const elementKey = mapXpath || violation.selector;
         elementTracker.set(elementKey, true);
         
-        // Create a more precise selector with the index to ensure uniqueness
-        // If the original selector is an XPath that won't work with querySelector, convert to CSS path if possible
-        // Otherwise, make the selector include the issue index to ensure different issues highlight different elements
-        let uniqueSelector = violation.selector;
-        if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          // Attempt to create a more reliable CSS selector
-          if (violation.element === 'iframe') {
-            uniqueSelector = `iframe:nth-of-type(${index + 1})`;
-          } else if (violation.element === 'div') {
-            uniqueSelector = `div[class*="map"]:nth-of-type(${index + 1})`;
-          } else if (violation.element === 'svg') {
-            uniqueSelector = `svg:nth-of-type(${index + 1})`;
-          }
-        }
+        // Always prefer XPath for accuracy - it's already unique and precise
+        let uniqueSelector = violation.xpath || violation.selector;
         
         // Pattern: Creating Comprehensive Issue Reports
         // Each issue should provide:
@@ -2332,14 +2316,8 @@ window.test_maps = async function() {
         const elementKey = mapXpath || violation.selector;
         elementTracker.set(elementKey, true);
         
-        let uniqueSelector = violation.selector;
-        if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          if (violation.element === 'iframe') {
-            uniqueSelector = `iframe:nth-of-type(${index + 1})`;
-          } else if (violation.element === 'div') {
-            uniqueSelector = `div[class*="map"]:nth-of-type(${index + 1})`;
-          }
-        }
+        // Always prefer XPath for accuracy
+        let uniqueSelector = violation.xpath || violation.selector;
         
         // WCAG 4.1.2 Name, Role, Value violation
         issues.push({
@@ -2421,11 +2399,8 @@ window.test_maps = async function() {
         // Get element type from violation
         const elementType = violation.element || 'iframe';
         
-        // Create a more specific selector
-        let uniqueSelector = violation.selector;
-        if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          uniqueSelector = `${elementType}:nth-of-type(${index + 1})`;
-        }
+        // Always prefer XPath for accuracy
+        let uniqueSelector = violation.xpath || violation.selector;
         
         issues.push({
           type: 'fail',
@@ -2493,12 +2468,8 @@ window.test_maps = async function() {
         // Get element type from violation
         const elementType = violation.element || 'iframe';
         
-        // Create a more specific selector
-        let uniqueSelector = violation.selector;
-        if (uniqueSelector && (uniqueSelector.startsWith('/') || uniqueSelector.includes('['))) {
-          // Add 3 to the index since this is the slice after the first 3
-          uniqueSelector = `${elementType}:nth-of-type(${index + 3 + 1})`;
-        }
+        // Always prefer XPath for accuracy
+        let uniqueSelector = violation.xpath || violation.selector;
         
         issues.push({
           type: 'fail',
