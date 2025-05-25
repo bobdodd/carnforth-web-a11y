@@ -4480,44 +4480,52 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 1.5rem;
     }
     
-    .exec-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
+    .summary-stats {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      background: #f5f5f5;
+      border-radius: 8px;
       margin-bottom: 2rem;
     }
     
-    .exec-metric {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .exec-metric h3 {
-      font-size: 1.1rem;
-      color: #666;
-      margin-bottom: 0.5rem;
-    }
-    
-    .exec-metric .metric-value {
-      font-size: 3rem;
+    .summary-label {
+      font-size: 1.5rem;
       font-weight: bold;
-      margin: 0.5rem 0;
+      color: #333;
     }
     
-    .exec-metric.fail .metric-value {
+    .summary-counts {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .summary-count {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      border: 2px solid;
+    }
+    
+    .summary-count.fail {
+      background-color: #ffebee;
       color: #b71c1c;
+      border-color: #ef5350;
     }
     
-    .exec-metric.warning .metric-value {
-      color: #f57f17;
+    .summary-count.warning {
+      background-color: #fff8e1;
+      color: #f57c00;
+      border-color: #ffb74d;
     }
     
-    .exec-metric.info .metric-value {
-      color: #0d47a1;
+    .summary-count.info {
+      background-color: #e3f2fd;
+      color: #1976d2;
+      border-color: #64b5f6;
     }
     
     .wcag-at-risk {
@@ -4856,29 +4864,12 @@ document.addEventListener('DOMContentLoaded', function() {
   <section aria-labelledby="summary-heading">
     <h2 id="summary-heading"><span class="section-number">1.</span>Summary</h2>
     
-    <div class="exec-summary-grid">
-      <div class="exec-metric fail">
-        <h3>Critical Issues</h3>
-        <div class="metric-value">${fails}</div>
-        <p>Accessibility barriers found</p>
-      </div>
-      
-      <div class="exec-metric warning">
-        <h3>Warnings</h3>
-        <div class="metric-value">${warnings}</div>
-        <p>Potential issues to review</p>
-      </div>
-      
-      <div class="exec-metric info">
-        <h3>Informational</h3>
-        <div class="metric-value">${infos}</div>
-        <p>Best practice recommendations</p>
-      </div>
-      
-      <div class="exec-metric">
-        <h3>WCAG Criteria at Risk</h3>
-        <div class="metric-value">${wcagCriteriaAtRisk.size}</div>
-        <p>Success criteria affected</p>
+    <div class="summary-stats">
+      <span class="summary-label">Summary:</span>
+      <div class="summary-counts">
+        <span class="summary-count fail">${fails} ${fails === 1 ? 'Fail' : 'Fails'}</span>
+        <span class="summary-count warning">${warnings} ${warnings === 1 ? 'Warning' : 'Warnings'}</span>
+        <span class="summary-count info">${infos} Info</span>
       </div>
     </div>
     
