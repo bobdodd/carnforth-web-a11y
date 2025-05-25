@@ -3830,6 +3830,31 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // Add legend below the chart
+    const legendStartY = chartHeight + 20;
+    const legendItemHeight = 25;
+    const activeItems = data.filter(item => item.value > 0);
+    const legendHeight = (activeItems.length * legendItemHeight) + 20;
+    
+    // Update SVG height to accommodate legend
+    svg = svg.replace(`height="${chartHeight}"`, `height="${chartHeight + legendHeight}"`);
+    svg = svg.replace(`viewBox="0 0 ${svgWidth} ${chartHeight}"`, `viewBox="0 0 ${svgWidth} ${chartHeight + legendHeight}"`);
+    
+    // Add legend group
+    let legendY = legendStartY;
+    activeItems.forEach((item) => {
+      const percentage = total > 0 ? Math.round(item.value/total*100) : 0;
+      svg += `
+        <g>
+          <rect x="20" y="${legendY}" width="20" height="16" 
+                fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
+          <text x="45" y="${legendY + 12}" class="legend-text" font-size="14px">
+            ${escapeHtml(item.label)}: ${item.value} (${percentage}%)
+          </text>
+        </g>`;
+      legendY += legendItemHeight;
+    });
+    
     svg += `</svg>`;
     return svg;
   }
@@ -3896,10 +3921,32 @@ document.addEventListener('DOMContentLoaded', function() {
                   fill="url(#${item.pattern})" stroke="#fff" stroke-width="1" 
                   class="chart-bar" data-color="${item.color}"/>
             <text x="${x + barWidth/2}" y="${y - 5}" text-anchor="middle" class="chart-value">${item.value}</text>
-            <text x="${x + barWidth/2}" y="${barTop + maxBarHeight + 20}" text-anchor="middle" class="chart-label">${item.label}</text>
           </g>`;
       });
     }
+    
+    // Add legend below the chart
+    const legendStartY = height + 20;
+    const legendItemHeight = 25;
+    const legendHeight = (data.length * legendItemHeight) + 20;
+    
+    // Update SVG height to accommodate legend
+    svg = svg.replace(`height="${height}"`, `height="${height + legendHeight}"`);
+    svg = svg.replace(`viewBox="0 0 ${width} ${height}"`, `viewBox="0 0 ${width} ${height + legendHeight}"`);
+    
+    // Add legend group
+    let legendY = legendStartY;
+    data.forEach((item) => {
+      svg += `
+        <g>
+          <rect x="20" y="${legendY}" width="20" height="16" 
+                fill="url(#${item.pattern})" stroke="#333" stroke-width="1"/>
+          <text x="45" y="${legendY + 12}" class="legend-text" font-size="14px">
+            ${escapeHtml(item.label)}: ${item.value}
+          </text>
+        </g>`;
+      legendY += legendItemHeight;
+    });
     
     svg += `</svg>`;
     return svg;
@@ -4623,7 +4670,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .chart-section {
-      min-height: 320px;
+      min-height: 400px;
     }
     
     .chart-section h3 {
@@ -4638,11 +4685,11 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 1.5rem;
-      min-height: 280px;
+      min-height: 350px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
     }
     
     .chart-slice {
