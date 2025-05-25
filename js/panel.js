@@ -1,4 +1,4 @@
-/**
+1/**
  * Main panel functionality for Carnforth Web A11y extension
  */
 
@@ -335,6 +335,9 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
       case 'criteria':
         displayResultsGroupedByCriteria(results);
+        break;
+      case 'impact':
+        displayResultsGroupedByImpact(results);
         break;
       case 'none':
       default:
@@ -1053,6 +1056,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'criteria':
               displayResultsGroupedByCriteria(currentTestResults);
               break;
+            case 'impact':
+              displayResultsGroupedByImpact(currentTestResults);
+              break;
           }
         }
       });
@@ -1148,9 +1154,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update visible count
     updateFilterResultsCount(totalFilteredIssues, totalOriginalIssues);
 
-    // Display filtered results
+    // Display filtered results respecting current grouping
     if (hasVisibleIssues) {
-      displayResults(filteredResults);
+      // Get current grouping mode
+      const currentGrouping = document.querySelector('.grouping-button.active')?.dataset.grouping || 'none';
+      
+      switch (currentGrouping) {
+        case 'region':
+          displayResultsGroupedByRegion(filteredResults);
+          break;
+        case 'guideline':
+          displayResultsGroupedByGuideline(filteredResults);
+          break;
+        case 'criteria':
+          displayResultsGroupedByCriteria(filteredResults);
+          break;
+        case 'impact':
+          displayResultsGroupedByImpact(filteredResults);
+          break;
+        case 'none':
+        default:
+          displayResults(filteredResults);
+          break;
+      }
       updateSummary(filteredResults);
     } else {
       resultsContainer.innerHTML = '<p class="results-message">No issues match the current filters.</p>';
