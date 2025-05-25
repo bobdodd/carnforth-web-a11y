@@ -247,7 +247,7 @@ window.test_maps = async function() {
       const mapIframes = Array.from(document.querySelectorAll('iframe')).filter(iframe => {
         const src = iframe.src || '';
         
-        // Pattern: Multiple detection strategies reduce false negatives
+        // 1: Multiple detection strategies reduce false negatives
         // We check for various URL patterns that indicate map content
         // Note: 'map' alone could match non-map content, so we also check specific providers
         return src.includes('map') || 
@@ -641,12 +641,60 @@ window.test_maps = async function() {
         }
       });
 
+      // Helper function to check for Web Component maps
+      function isWebComponentMap(element) {
+        // Check for custom element names that suggest maps
+        const tagName = element.tagName.toLowerCase();
+        const mapComponentNames = [
+          'google-map', 'gmap-', 'map-box', 'leaflet-map', 
+          'osm-map', 'arcgis-map', 'here-map', 'map-component',
+          'mapbox-gl', 'map-view', 'geo-map', 'esri-map'
+        ];
+        
+        if (mapComponentNames.some(name => tagName.includes(name))) {
+          return true;
+        }
+        
+        // Check for map-related custom elements in children
+        const customElements = element.querySelectorAll('*');
+        return Array.from(customElements).some(el => 
+          el.tagName.includes('-') && 
+          mapComponentNames.some(name => el.tagName.toLowerCase().includes(name))
+        );
+      }
+
+      // Helper function to check shadow DOM for map content
+      function hasShadowMapContent(element) {
+        if (!element.shadowRoot) return false;
+        
+        try {
+          // Check for map indicators in shadow DOM
+          const shadowContent = element.shadowRoot.innerHTML.toLowerCase();
+          const mapIndicators = ['map', 'marker', 'zoom', 'tile', 'layer', 'leaflet', 'mapbox', 'google'];
+          
+          return mapIndicators.some(indicator => shadowContent.includes(indicator));
+        } catch (e) {
+          // Some shadow DOMs are closed and can't be accessed
+          return false;
+        }
+      }
+
       // Detection Strategy 2: Div-based Maps
       // Modern JavaScript map libraries often render into div containers
       // This requires more sophisticated detection than iframe maps
       function isDivBasedMap(div) {
         // Educational: Multiple signals increase detection accuracy
         // We check various indicators and combine them to reduce false positives
+        
+        // First check if it's a Web Component
+        if (isWebComponentMap(div)) {
+          return true;
+        }
+        
+        // Check for Shadow DOM content
+        if (div.shadowRoot && hasShadowMapContent(div)) {
+          return true;
+        }
         
         // Signal 1: Check class and ID attributes for map-related terms
         const classValue = div.className ? div.className.toString() : '';
@@ -700,6 +748,21 @@ window.test_maps = async function() {
         // 5. Check for canvas element within the div (used by some map libraries like Mapbox GL)
         const hasCanvas = div.querySelector('canvas') !== null;
         
+        // 5a. Check for WebGL canvas (used by Mapbox GL, Deck.gl, etc.)
+        const hasWebGLMap = (() => {
+          const canvases = div.querySelectorAll('canvas');
+          
+          return Array.from(canvases).some(canvas => {
+            try {
+              const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+              // Check if canvas has significant size (maps are usually large)
+              return gl && canvas.width > 200 && canvas.height > 200;
+            } catch (e) {
+              return false;
+            }
+          });
+        })();
+        
         // 6. Check for map controls or attribution
         const hasMapControls = div.querySelector('[class*="control"], [class*="attribution"], [class*="zoom"], [class*="legend"], [class*="marker"]') !== null;
         
@@ -727,7 +790,8 @@ window.test_maps = async function() {
           hasGoogleClasses,
           hasMapboxClasses,
           hasOpenLayersClasses,
-          hasCanvas && hasMapStyling
+          hasCanvas && hasMapStyling,
+          hasWebGLMap
         ];
         
         const signalCount = strongSignals.filter(signal => signal === true).length;
@@ -735,8 +799,13 @@ window.test_maps = async function() {
         return signalCount >= 2;
       }
       
-      // Find map divs using the improved detection function
-      const mapDivs = Array.from(document.querySelectorAll('div')).filter(isDivBasedMap);
+      // Find map divs and custom elements using the improved detection function
+      // Also include custom elements that might be Web Components
+      // Only select divs and custom elements, not all elements with "map" in id/class
+      const divMapElements = document.querySelectorAll('div[class*="map"], div[id*="map"]');
+      const customElements = Array.from(document.querySelectorAll('*')).filter(el => el.tagName.includes('-'));
+      const allPotentialMaps = [...divMapElements, ...customElements];
+      const mapDivs = Array.from(new Set(allPotentialMaps)).filter(isDivBasedMap);
         
       // Check for static image maps (img elements with map-related attributes)
       const staticImageMaps = Array.from(document.querySelectorAll('img'))
@@ -778,6 +847,37 @@ window.test_maps = async function() {
                  (alt.includes('map of') || alt.includes('map showing'));
         });
         
+      // Helper function to check for geo data references
+      function hasGeoDataReference() {
+        // Check script tags for geo data
+        const scripts = document.querySelectorAll('script');
+        const geoDataPattern = /\b(geojson|topojson|geo\.json|topo\.json)\b/i;
+        
+        return Array.from(scripts).some(script => 
+          geoDataPattern.test(script.src || '') || 
+          geoDataPattern.test(script.textContent || '')
+        );
+      }
+
+      // Helper function to check for choropleth patterns
+      function hasChoroplethPattern(svg) {
+        const paths = svg.querySelectorAll('path');
+        if (paths.length < 5) return false; // Choropleth maps typically have many regions
+        
+        // Check if paths have data attributes suggesting regions
+        const pathsWithData = Array.from(paths).filter(path => {
+          const attrs = Array.from(path.attributes);
+          return attrs.some(attr => 
+            attr.name.startsWith('data-') && 
+            (attr.name.includes('value') || attr.name.includes('region') || 
+             attr.name.includes('id') || attr.name.includes('name'))
+          );
+        });
+        
+        // If >50% of paths have data attributes, likely a choropleth
+        return pathsWithData.length > paths.length * 0.5;
+      }
+
       // Check for SVG-based maps (increasingly common for interactive choropleth, vector maps)
       const svgMaps = Array.from(document.querySelectorAll('svg'))
         .filter(svg => {
@@ -798,29 +898,61 @@ window.test_maps = async function() {
               (attr.name.includes('map') || attr.name.includes('geo') || 
                attr.name.includes('region') || attr.name.includes('country')));
           
-          // 5. Check if this SVG has a title element for accessible name
-          const hasTitle = svg.querySelector('title') !== null;
-          
           // 6. Check for typical map interaction patterns
           const hasZoomControls = svg.closest('div')?.querySelector('[id*="zoom"], [class*="zoom"], [aria-label*="zoom"]') !== null;
           
+          // 7. Check for choropleth pattern
+          const isChoropleth = hasChoroplethPattern(svg);
+          
+          // 8. Check for GeoJSON/TopoJSON data references
+          const hasGeoData = hasGeoDataReference();
+          
           // Exclude SVGs that are definitely not maps
-          const excludedTypes = ['icon', 'logo', 'chart', 'graph', 'avatar', 'illustration', 'button'];
+          const excludedTypes = ['icon', 'logo', 'chart', 'graph', 'avatar', 'illustration', 'button', 'social', 'arrow', 'chevron', 'infographic', 'diagram', 'stats', 'metric'];
           const isExcludedType = excludedTypes.some(type => classAndId.includes(type));
           
-          // If it has map in class/id, it's very likely a map
+          // Additional exclusions
+          const svgWidth = parseInt(svg.getAttribute('width') || svg.viewBox?.baseVal?.width || 0);
+          const svgHeight = parseInt(svg.getAttribute('height') || svg.viewBox?.baseVal?.height || 0);
+          const isTooSmall = svgWidth > 0 && svgHeight > 0 && (svgWidth < 100 || svgHeight < 100);
+          
+          // Check if it's in a social media context
+          const isSocialContext = svg.closest('[class*="social"], [class*="share"], [id*="social"], [id*="share"]') !== null;
+          
+          // Check if SVG has aria-hidden="true" (decorative)
+          const isAriaHidden = svg.getAttribute('aria-hidden') === 'true';
+          
+          // Check for specific geographic terms that strongly indicate a map
+          const titleText = svg.querySelector('title')?.textContent?.toLowerCase() || '';
+          const hasGeoTermsInTitle = titleText.includes('map') || titleText.includes('globe') || 
+                                    titleText.includes('world') || titleText.includes('country') || 
+                                    titleText.includes('region') || titleText.includes('state');
+          
+          // Look for specific map-related elements
+          const hasMapElements = svg.querySelector('[id*="countries"], [id*="regions"], [id*="states"], [class*="country"], [class*="region"], [class*="state"]') !== null;
+          
+          // If it has map in class/id AND it's not excluded, it might be a map
           const explicitlyMap = classAndId.includes('map') && 
                                 !classAndId.includes('sitemap') && 
                                 !classAndId.includes('roadmap') &&
-                                !classAndId.includes('mindmap');
+                                !classAndId.includes('mindmap') &&
+                                !classAndId.includes('heatmap') &&
+                                !classAndId.includes('treemap');
                                 
-          // For other SVGs, we need at least two indicators to consider it a map
-          return explicitlyMap || 
-                 (!isExcludedType && 
-                  ((hasGeoPaths && hasViewBox) || 
-                   (hasGeoPaths && hasDataAttrs) || 
-                   (hasZoomControls && hasGeoPaths) ||
-                   (hasTitle && hasGeoPaths)));
+          // Exclude if any exclusion criteria are met
+          if (isExcludedType || isTooSmall || isSocialContext || isAriaHidden) {
+            return false;
+          }
+          
+          // For SVGs to be considered maps, we need very strong evidence
+          // Require explicit map indication AND additional evidence
+          return explicitlyMap && (
+                   (hasGeoPaths && hasMapElements) ||    // Has map class AND geographic elements
+                   (hasGeoTermsInTitle && hasGeoPaths) || // Has geographic title AND paths
+                   (isChoropleth) ||                       // Choropleth pattern detected
+                   (hasGeoData && hasGeoPaths) ||          // GeoJSON/TopoJSON detected
+                   (hasZoomControls && hasGeoPaths)        // Interactive map with zoom
+                 );
         });
 
       // Process static image maps
@@ -837,7 +969,6 @@ window.test_maps = async function() {
         const ariaLabel = img.getAttribute('aria-label') || '';
         const ariaLabelledby = img.getAttribute('aria-labelledby') || '';
         const ariaHidden = img.getAttribute('aria-hidden');
-        const longdesc = img.getAttribute('longdesc') || '';
         
         // Determine the map provider based on src
         let provider = 'Static Map Image';
@@ -937,6 +1068,7 @@ window.test_maps = async function() {
         const pageScripts = {
           // Major Western providers
           'Mapbox': document.querySelector('script[src*="mapbox-gl"], script[src*="mapbox.js"]') !== null,
+          'MapLibre GL': document.querySelector('script[src*="maplibre-gl"], script[src*="maplibre.js"]') !== null,
           'Leaflet': document.querySelector('script[src*="leaflet"], link[href*="leaflet"]') !== null,
           'Google Maps': document.querySelector('script[src*="maps.google"], script[src*="googleapis.com/maps"]') !== null,
           'OpenLayers': document.querySelector('script[src*="openlayers"], script[src*="ol.js"], script[src*="ol-debug"]') !== null,
@@ -946,6 +1078,12 @@ window.test_maps = async function() {
           'TomTom': document.querySelector('script[src*="tomtom"], script[src*="api.tomtom.com"]') !== null,
           'Bing Maps': document.querySelector('script[src*="bing"], script[src*="virtualearth"]') !== null,
           'Carto': document.querySelector('script[src*="carto"], link[href*="carto"]') !== null,
+          
+          // Modern 3D and WebGL providers
+          'Cesium': document.querySelector('script[src*="cesium"], script[src*="Cesium.js"]') !== null,
+          'Deck.gl': document.querySelector('script[src*="deck.gl"], script[src*="deckgl"]') !== null,
+          'Tangram': document.querySelector('script[src*="tangram"], script[src*="tangram.min.js"]') !== null,
+          'Maps4HTML': document.querySelector('map-viewer, mapml-viewer') !== null,
           
           // Asian providers
           'Baidu Maps': document.querySelector('script[src*="api.map.baidu.com"]') !== null,
@@ -968,6 +1106,7 @@ window.test_maps = async function() {
         // Look for specific provider signatures in the div
         // Western providers
         if (divClasses.includes('mapbox') || divClasses.includes('mapboxgl') || divId.includes('mapbox')) return 'Mapbox';
+        if (divClasses.includes('maplibre') || divId.includes('maplibre')) return 'MapLibre GL';
         if (divClasses.includes('leaflet') || div.querySelector('.leaflet')) return 'Leaflet';
         if (divClasses.includes('gm-') || div.querySelector('.gm-style') || divId.includes('googlemap')) return 'Google Maps';
         if (divClasses.includes('ol-') || divClasses.includes('openlayers') || divId.includes('openlayers')) return 'OpenLayers';
@@ -976,6 +1115,14 @@ window.test_maps = async function() {
         if (divClasses.includes('tomtom') || divId.includes('tomtom')) return 'TomTom';
         if (divClasses.includes('bing') || divId.includes('bing')) return 'Bing Maps';
         if (divClasses.includes('carto') || divId.includes('carto')) return 'Carto';
+        
+        // Modern 3D and WebGL providers
+        if (divClasses.includes('cesium') || div.querySelector('.cesium-viewer')) return 'Cesium';
+        if (divClasses.includes('deck-gl') || divClasses.includes('deckgl') || divId.includes('deck')) return 'Deck.gl';
+        if (divClasses.includes('tangram') || divId.includes('tangram')) return 'Tangram';
+        
+        // Check for web component-based Maps4HTML
+        if (div.tagName.toLowerCase() === 'map-viewer' || div.tagName.toLowerCase() === 'mapml-viewer') return 'Maps4HTML';
         
         // Asian providers
         if (divClasses.includes('baidu') || divClasses.includes('bmap') || divId.includes('baidu')) return 'Baidu Maps';
@@ -990,10 +1137,11 @@ window.test_maps = async function() {
         if (divClasses.includes('yandex') || divId.includes('yandex')) return 'Yandex Maps';
         
         // If no specific class indicators, check for map attribution elements which often indicate the provider
-        const attribution = div.querySelector('.mapbox-attribution, .leaflet-attribution, .ol-attribution, .gmnoprint, .gm-style-cc');
+        const attribution = div.querySelector('.mapbox-attribution, .leaflet-attribution, .ol-attribution, .gmnoprint, .gm-style-cc, .cesium-credit, .deck-attribution');
         if (attribution) {
           const attributionText = attribution.textContent.toLowerCase();
           if (attributionText.includes('mapbox')) return 'Mapbox';
+          if (attributionText.includes('maplibre')) return 'MapLibre GL';
           if (attributionText.includes('leaflet')) return 'Leaflet';
           if (attributionText.includes('google')) return 'Google Maps';
           if (attributionText.includes('openstreetmap') && divClasses.includes('ol-')) return 'OpenLayers';
@@ -1001,6 +1149,9 @@ window.test_maps = async function() {
           if (attributionText.includes('here')) return 'HERE Maps';
           if (attributionText.includes('tomtom')) return 'TomTom';
           if (attributionText.includes('bing') || attributionText.includes('microsoft')) return 'Bing Maps';
+          if (attributionText.includes('cesium')) return 'Cesium';
+          if (attributionText.includes('deck.gl')) return 'Deck.gl';
+          if (attributionText.includes('tangram')) return 'Tangram';
         }
         
         // If we can't identify from the div itself, check page scripts
@@ -1008,8 +1159,22 @@ window.test_maps = async function() {
           if (exists) return provider;
         }
         
-        // Check for canvas elements which might indicate vector-based maps
+        // Check for canvas elements which might indicate vector-based maps (Deck.gl, Cesium, etc.)
         if (div.querySelector('canvas') && (divClasses.includes('map') || divId.includes('map'))) {
+          // Try to detect WebGL-based maps more specifically
+          const canvases = div.querySelectorAll('canvas');
+          const hasWebGL = Array.from(canvases).some(canvas => {
+            try {
+              const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+              return gl && canvas.width > 200 && canvas.height > 200;
+            } catch (e) {
+              return false;
+            }
+          });
+          
+          if (hasWebGL) {
+            return 'WebGL Map (3D/Vector)';
+          }
           return 'Vector Map (Canvas-based)';
         }
         
@@ -1479,8 +1644,9 @@ window.test_maps = async function() {
         const ariaHidden = svg.getAttribute('aria-hidden');
         const role = svg.getAttribute('role');
         
-        // SVG maps should have a role attribute (usually 'img' or sometimes 'graphics-document' or 'application' if interactive)
-        const hasProperRole = role === 'img' || role === 'graphics-document' || role === 'application' || role === 'figure';
+        // SVG maps should have a role attribute
+        // For interactive SVGs, role="document" is correct, not role="img"
+        const hasProperRole = role === 'img' || role === 'graphics-document' || role === 'application' || role === 'figure' || role === 'document';
         
         // An SVG has an accessible name if it has a title element, aria-label, or aria-labelledby
         const hasAccessibleName = !!titleText || !!ariaLabel || !!ariaLabelledby;
@@ -1503,8 +1669,19 @@ window.test_maps = async function() {
         
         // Detect common mapping libraries that use SVG
         let provider = 'SVG Map';
+        
+        // Check for GeoJSON/TopoJSON data first
+        if (hasGeoDataReference()) {
+          provider = 'GeoJSON/TopoJSON Map';
+        }
+        // Check for choropleth pattern
+        else if (hasChoroplethPattern(svg)) {
+          provider = 'Choropleth Map';
+        }
+        
+        // Check for specific libraries
         if (document.querySelector('script[src*="datamaps"]')) provider = 'Datamaps';
-        if (document.querySelector('script[src*="d3-geo"]')) provider = 'D3.js Geo';
+        if (document.querySelector('script[src*="d3-geo"]') || document.querySelector('script[src*="d3js"]')) provider = 'D3.js Geo';
         if (document.querySelector('script[src*="topojson"]')) provider = 'TopoJSON';
         if (document.querySelector('script[src*="highcharts"]')) provider = 'Highcharts Maps';
         if (document.querySelector('script[src*="amcharts"]')) provider = 'amCharts Maps';
@@ -1605,6 +1782,8 @@ window.test_maps = async function() {
             html: svgHtml,
             missingName: !hasAccessibleName,
             missingRole: !hasProperRole,
+            currentRole: role || 'none',
+            isInteractive: isInteractive,
             region: regionInfo.region,
             landmark: regionInfo.landmark
           });
@@ -2611,7 +2790,9 @@ window.test_maps = async function() {
             version: '2.0'
           },
           remediation: [
-            missingRole ? 'Add role="img" or role="graphics-document" to the SVG element' : '',
+            missingRole ? (violation.isInteractive ? 
+              'Add appropriate role to the SVG element: role="document" for interactive maps, role="img" for static maps' : 
+              'Add role="img" or role="graphics-document" to the SVG element') : '',
             missingRole && missingName ? 'AND' : '',
             missingName ? 'Provide an accessible name using one of these methods:' : '',
             missingName ? '1. Add a <title> element as the first child of the SVG' : '',
@@ -2627,7 +2808,26 @@ window.test_maps = async function() {
   <path d="M..." id="oregon" fill="#ccefff"></path>
   <!-- etc... -->
 </svg>`,
-            after: `<svg viewBox="0 0 800 500" class="us-map" 
+            after: violation.isInteractive ? 
+`<!-- For interactive SVG maps -->
+<svg viewBox="0 0 800 500" class="interactive-map" 
+  role="document" 
+  aria-labelledby="map-title"
+  focusable="true">
+  
+  <title id="map-title">Interactive map of United States - Tab to navigate regions</title>
+  
+  <!-- Interactive elements with proper keyboard support -->
+  <g tabindex="0" role="button" aria-label="California - Population: 39.5M">
+    <path d="M..." id="california" fill="#ccefff"></path>
+  </g>
+  <g tabindex="0" role="button" aria-label="Oregon - Population: 4.2M">
+    <path d="M..." id="oregon" fill="#ccefff"></path>
+  </g>
+  <!-- etc... -->
+</svg>` :
+`<!-- For static SVG maps -->
+<svg viewBox="0 0 800 500" class="us-map" 
   role="img" 
   aria-labelledby="map-title">
   
@@ -2649,13 +2849,6 @@ window.test_maps = async function() {
 <svg viewBox="0 0 800 500" class="us-map" 
   role="img" 
   aria-labelledby="map-title">
-  <!-- ... SVG content ... -->
-</svg>
-
-<!-- Alternative 3: Using aria-label directly on the SVG -->
-<svg viewBox="0 0 800 500" class="us-map" 
-  role="img" 
-  aria-label="Map of United States showing population density by state">
   <!-- ... SVG content ... -->
 </svg>`
           }
