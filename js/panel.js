@@ -3819,13 +3819,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Store label data for second pass
         const labelAngle = currentAngle + sliceAngle / 2;
-        const percentage = Math.round(item.value / total * 100);
-        if (percentage > 5) {
-          labelData.push({
-            angle: labelAngle,
-            percentage: percentage
-          });
-        }
+        labelData.push({
+          angle: labelAngle,
+          value: item.value
+        });
         
         currentAngle = endAngle;
       });
@@ -3836,17 +3833,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const labelX = centerX + Math.cos(label.angle) * labelRadius;
         const labelY = centerY + Math.sin(label.angle) * labelRadius;
         
-        // Add white background rect for contrast
-        const textWidth = label.percentage.toString().length * 12 + 20;
-        const textHeight = 30;
+        // Add white background rect for contrast with proper sizing
+        const labelText = label.value.toString();
+        const textWidth = labelText.length * 12 + 20; // Add more padding
+        const textHeight = 30; // Taller to provide padding
         
         svg += `
           <g>
             <rect x="${labelX - textWidth/2}" y="${labelY - textHeight/2}" 
                   width="${textWidth}" height="${textHeight}" 
-                  fill="white" stroke="#333" stroke-width="1" rx="2"/>
-            <text x="${labelX}" y="${labelY}" text-anchor="middle" alignment-baseline="middle" 
-                  class="chart-label" fill="#333" font-weight="bold">${label.percentage}%</text>
+                  fill="white" fill-opacity="0.95" stroke="#333" stroke-width="1" rx="4" ry="4"/>
+            <text x="${labelX}" y="${labelY + 3}" text-anchor="middle" dominant-baseline="middle" 
+                  class="chart-value" fill="#333">${labelText}</text>
           </g>`;
       });
     }
