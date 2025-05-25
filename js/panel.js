@@ -5,6 +5,9 @@
 // Store test results globally to be accessed by export functions
 let currentTestResults = null;
 
+// Export removeAllHighlights function for use by other modules
+window.removeAllHighlights = null; // Will be defined later
+
 // The list of touchpoints to run - defined before DOMContentLoaded
 const touchpoints = [
   'accessible_name', 'animation', 'audio', 'color_contrast', 
@@ -14,6 +17,51 @@ const touchpoints = [
   'maps', 'read_more', 'tabindex', 'title_attribute',
   'tables', 'timers', 'touch_and_gestures', 'videos'
 ];
+
+// Function to remove all highlights from the page
+function removeAllHighlights() {
+  console.log("[Panel] Removing all highlights");
+  chrome.devtools.inspectedWindow.eval(
+    `(function() {
+      const highlights = document.querySelectorAll('.carnforth-highlight, [id^="carnforth-highlight-"]');
+      highlights.forEach(highlight => {
+        if (highlight.updatePosition) {
+          window.removeEventListener('resize', highlight.updatePosition);
+          window.removeEventListener('scroll', highlight.updatePosition);
+        }
+        highlight.remove();
+      });
+      console.log('[Carnforth] Removed', highlights.length, 'highlights');
+    })()`,
+    function(result, isException) {
+      if (isException) {
+        console.error('[Panel] Error removing highlights:', isException);
+      }
+    }
+  );
+}
+
+// Export the function for use by other modules
+window.removeAllHighlights = removeAllHighlights;
+
+// Clean up highlights when panel loses focus or is closed
+window.addEventListener('blur', function() {
+  console.log("[Panel] Window lost focus, removing highlights");
+  removeAllHighlights();
+});
+
+window.addEventListener('beforeunload', function() {
+  console.log("[Panel] Panel unloading, removing highlights");
+  removeAllHighlights();
+});
+
+// Also clean up when DevTools is hidden
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    console.log("[Panel] Panel hidden, removing highlights");
+    removeAllHighlights();
+  }
+});
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log("[Panel] DOMContentLoaded event fired");
@@ -1078,6 +1126,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Listen for test button click
   startTestButton.addEventListener('click', function() {
+    // Remove any existing highlights before starting new test
+    removeAllHighlights();
+    
     // Show loading state
     startTestButton.disabled = true;
     startTestButton.textContent = 'Running tests...';
