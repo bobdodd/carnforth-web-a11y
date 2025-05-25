@@ -116,6 +116,17 @@ if (typeof window.__CARNFORTH_CONTENT_LOADED === 'undefined') {
   function highlightElement(selector, issueId) {
     console.log(`[Content] Highlighting element: ${selector} for issue: ${issueId}`);
     
+    // First, remove ALL existing highlights to ensure only one element is highlighted at a time
+    const existingHighlights = document.querySelectorAll('.carnforth-highlight, [id^="carnforth-highlight-"]');
+    existingHighlights.forEach(highlight => {
+      // Clean up event listeners if they exist
+      if (highlight.updatePosition) {
+        window.removeEventListener('resize', highlight.updatePosition);
+        window.removeEventListener('scroll', highlight.updatePosition);
+      }
+      highlight.remove();
+    });
+    
     // Try to get the element by CSS selector
     let element = null;
     
@@ -182,15 +193,6 @@ if (typeof window.__CARNFORTH_CONTENT_LOADED === 'undefined') {
     // Generate a unique ID for this highlight based on the issue ID
     const safeIssueId = issueId || `unspecified-${Date.now()}`;
     const highlightId = `carnforth-highlight-${safeIssueId}`;
-    
-    // Check if this issue already has a highlight
-    const existingHighlight = document.getElementById(highlightId);
-    if (existingHighlight) {
-      // If already highlighted, just return without scrolling
-      // REMOVED: element.scrollIntoView() call that was causing page navigation events
-      console.log('[Content] Element already highlighted, skipping highlight creation');
-      return highlightId;
-    }
     
     // Get element position
     const rect = element.getBoundingClientRect();

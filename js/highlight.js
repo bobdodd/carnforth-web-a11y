@@ -45,6 +45,17 @@ window.highlightElementFromHighlightJs = highlightElement;
  * @param {string} issueId - The ID of the issue being highlighted
  */
 function highlightFunctionToInject(selector, issueId) {
+  // First, remove ALL existing highlights to ensure only one element is highlighted at a time
+  const existingHighlights = document.querySelectorAll('.carnforth-highlight, [id^="carnforth-highlight-"]');
+  existingHighlights.forEach(highlight => {
+    // Clean up event listeners if they exist
+    if (highlight.updatePosition) {
+      window.removeEventListener('resize', highlight.updatePosition);
+      window.removeEventListener('scroll', highlight.updatePosition);
+    }
+    highlight.remove();
+  });
+  
   // Try to get the element by CSS selector
   let element = null;
   
@@ -110,31 +121,6 @@ function highlightFunctionToInject(selector, issueId) {
   
   // Generate a unique ID for this highlight based on the issue ID
   const highlightId = `carnforth-highlight-${issueId}`;
-  
-  // Check if this issue already has a highlight
-  const existingHighlight = document.getElementById(highlightId);
-  if (existingHighlight) {
-    // If already highlighted, scroll to it without triggering navigation
-    console.log('Element already highlighted, scrolling to view');
-    
-    // Use a custom scroll method that won't trigger navigation events
-    const rect = element.getBoundingClientRect();
-    const absoluteTop = rect.top + window.pageYOffset;
-    const absoluteLeft = rect.left + window.pageXOffset;
-    
-    // Calculate center position
-    const centerY = absoluteTop - (window.innerHeight / 2) + (rect.height / 2);
-    const centerX = absoluteLeft - (window.innerWidth / 2) + (rect.width / 2);
-    
-    // Use window.scrollTo with behavior smooth
-    window.scrollTo({
-      top: Math.max(0, centerY),
-      left: Math.max(0, centerX),
-      behavior: 'smooth'
-    });
-    
-    return;
-  }
   
   // Get element position
   const rect = element.getBoundingClientRect();
