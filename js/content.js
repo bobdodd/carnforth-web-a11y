@@ -133,41 +133,63 @@ if (typeof window.__CARNFORTH_CONTENT_LOADED === 'undefined') {
     // Store the original selector for logging
     const originalSelector = selector;
     
-    try {
-      // If the selector contains an index indicator like :nth-of-type or :nth-child
-      // We need to handle it specially to ensure we highlight the correct element
-      if (selector.includes(':nth-of-type(') || selector.includes(':nth-child(')) {
-        element = document.querySelector(selector);
-      } 
-      // If selector is very simple like 'iframe' but we need a specific one
-      // and the issueId contains a numeric identifier, we can use that
-      else if (/^(iframe|div|svg)$/.test(selector) && issueId && /\d+/.test(issueId)) {
-        // Extract numeric part from issue ID if present
-        const match = issueId.match(/\d+/);
-        const index = match ? parseInt(match[0]) : 0;
-        // Create a more specific selector using nth-of-type
-        const specificSelector = `${selector}:nth-of-type(${index + 1})`;
-        console.log(`[Content] Using more specific selector: ${specificSelector} derived from ${selector} and issueId: ${issueId}`);
-        element = document.querySelector(specificSelector);
+    // Check if this is an XPath selector first (starts with / or contains /html)
+    if (selector.startsWith('/') || selector.includes('/html')) {
+      // This is definitely an XPath, use XPath evaluation
+      try {
+        const result = document.evaluate(
+          selector, 
+          document, 
+          null, 
+          XPathResult.FIRST_ORDERED_NODE_TYPE, 
+          null
+        );
         
-        // If still not found, fall back to basic selector
-        if (!element) {
-          const elements = document.querySelectorAll(selector);
-          if (elements.length > 0) {
-            // Use the index from issueId, but ensure it's within bounds
-            const safeIndex = index < elements.length ? index : 0;
-            element = elements[safeIndex];
-          }
+        if (result.singleNodeValue) {
+          element = result.singleNodeValue;
+          console.log('[Content] Found element via XPath:', element.tagName, element.id || 'no-id');
         }
-      } else {
-        element = document.querySelector(selector);
+      } catch (e) {
+        console.error('[Content] Invalid XPath:', e);
       }
-    } catch (e) {
-      console.error('[Content] Error with selector:', e);
+    } else {
+      // Try CSS selector
+      try {
+        // If the selector contains an index indicator like :nth-of-type or :nth-child
+        // We need to handle it specially to ensure we highlight the correct element
+        if (selector.includes(':nth-of-type(') || selector.includes(':nth-child(')) {
+          element = document.querySelector(selector);
+        } 
+        // If selector is very simple like 'iframe' but we need a specific one
+        // and the issueId contains a numeric identifier, we can use that
+        else if (/^(iframe|div|svg)$/.test(selector) && issueId && /\d+/.test(issueId)) {
+          // Extract numeric part from issue ID if present
+          const match = issueId.match(/\d+/);
+          const index = match ? parseInt(match[0]) : 0;
+          // Create a more specific selector using nth-of-type
+          const specificSelector = `${selector}:nth-of-type(${index + 1})`;
+          console.log(`[Content] Using more specific selector: ${specificSelector} derived from ${selector} and issueId: ${issueId}`);
+          element = document.querySelector(specificSelector);
+          
+          // If still not found, fall back to basic selector
+          if (!element) {
+            const elements = document.querySelectorAll(selector);
+            if (elements.length > 0) {
+              // Use the index from issueId, but ensure it's within bounds
+              const safeIndex = index < elements.length ? index : 0;
+              element = elements[safeIndex];
+            }
+          }
+        } else {
+          element = document.querySelector(selector);
+        }
+      } catch (e) {
+        console.error('[Content] Error with CSS selector:', e);
+      }
     }
     
-    // If not found and looks like XPath, try XPath
-    if (!element && selector.includes('/')) {
+    // If still not found and looks like it might be XPath, try XPath as fallback
+    if (!element && selector.includes('/') && !selector.startsWith('/')) {
       try {
         const result = document.evaluate(
           selector, 
