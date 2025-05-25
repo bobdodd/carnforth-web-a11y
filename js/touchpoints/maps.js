@@ -42,28 +42,35 @@ window.test_maps = async function() {
       function getFullXPath(element) {
         if (!element) return '';
         
-        // Educational: Count position among siblings of same tag type
+        // Count position among siblings of same tag type
         // This ensures unique identification even without IDs or classes
-        function getElementIdx(el) {
+        function getElementPosition(el) {
           let count = 1;
-          for (let sib = el.previousSibling; sib; sib = sib.previousSibling) {
-            // Only count element nodes (nodeType 1), not text nodes
-            if (sib.nodeType === 1 && sib.tagName === el.tagName) {
+          let sibling = el.previousElementSibling;
+          while (sibling) {
+            // Count only elements with the same tag name
+            if (sibling.tagName === el.tagName) {
               count++;
             }
+            sibling = sibling.previousElementSibling;
           }
           return count;
         }
 
-        // Build XPath from element up to document root
+        // Build XPath from element up to html root
         let path = '';
-        while (element && element.nodeType === 1) {
-          let idx = getElementIdx(element);
-          let tagName = element.tagName.toLowerCase();
-          path = `/${tagName}[${idx}]${path}`;
-          element = element.parentNode;
+        let currentElement = element;
+        
+        // Walk up the DOM tree
+        while (currentElement && currentElement.tagName && currentElement.tagName.toLowerCase() !== 'html') {
+          const tagName = currentElement.tagName.toLowerCase();
+          const position = getElementPosition(currentElement);
+          path = `/${tagName}[${position}]${path}`;
+          currentElement = currentElement.parentElement;
         }
-        return path;
+        
+        // Add the html root
+        return `/html${path}`;
       }
       
       // Utility Pattern: Page Region Detection
@@ -511,9 +518,8 @@ window.test_maps = async function() {
         const iframeHtml = iframe.outerHTML;
         
         // Create reliable selector for element identification
-        // Pattern: Prefer ID when available, fall back to XPath
-        const id = iframe.getAttribute('id');
-        const cssSelector = id ? `#${id}` : getFullXPath(iframe);
+        // Always use full XPath for consistency and reliability
+        const cssSelector = getFullXPath(iframe);
 
         // Check name quality
         const accessibleNameText = title || ariaLabel || ariaLabelledby;
@@ -1024,9 +1030,8 @@ window.test_maps = async function() {
 
       // Process static image maps
       staticImageMaps.forEach(img => {
-        // Get a CSS selector for the image
-        const id = img.getAttribute('id');
-        const cssSelector = id ? `#${id}` : getFullXPath(img);
+        // Get XPath selector for the image
+        const cssSelector = getFullXPath(img);
         
         // Get HTML snippet
         const imgHtml = img.outerHTML;
@@ -1525,9 +1530,8 @@ window.test_maps = async function() {
                         div.outerHTML.substring(0, 2000) + '...' : 
                         div.outerHTML;
         
-        // Get CSS selector
-        const id = div.getAttribute('id');
-        const cssSelector = id ? `#${id}` : (div.className ? `.${div.className.split(' ')[0].replace(/:/g, '\\:')}` : getFullXPath(div));
+        // Get XPath selector
+        const cssSelector = getFullXPath(div);
 
         // Check if this map is interactive using our enhanced detection
         const isInteractive = isInteractiveDivMap(div);
@@ -1694,9 +1698,8 @@ window.test_maps = async function() {
       
       // Process SVG-based maps
       svgMaps.forEach(svg => {
-        // Get a CSS selector for the SVG
-        const id = svg.getAttribute('id');
-        const cssSelector = id ? `#${id}` : getFullXPath(svg);
+        // Get XPath selector for the SVG
+        const cssSelector = getFullXPath(svg);
         
         // Get HTML snippet for the SVG - limit to 2000 chars to avoid huge outputs
         const svgHtml = svg.outerHTML.length > 2000 
