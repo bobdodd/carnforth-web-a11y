@@ -1,4 +1,4 @@
-1/**
+/**
  * Main panel functionality for Carnforth Web A11y extension
  */
 
@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const exportJsonButton = document.getElementById('export-json');
   const exportExcelButton = document.getElementById('export-excel');
   const exportHtmlButton = document.getElementById('export-html');
+  const exportDocumentationButton = document.getElementById('export-documentation');
   const resultsContainer = document.getElementById('results-container');
   const failCount = document.getElementById('fail-count');
   const warningCount = document.getElementById('warning-count');
@@ -3972,6 +3973,3217 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   /**
+   * Export design documentation as HTML
+   */
+  function exportDocumentation() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `carnforth-design-documentation-${timestamp}.html`;
+    
+    // Start building the documentation HTML
+    let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carnforth Web A11y - Design Documentation</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+    
+    h2 {
+      color: #34495e;
+      margin-top: 40px;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 8px;
+    }
+    
+    h3 {
+      color: #7f8c8d;
+      margin-top: 25px;
+    }
+    
+    code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    
+    pre {
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 15px;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+    
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    
+    .toc {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .toc h2 {
+      margin-top: 0;
+      border: none;
+    }
+    
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .toc li {
+      margin: 8px 0;
+    }
+    
+    .toc a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    
+    .note {
+      background: #e8f4f8;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    
+    th {
+      background: #f2f2f2;
+      font-weight: 600;
+    }
+    
+    .footer {
+      text-align: center;
+      color: #7f8c8d;
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 1px solid #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Carnforth Web A11y - Design Documentation</h1>
+    
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li><a href="#introduction">1. Introduction</a></li>
+        <li><a href="#goals">2. Project Goals and Philosophy</a></li>
+        <li><a href="#accessibility-metrics">3. Accessibility Metrics: Philosophy and Implementation</a></li>
+        <li><a href="#architecture">5. System Architecture</a></li>
+        <li><a href="#touchpoint-system">6. The Touchpoint System</a></li>
+        <li><a href="#design-patterns">7. Design Patterns</a></li>
+        <li><a href="#maps-touchpoint">8. Maps Touchpoint - A Deep Dive</a></li>
+        <li><a href="#creating-touchpoints">9. Creating New Touchpoints</a></li>
+        <li><a href="#technical-implementation">10. Technical Implementation</a></li>
+        <li><a href="#testing-approach">11. Testing and Validation</a></li>
+        <li><a href="#future-work">12. Future Work</a></li>
+      </ul>
+    </div>
+    
+    <h2 id="introduction">1. Introduction</h2>
+    <p>This document provides a comprehensive guide to the design and implementation of the Carnforth Web A11y Chrome extension. It is intended for developers, accessibility professionals, and anyone interested in understanding or extending the system.</p>
+    
+    <p>Carnforth Web A11y represents a new approach to accessibility testing that prioritizes real-world user experiences over technical compliance alone. By organizing tests into "touchpoints" - critical interaction patterns that users rely on - we provide more meaningful and actionable results.</p>
+    
+    <h2 id="goals">2. Project Goals and Philosophy</h2>
+    
+    <h3>2.1 Core Mission</h3>
+    <p>The Carnforth Web A11y project exists to bridge the gap between technical accessibility compliance and actual user experience. While WCAG provides essential guidelines, real users encounter barriers in patterns that cross multiple success criteria. Our mission is to:</p>
+    
+    <ul>
+      <li><strong>Humanize accessibility testing</strong> by focusing on user journeys rather than isolated technical checks</li>
+      <li><strong>Provide actionable insights</strong> that directly improve user experiences</li>
+      <li><strong>Educate developers</strong> about the real impact of accessibility barriers</li>
+      <li><strong>Streamline remediation</strong> by grouping related issues that should be fixed together</li>
+    </ul>
+    
+    <h3>2.2 The Problem We Solve</h3>
+    <p>Traditional accessibility testing tools often produce overwhelming lists of technical violations that:</p>
+    <ul>
+      <li>Lack context about real user impact</li>
+      <li>Fragment related issues across different reports</li>
+      <li>Provide generic fixes without considering the specific implementation</li>
+      <li>Focus on automated detection at the expense of nuanced evaluation</li>
+    </ul>
+    
+    <p>Carnforth addresses these limitations by introducing the concept of <strong>touchpoints</strong> - cohesive interaction patterns that represent how real users actually engage with web content.</p>
+    
+    <h3>2.3 Design Philosophy</h3>
+    
+    <h4>User-Centric Testing</h4>
+    <p>Every test in Carnforth is designed around a specific user need. For example, our "Maps" touchpoint doesn't just check for alt text on images - it evaluates whether users can:</p>
+    <ul>
+      <li>Understand what geographic information is being presented</li>
+      <li>Access the same information through multiple modalities</li>
+      <li>Navigate map controls with keyboard or assistive technology</li>
+      <li>Receive equivalent information when interactive features are unavailable</li>
+    </ul>
+    
+    <h4>Progressive Enhancement</h4>
+    <p>We recognize that perfect accessibility is a journey, not a destination. Our system:</p>
+    <ul>
+      <li>Identifies critical barriers that block access entirely</li>
+      <li>Distinguishes between showstoppers and friction points</li>
+      <li>Provides improvement paths that prioritize user impact</li>
+      <li>Celebrates incremental progress through metrics like the Accessibility Index</li>
+    </ul>
+    
+    <h4>Educational by Design</h4>
+    <p>Every violation includes:</p>
+    <ul>
+      <li><strong>Why it matters:</strong> Real-world impact on actual users</li>
+      <li><strong>Who is affected:</strong> Specific user groups and assistive technologies</li>
+      <li><strong>How to fix:</strong> Contextual remediation guidance</li>
+      <li><strong>How to test:</strong> Manual verification steps</li>
+    </ul>
+    
+    <h3>2.4 Key Principles</h3>
+    
+    <div class="note">
+      <h4>1. Context Over Compliance</h4>
+      <p>We evaluate accessibility in context. A map without keyboard access is a more severe issue than a decorative image missing alt text, even though both are WCAG violations.</p>
+    </div>
+    
+    <div class="note">
+      <h4>2. Patterns Over Points</h4>
+      <p>We identify patterns of accessibility issues rather than individual point failures. If a site has 50 images without alt text, that's one pattern to fix, not 50 separate issues.</p>
+    </div>
+    
+    <div class="note">
+      <h4>3. Experience Over Elements</h4>
+      <p>We test complete user experiences rather than individual elements. Can a user successfully find location information? This matters more than whether every div has the correct ARIA role.</p>
+    </div>
+    
+    <div class="note">
+      <h4>4. Guidance Over Grades</h4>
+      <p>While we provide metrics, our primary output is actionable guidance. We want teams to know what to fix, why it matters, and how to verify their fixes work.</p>
+    </div>
+    
+    <h3>2.5 Success Metrics</h3>
+    <p>We measure our success not by the number of issues detected, but by:</p>
+    <ul>
+      <li><strong>Clarity of guidance:</strong> Can developers understand and act on our recommendations?</li>
+      <li><strong>User impact:</strong> Do our prioritizations reflect real-world severity?</li>
+      <li><strong>Learning outcomes:</strong> Do teams better understand accessibility after using our tool?</li>
+      <li><strong>Remediation efficiency:</strong> Can teams fix issues faster with our grouped approach?</li>
+    </ul>
+    
+    <h3>2.6 Future Vision</h3>
+    <p>Carnforth aims to evolve accessibility testing from a compliance checklist to a user experience discipline. We envision a future where:</p>
+    <ul>
+      <li>Accessibility testing is integrated into the design process, not just QA</li>
+      <li>Developers think in terms of user journeys, not just code patterns</li>
+      <li>Organizations measure accessibility success by user outcomes, not violation counts</li>
+      <li>The accessibility community collaborates on defining and testing new touchpoints</li>
+    </ul>
+    
+    <div class="warning">
+      <strong>Important:</strong> Carnforth is not a replacement for comprehensive accessibility audits or WCAG compliance testing. It is a complementary tool that provides a user-focused lens on accessibility issues. Always combine automated testing with manual evaluation and user testing.
+    </div>
+    
+    <h2 id="accessibility-metrics">3. Accessibility Metrics: Philosophy and Implementation</h2>
+    
+    <h3>3.1 The Philosophy Behind Our Metrics</h3>
+    <p>Traditional accessibility testing often produces overwhelming lists of issues without providing actionable insights. Our metrics system was designed with several key philosophical principles:</p>
+    
+    <h4>3.1.1 User-Centric Measurement</h4>
+    <p>Rather than counting violations, we measure the actual impact on users. A single critical barrier that prevents navigation is weighted more heavily than multiple minor contrast issues. This reflects the reality that accessibility is about enabling use, not achieving perfection.</p>
+    
+    <h4>3.1.2 Progressive Enhancement Philosophy</h4>
+    <p>Our metrics encourage iterative improvement. Sites don't need to be perfect to be accessible - they need to be usable. The metrics reflect this by:</p>
+    <ul>
+      <li>Distinguishing between critical barriers and friction points</li>
+      <li>Measuring breadth of issues across different user journeys</li>
+      <li>Providing a composite score that balances different aspects</li>
+    </ul>
+    
+    <h4>3.1.3 Context-Aware Scoring</h4>
+    <p>Not all accessibility issues are equal. Our metrics consider:</p>
+    <ul>
+      <li><strong>Location criticality:</strong> Issues in navigation are weighted higher than footer issues</li>
+      <li><strong>User journey impact:</strong> Problems that block task completion score higher</li>
+      <li><strong>Cumulative effect:</strong> Multiple small issues in one area compound the difficulty</li>
+    </ul>
+    
+    <h3>3.2 The Three Core Metrics</h3>
+    
+    <h4>3.2.1 Critical Barriers</h4>
+    <p>Critical barriers are show-stopping issues that completely prevent access to content or functionality.</p>
+    
+    <div class="formula">
+      <h5>Formula:</h5>
+      <pre><code>Critical Barriers = Σ(issues where severity === 'critical')</code></pre>
+    </div>
+    
+    <p><strong>Examples of critical barriers:</strong></p>
+    <ul>
+      <li>Interactive elements with no accessible name</li>
+      <li>Form fields without labels</li>
+      <li>Keyboard traps</li>
+      <li>Missing alt text on informational images</li>
+      <li>Videos without captions</li>
+    </ul>
+    
+    <p><strong>Philosophy:</strong> Even one critical barrier can make a site unusable for some users. This metric helps prioritize the most important fixes.</p>
+    
+    <h4>3.2.2 Breadth Score</h4>
+    <p>The breadth score measures how widespread accessibility issues are across different aspects of the site.</p>
+    
+    <div class="formula">
+      <h5>Formula:</h5>
+      <pre><code>Breadth Score = (Touchpoints with Failures / Total Testable Touchpoints) × 100</code></pre>
+    </div>
+    
+    <p><strong>Calculation Example:</strong></p>
+    <pre><code>// If 8 out of 12 touchpoints have failures:
+Breadth Score = (8 / 12) × 100 = 66.67%</code></pre>
+    
+    <p><strong>Philosophy:</strong> A high breadth score indicates systemic accessibility problems rather than isolated issues. This helps identify whether problems are due to specific components or fundamental design decisions.</p>
+    
+    <h4>3.2.3 A11y Index (Accessibility Index)</h4>
+    <p>The A11y Index is our composite metric that provides a single score representing overall accessibility health.</p>
+    
+    <div class="formula">
+      <h5>Formula:</h5>
+      <pre><code>A11y Index = 100 - (
+  (Breadth Weight × Breadth Score) +
+  (Friction Weight × Normalized Friction Score) +
+  (Principles Weight × Principles Violation Score)
+)
+
+Where:
+- Breadth Weight = 0.5 (50%)
+- Friction Weight = 0.3 (30%)
+- Principles Weight = 0.2 (20%)</code></pre>
+    </div>
+    
+    <p><strong>Component Calculations:</strong></p>
+    
+    <div class="code-example">
+      <h6>Friction Score Normalization:</h6>
+      <pre><code>// Friction points are minor issues that make tasks harder
+frictionPoints = Σ(issues where severity === 'friction')
+
+// Normalize to 0-100 scale (assumes 50 friction points = 100%)
+normalizedFrictionScore = Math.min(100, (frictionPoints / 50) × 100)</code></pre>
+    </div>
+    
+    <div class="code-example">
+      <h6>Principles Violation Score:</h6>
+      <pre><code>// Based on WCAG principles violated
+violatedPrinciples = countViolatedPrinciples(allIssues)
+principlesScore = (violatedPrinciples / 4) × 100
+
+// Where principles are:
+// 1. Perceivable
+// 2. Operable
+// 3. Understandable
+// 4. Robust</code></pre>
+    </div>
+    
+    <p><strong>Complete Example Calculation:</strong></p>
+    <pre><code>// Given:
+// - Breadth Score: 60% (issues in 60% of touchpoints)
+// - Friction Points: 15 (normalized to 30%)
+// - Principles Violated: 2 of 4 (50%)
+
+A11y Index = 100 - (
+  (0.5 × 60) +    // 30 from breadth
+  (0.3 × 30) +    // 9 from friction
+  (0.2 × 50)      // 10 from principles
+)
+A11y Index = 100 - 49 = 51</code></pre>
+    
+    <p><strong>Philosophy:</strong> The A11y Index balances different aspects of accessibility to provide a holistic view. The weights reflect our belief that breadth of issues is the strongest indicator of accessibility health.</p>
+    
+    <h3>3.3 Advanced Metrics and Calculations</h3>
+    
+    <h4>3.3.1 Severity Weighting</h4>
+    <p>Issues are weighted by their impact on users:</p>
+    
+    <pre><code>const severityWeights = {
+  critical: 10,    // Complete barriers
+  serious: 5,      // Major difficulties
+  moderate: 3,     // Noticeable problems
+  minor: 1        // Small inconveniences
+};
+
+// Weighted issue count
+weightedIssueScore = Σ(issues.map(issue => 
+  severityWeights[issue.severity]
+))</code></pre>
+    
+    <h4>3.3.2 Location-Based Scoring</h4>
+    <p>Issues in different page regions have different impacts:</p>
+    
+    <pre><code>const locationMultipliers = {
+  navigation: 2.0,    // Critical for site usage
+  main: 1.5,         // Primary content area
+  forms: 1.8,        // Interactive elements
+  sidebar: 1.0,      // Supporting content
+  footer: 0.5        // Less critical information
+};
+
+// Location-adjusted score
+locationAdjustedScore = issue.baseScore × 
+  locationMultipliers[issue.location]</code></pre>
+    
+    <h4>3.3.3 Cumulative Impact Calculation</h4>
+    <p>Multiple issues in the same area compound difficulty:</p>
+    
+    <pre><code>// For each page region
+cumulativeImpact = baseImpact × (1 + (0.1 × (issueCount - 1)))
+
+// Example: 5 issues in navigation
+// Impact = base × (1 + (0.1 × 4)) = base × 1.4</code></pre>
+    
+    <h3>3.4 Potential Improvements and Extensions</h3>
+    
+    <h4>3.4.1 Task Completion Rate (TCR)</h4>
+    <p>A proposed metric that measures the percentage of common user tasks that can be completed with assistive technology:</p>
+    
+    <pre><code>TCR = (Completable Tasks / Total Tasks) × 100
+
+// Where tasks might include:
+// - Find contact information
+// - Submit a form
+// - Navigate to key pages
+// - Complete a purchase</code></pre>
+    
+    <h4>3.4.2 Cognitive Load Score</h4>
+    <p>Measuring the mental effort required to use the site:</p>
+    
+    <pre><code>cognitiveLoadFactors = {
+  inconsistentNavigation: 0.2,
+  complexLanguage: 0.15,
+  poorErrorMessages: 0.15,
+  unclearLabels: 0.2,
+  missingContext: 0.3
+}
+
+cognitiveLoadScore = Σ(factors × occurrences)</code></pre>
+    
+    <h4>3.4.3 Recovery Difficulty Index</h4>
+    <p>How hard is it to recover from errors or confusion:</p>
+    
+    <pre><code>recoveryFactors = {
+  hasBackButton: -0.2,
+  clearErrorMessages: -0.3,
+  undoAvailable: -0.2,
+  helpAvailable: -0.3
+}
+
+recoveryDifficulty = baseScore + Σ(recoveryFactors)</code></pre>
+    
+    <h4>3.4.4 Progressive Enhancement Score</h4>
+    <p>Measuring how well the site works with different capabilities:</p>
+    
+    <pre><code>enhancementLevels = {
+  worksWithoutJS: 0.3,
+  worksWithoutCSS: 0.2,
+  textOnlyMode: 0.2,
+  highContrastMode: 0.15,
+  reducedMotion: 0.15
+}
+
+progressiveScore = Σ(level.weight × level.passes)</code></pre>
+    
+    <h3>3.5 Implementation Considerations</h3>
+    
+    <h4>3.5.1 Real-Time Calculation</h4>
+    <p>Metrics are calculated dynamically as tests run:</p>
+    
+    <pre><code>class MetricsCalculator {
+  constructor() {
+    this.cache = new Map();
+    this.listeners = [];
+  }
+  
+  updateMetrics(testResults) {
+    // Invalidate affected cache entries
+    this.invalidateCache(testResults.touchpoint);
+    
+    // Recalculate core metrics
+    const metrics = {
+      criticalBarriers: this.calculateCriticalBarriers(testResults),
+      breadthScore: this.calculateBreadthScore(testResults),
+      a11yIndex: this.calculateA11yIndex(testResults)
+    };
+    
+    // Notify listeners
+    this.notifyListeners(metrics);
+    
+    return metrics;
+  }
+  
+  calculateWithCaching(metricName, calculator) {
+    if (this.cache.has(metricName)) {
+      return this.cache.get(metricName);
+    }
+    
+    const result = calculator();
+    this.cache.set(metricName, result);
+    return result;
+  }
+}</code></pre>
+    
+    <h4>3.5.2 Trend Analysis</h4>
+    <p>Tracking metrics over time to show improvement:</p>
+    
+    <pre><code>class MetricsTrend {
+  constructor() {
+    this.history = [];
+    this.maxHistory = 30; // 30 days
+  }
+  
+  addDataPoint(metrics) {
+    this.history.push({
+      timestamp: Date.now(),
+      metrics: { ...metrics }
+    });
+    
+    // Maintain history limit
+    if (this.history.length > this.maxHistory) {
+      this.history.shift();
+    }
+  }
+  
+  calculateTrend() {
+    if (this.history.length < 2) return 0;
+    
+    const recent = this.history.slice(-7); // Last 7 days
+    const previous = this.history.slice(-14, -7); // Previous 7 days
+    
+    const recentAvg = this.average(recent);
+    const previousAvg = this.average(previous);
+    
+    return ((recentAvg - previousAvg) / previousAvg) × 100;
+  }
+}</code></pre>
+    
+    <h3>3.6 Future Directions</h3>
+    
+    <h4>3.6.1 Machine Learning Integration</h4>
+    <p>Using ML to predict accessibility issues based on code patterns:</p>
+    <ul>
+      <li>Train models on known accessibility patterns</li>
+      <li>Predict likelihood of issues before testing</li>
+      <li>Suggest fixes based on similar resolved issues</li>
+    </ul>
+    
+    <h4>3.6.2 User Journey Scoring</h4>
+    <p>Metrics that follow actual user paths through the site:</p>
+    <ul>
+      <li>Track accessibility along conversion funnels</li>
+      <li>Identify journey-breaking barriers</li>
+      <li>Score based on task completion probability</li>
+    </ul>
+    
+    <h4>3.6.3 Comparative Metrics</h4>
+    <p>Benchmarking against industry standards:</p>
+    <ul>
+      <li>Compare scores within industry verticals</li>
+      <li>Track improvement relative to competitors</li>
+      <li>Identify best practices from high-scoring sites</li>
+    </ul>
+    
+    <h4>3.6.4 Real User Monitoring (RUM) Integration</h4>
+    <p>Combining automated testing with actual user data:</p>
+    <ul>
+      <li>Track how real AT users interact with the site</li>
+      <li>Identify issues automated testing misses</li>
+      <li>Validate metric accuracy against user success rates</li>
+    </ul>
+    
+    <div class="tip">
+      <h4>💡 Key Insight</h4>
+      <p>The best accessibility metrics are those that correlate with real user success. Our metrics system is designed to be pragmatic, focusing on what actually helps users rather than achieving perfect compliance scores.</p>
+    </div>
+    
+    <h2 id="architecture">4. System Architecture</h2>
+    
+    <h3>4.1 Overview</h3>
+    <p>Carnforth Web A11y is built as a Chrome DevTools Extension, leveraging the browser's powerful debugging APIs to analyze web pages in real-time. The architecture is designed for modularity, extensibility, and performance.</p>
+    
+    <h3>4.2 Core Components</h3>
+    
+    <h4>4.2.1 Extension Manifest</h4>
+    <p>The extension uses Manifest V3 for security and performance:</p>
+    <pre><code>{
+  "manifest_version": 3,
+  "devtools_page": "devtools/devtools.html",
+  "permissions": ["debugger", "tabs"],
+  "host_permissions": ["<all_urls>"]
+}</code></pre>
+    
+    <h4>4.2.2 Panel Interface (panel.html / panel.js)</h4>
+    <p>The main user interface that runs within Chrome DevTools:</p>
+    <ul>
+      <li><strong>Test Controls:</strong> Start test button, progress indicators</li>
+      <li><strong>Results Display:</strong> Grouped violations with filtering and sorting</li>
+      <li><strong>Export Functions:</strong> JSON, CSV, HTML, and Documentation exports</li>
+      <li><strong>Preferences:</strong> WCAG version, level filters, impact filters</li>
+    </ul>
+    
+    <h4>4.2.3 Test Runner (test-runner.js)</h4>
+    <p>Orchestrates the testing process:</p>
+    <pre><code>class TestRunner {
+  async runTests(tabId) {
+    // 1. Inject content scripts
+    // 2. Execute touchpoint tests
+    // 3. Collect and aggregate results
+    // 4. Calculate metrics
+    // 5. Return formatted report
+  }
+}</code></pre>
+    
+    <h4>4.2.4 Content Scripts</h4>
+    <p>Injected into the page being tested to:</p>
+    <ul>
+      <li>Access DOM elements directly</li>
+      <li>Evaluate computed styles</li>
+      <li>Test interactive behaviors</li>
+      <li>Highlight elements during testing</li>
+    </ul>
+    
+    <h4>4.2.5 Touchpoint Modules</h4>
+    <p>Each touchpoint is a self-contained module in <code>/js/touchpoints/</code>:</p>
+    <ul>
+      <li><strong>maps.js:</strong> Geographic and mapping accessibility</li>
+      <li><strong>forms.js:</strong> Form interaction patterns (planned)</li>
+      <li><strong>navigation.js:</strong> Site navigation testing (planned)</li>
+      <li><strong>media.js:</strong> Audio/video accessibility (planned)</li>
+    </ul>
+    
+    <h3>4.3 Data Flow</h3>
+    <ol>
+      <li><strong>User initiates test</strong> from the DevTools panel</li>
+      <li><strong>Panel sends message</strong> to test runner with configuration</li>
+      <li><strong>Test runner injects scripts</strong> into the inspected page</li>
+      <li><strong>Touchpoint modules execute</strong> their specific tests</li>
+      <li><strong>Results are collected</strong> and sent back to the panel</li>
+      <li><strong>Panel processes results</strong> for display and export</li>
+    </ol>
+    
+    <h3>5.4 Communication Architecture</h3>
+    <pre><code>Panel ←→ Background Script ←→ Content Script ←→ Inspected Page
+  ↓                                                      ↑
+  └──────────────── Test Runner ────────────────────────┘</code></pre>
+    
+    <h3>5.5 Key Design Decisions</h3>
+    
+    <div class="note">
+      <h4>Chrome Extension vs Web App</h4>
+      <p>We chose a Chrome extension to provide deep integration with developer workflows, access to powerful debugging APIs, and the ability to test any website without proxy or modification.</p>
+    </div>
+    
+    <div class="note">
+      <h4>Modular Touchpoints</h4>
+      <p>Each touchpoint is independent, allowing easy addition of new test patterns without affecting existing functionality. This also enables selective testing based on page content.</p>
+    </div>
+    
+    <div class="note">
+      <h4>Client-Side Processing</h4>
+      <p>All testing happens client-side for privacy and performance. No data is sent to external servers, making it safe for testing internal or sensitive applications.</p>
+    </div>
+    
+    <h2 id="touchpoint-system">5. The Touchpoint System</h2>
+    
+    <h3>6.1 What is a Touchpoint?</h3>
+    <p>A touchpoint represents a complete user interaction pattern - a cohesive set of elements, behaviors, and expectations that users encounter when trying to accomplish a specific task. Unlike traditional accessibility tests that check individual elements, touchpoints evaluate entire user experiences.</p>
+    
+    <h3>6.2 Anatomy of a Touchpoint</h3>
+    
+    <h4>6.2.1 Detection Phase</h4>
+    <p>Each touchpoint first determines if it applies to the current page:</p>
+    <pre><code>// Example from maps.js
+function detectMapElements() {
+  const patterns = [
+    'iframe[src*="maps.google.com"]',
+    'iframe[src*="openstreetmap.org"]',
+    '[class*="map"]',
+    '[id*="map"]',
+    'canvas[aria-label*="map"]'
+  ];
+  
+  return patterns.some(selector => 
+    document.querySelector(selector) !== null
+  );
+}</code></pre>
+    
+    <h4>6.2.2 Test Execution</h4>
+    <p>Once detected, the touchpoint runs a comprehensive suite of tests:</p>
+    <ul>
+      <li><strong>Structural Tests:</strong> Required elements and relationships</li>
+      <li><strong>Semantic Tests:</strong> Proper roles and descriptions</li>
+      <li><strong>Interactive Tests:</strong> Keyboard and screen reader support</li>
+      <li><strong>Visual Tests:</strong> Contrast, sizing, and visibility</li>
+      <li><strong>Alternative Tests:</strong> Fallbacks and equivalents</li>
+    </ul>
+    
+    <h4>6.2.3 Violation Structure</h4>
+    <p>Each violation found includes:</p>
+    <pre><code>{
+  id: "map-no-text-alternative",
+  touchpoint: "Maps",
+  impact: "critical",
+  elements: [/* affected elements */],
+  wcagCriteria: ["1.1.1", "1.3.1"],
+  title: "Map lacks text alternative",
+  description: "Geographic information must be available...",
+  howToFix: "Provide a text description...",
+  whyItMatters: "Users who cannot see the map...",
+  whoIsAffected: ["Screen reader users", "Users with images disabled"],
+  howToTest: "1. Disable images\\n2. Use a screen reader..."
+}</code></pre>
+    
+    <h3>6.3 Touchpoint Lifecycle</h3>
+    
+    <h4>Phase 1: Registration</h4>
+    <p>Touchpoints register themselves with the test runner:</p>
+    <pre><code>TestRunner.registerTouchpoint({
+  id: 'maps',
+  name: 'Maps',
+  description: 'Tests geographic and mapping accessibility',
+  module: './touchpoints/maps.js'
+});</code></pre>
+    
+    <h4>Phase 2: Detection</h4>
+    <p>During test execution, each touchpoint checks if it should run:</p>
+    <pre><code>if (touchpoint.detect(document)) {
+  activeTouchpoints.push(touchpoint);
+}</code></pre>
+    
+    <h4>Phase 3: Testing</h4>
+    <p>Active touchpoints execute their test suites:</p>
+    <pre><code>const results = await touchpoint.runTests({
+  document,
+  config: userPreferences,
+  helpers: testUtilities
+});</code></pre>
+    
+    <h4>Phase 4: Reporting</h4>
+    <p>Results are aggregated and enhanced with metadata:</p>
+    <pre><code>results.forEach(violation => {
+  violation.touchpoint = touchpoint.name;
+  violation.timestamp = Date.now();
+  violation.pageContext = getPageContext();
+});</code></pre>
+    
+    <h3>6.4 Touchpoint Categories</h3>
+    
+    <table>
+      <tr>
+        <th>Category</th>
+        <th>Focus Area</th>
+        <th>Example Touchpoints</th>
+      </tr>
+      <tr>
+        <td>Navigation</td>
+        <td>How users move through content</td>
+        <td>Menus, Breadcrumbs, Skip Links</td>
+      </tr>
+      <tr>
+        <td>Interaction</td>
+        <td>How users engage with controls</td>
+        <td>Forms, Buttons, Sliders</td>
+      </tr>
+      <tr>
+        <td>Content</td>
+        <td>How users consume information</td>
+        <td>Headings, Tables, Lists</td>
+      </tr>
+      <tr>
+        <td>Media</td>
+        <td>How users experience rich content</td>
+        <td>Images, Videos, Maps</td>
+      </tr>
+      <tr>
+        <td>Feedback</td>
+        <td>How users understand system state</td>
+        <td>Errors, Notifications, Progress</td>
+      </tr>
+    </table>
+    
+    <h3>6.5 Benefits of the Touchpoint Approach</h3>
+    
+    <h4>For Developers</h4>
+    <ul>
+      <li><strong>Contextual Understanding:</strong> Issues are presented within user workflows</li>
+      <li><strong>Efficient Remediation:</strong> Related issues are grouped for batch fixing</li>
+      <li><strong>Clear Priorities:</strong> Critical barriers are distinguished from minor issues</li>
+      <li><strong>Learning Tool:</strong> Each report teaches accessibility principles</li>
+    </ul>
+    
+    <h4>For Users</h4>
+    <ul>
+      <li><strong>Holistic Testing:</strong> Complete experiences are validated</li>
+      <li><strong>Real-World Focus:</strong> Tests reflect actual usage patterns</li>
+      <li><strong>Progressive Improvement:</strong> Sites can improve incrementally</li>
+      <li><strong>Meaningful Metrics:</strong> Success is measured by usability, not just compliance</li>
+    </ul>
+    
+    <h3>6.6 Creating Custom Touchpoints</h3>
+    <p>Organizations can create custom touchpoints for their specific needs:</p>
+    <pre><code>// Custom touchpoint for e-commerce checkout
+class CheckoutTouchpoint extends BaseTouchpoint {
+  detect() {
+    return document.querySelector('[role="form"][aria-label*="checkout"]') ||
+           document.querySelector('.checkout-form');
+  }
+  
+  async runTests() {
+    const violations = [];
+    
+    // Test payment form accessibility
+    violations.push(...this.testPaymentForms());
+    
+    // Test address autocomplete
+    violations.push(...this.testAddressFields());
+    
+    // Test order review
+    violations.push(...this.testOrderSummary());
+    
+    return violations;
+  }
+}</code></pre>
+    
+    <div class="note">
+      <strong>Best Practice:</strong> When creating touchpoints, focus on complete user journeys rather than technical elements. Ask "What is the user trying to accomplish?" rather than "What elements are on the page?"
+    </div>
+    
+    <h2 id="design-patterns">6. Design Patterns</h2>
+    
+    <h3>7.1 Overview</h3>
+    <p>Carnforth employs several key design patterns that ensure consistency, maintainability, and extensibility. These patterns have evolved through practical experience and represent best practices for accessibility testing tools.</p>
+    
+    <h3>7.2 Core Patterns</h3>
+    
+    <h4>7.2.1 Module Pattern</h4>
+    <p>Each touchpoint is a self-contained module with a consistent interface:</p>
+    <pre><code>// touchpoints/example.js
+(function() {
+  'use strict';
+  
+  // Private variables and functions
+  const VIOLATION_IDS = {
+    MISSING_ALT: 'example-missing-alt',
+    INVALID_ROLE: 'example-invalid-role'
+  };
+  
+  // Public interface
+  window.ExampleTouchpoint = {
+    id: 'example',
+    name: 'Example',
+    
+    detect: function(document) {
+      // Detection logic
+    },
+    
+    test: function(document, config) {
+      // Testing logic
+    },
+    
+    getViolationDetails: function(id) {
+      // Return detailed violation info
+    }
+  };
+})();</code></pre>
+    
+    <h4>7.2.2 Strategy Pattern</h4>
+    <p>Different testing strategies based on element type:</p>
+    <pre><code>const testStrategies = {
+  iframe: testIframeMap,
+  canvas: testCanvasMap,
+  svg: testSVGMap,
+  div: testDivBasedMap
+};
+
+function testMapElement(element) {
+  const elementType = element.tagName.toLowerCase();
+  const strategy = testStrategies[elementType] || testGenericMap;
+  return strategy(element);
+}</code></pre>
+    
+    <h4>7.2.3 Observer Pattern</h4>
+    <p>Monitoring dynamic content changes:</p>
+    <pre><code>class AccessibilityObserver {
+  constructor() {
+    this.observers = new Map();
+  }
+  
+  observe(element, callback) {
+    const observer = new MutationObserver((mutations) => {
+      const relevantChanges = this.filterRelevantChanges(mutations);
+      if (relevantChanges.length > 0) {
+        callback(relevantChanges);
+      }
+    });
+    
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ['aria-label', 'alt', 'title', 'role'],
+      childList: true,
+      subtree: true
+    });
+    
+    this.observers.set(element, observer);
+  }
+  
+  disconnect(element) {
+    const observer = this.observers.get(element);
+    if (observer) {
+      observer.disconnect();
+      this.observers.delete(element);
+    }
+  }
+}</code></pre>
+    
+    <h4>7.2.4 Factory Pattern</h4>
+    <p>Creating violations with consistent structure:</p>
+    <pre><code>class ViolationFactory {
+  static create(type, element, touchpoint) {
+    const baseViolation = {
+      id: generateId(type, element),
+      touchpoint: touchpoint.name,
+      timestamp: Date.now(),
+      element: serializeElement(element),
+      impact: this.determineImpact(type),
+      wcagCriteria: this.getWCAGCriteria(type)
+    };
+    
+    return Object.assign(baseViolation, 
+      this.getViolationDetails(type),
+      this.getContextualInfo(element)
+    );
+  }
+  
+  static determineImpact(type) {
+    const impactMap = {
+      'missing-alt': 'critical',
+      'low-contrast': 'serious',
+      'decorative-issue': 'minor'
+    };
+    return impactMap[type] || 'moderate';
+  }
+}</code></pre>
+    
+    <h4>7.2.5 Chain of Responsibility</h4>
+    <p>Processing violations through multiple handlers:</p>
+    <pre><code>class ViolationProcessor {
+  constructor() {
+    this.handlers = [];
+  }
+  
+  addHandler(handler) {
+    this.handlers.push(handler);
+    return this;
+  }
+  
+  process(violation) {
+    let result = violation;
+    
+    for (const handler of this.handlers) {
+      result = handler.process(result);
+      if (result.stopProcessing) break;
+    }
+    
+    return result;
+  }
+}
+
+// Usage
+const processor = new ViolationProcessor()
+  .addHandler(new DuplicateFilter())
+  .addHandler(new ImpactCalculator())
+  .addHandler(new WCAGMapper())
+  .addHandler(new RemediationGuide());
+  
+const processedViolations = violations.map(v => processor.process(v));</code></pre>
+    
+    <h3>7.3 Architectural Patterns</h3>
+    
+    <h4>7.3.1 Layered Architecture</h4>
+    <pre><code>// Layer 1: Presentation (Panel UI)
+//   ↓
+// Layer 2: Business Logic (Test Runner)
+//   ↓
+// Layer 3: Domain (Touchpoints)
+//   ↓
+// Layer 4: Infrastructure (DOM Access, Storage)</code></pre>
+    
+    <h4>7.3.2 Plugin Architecture</h4>
+    <p>Touchpoints as plugins to the core system:</p>
+    <pre><code>class TouchpointRegistry {
+  constructor() {
+    this.touchpoints = new Map();
+    this.hooks = {
+      beforeDetect: [],
+      afterTest: [],
+      onViolation: []
+    };
+  }
+  
+  register(touchpoint) {
+    this.validateTouchpoint(touchpoint);
+    this.touchpoints.set(touchpoint.id, touchpoint);
+    this.notifyHooks('register', touchpoint);
+  }
+  
+  validateTouchpoint(touchpoint) {
+    const required = ['id', 'name', 'detect', 'test'];
+    for (const prop of required) {
+      if (!touchpoint[prop]) {
+        throw new Error(\`Touchpoint missing required property: \${prop}\`);
+      }
+    }
+  }
+}</code></pre>
+    
+    <h4>7.3.3 Message Passing</h4>
+    <p>Communication between extension components:</p>
+    <pre><code>// Panel → Background → Content Script
+class MessageBus {
+  static send(target, action, data) {
+    return new Promise((resolve, reject) => {
+      const messageId = generateMessageId();
+      const message = { id: messageId, action, data };
+      
+      const listener = (response) => {
+        if (response.id === messageId) {
+          cleanup();
+          response.error ? reject(response.error) : resolve(response.data);
+        }
+      };
+      
+      const cleanup = () => {
+        chrome.runtime.onMessage.removeListener(listener);
+      };
+      
+      chrome.runtime.onMessage.addListener(listener);
+      chrome.runtime.sendMessage(message);
+      
+      // Timeout after 30 seconds
+      setTimeout(() => {
+        cleanup();
+        reject(new Error('Message timeout'));
+      }, 30000);
+    });
+  }
+}</code></pre>
+    
+    <h3>7.4 Data Patterns</h3>
+    
+    <h4>7.4.1 Immutable Updates</h4>
+    <pre><code>// State updates without mutation
+function updateViolation(violations, id, updates) {
+  return violations.map(violation => 
+    violation.id === id 
+      ? { ...violation, ...updates }
+      : violation
+  );
+}
+
+// Adding to arrays immutably
+function addViolation(violations, newViolation) {
+  return [...violations, newViolation];
+}</code></pre>
+    
+    <h4>7.4.2 Normalization</h4>
+    <pre><code>// Normalized data structure
+const state = {
+  violations: {
+    byId: {
+      'v1': { id: 'v1', type: 'missing-alt', elementId: 'e1' },
+      'v2': { id: 'v2', type: 'low-contrast', elementId: 'e2' }
+    },
+    allIds: ['v1', 'v2']
+  },
+  elements: {
+    byId: {
+      'e1': { id: 'e1', tagName: 'img', selector: 'img#logo' },
+      'e2': { id: 'e2', tagName: 'p', selector: 'p.text' }
+    }
+  }
+};</code></pre>
+    
+    <h4>7.4.3 Lazy Evaluation</h4>
+    <pre><code>class LazyViolationDetails {
+  constructor(violationId, loader) {
+    this.violationId = violationId;
+    this.loader = loader;
+    this._details = null;
+  }
+  
+  get details() {
+    if (!this._details) {
+      this._details = this.loader(this.violationId);
+    }
+    return this._details;
+  }
+  
+  // Only load when needed
+  get howToFix() {
+    return this.details.howToFix;
+  }
+}</code></pre>
+    
+    <h3>7.5 Testing Patterns</h3>
+    
+    <h4>7.5.1 Test Fixtures</h4>
+    <pre><code>// Reusable HTML patterns for testing
+const fixtures = {
+  validMap: \`
+    <div role="application" aria-label="Store locator map">
+      <canvas tabindex="0"></canvas>
+    </div>
+  \`,
+  
+  invalidMap: \`
+    <div class="map">
+      <canvas></canvas>
+    </div>
+  \`,
+  
+  createFixture(html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    return container;
+  },
+  
+  cleanup() {
+    document.body.innerHTML = '';
+  }
+};</code></pre>
+    
+    <h4>7.5.2 Assertion Helpers</h4>
+    <pre><code>const assert = {
+  hasViolation(results, violationId) {
+    const violation = results.find(r => r.id === violationId);
+    if (!violation) {
+      throw new Error(\`Expected violation \${violationId} not found\`);
+    }
+    return violation;
+  },
+  
+  violationCount(results, expected) {
+    if (results.length !== expected) {
+      throw new Error(\`Expected \${expected} violations, got \${results.length}\`);
+    }
+  },
+  
+  elementTested(results, selector) {
+    const tested = results.some(r => r.element.selector === selector);
+    if (!tested) {
+      throw new Error(\`Element \${selector} was not tested\`);
+    }
+  }
+};</code></pre>
+    
+    <h3>7.6 Performance Patterns</h3>
+    
+    <h4>7.6.1 Debouncing</h4>
+    <pre><code>function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Usage in dynamic content monitoring
+const handleContentChange = debounce(() => {
+  rerunTests();
+}, 500);</code></pre>
+    
+    <h4>7.6.2 Memoization</h4>
+    <pre><code>const memoize = (fn) => {
+  const cache = new Map();
+  return (...args) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const result = fn.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
+};
+
+// Expensive calculations cached
+const calculateAccessibilityScore = memoize((violations) => {
+  // Complex scoring logic
+  return score;
+});</code></pre>
+    
+    <h4>7.6.3 Batch Processing</h4>
+    <pre><code>class BatchProcessor {
+  constructor(processFunc, batchSize = 50, delay = 10) {
+    this.processFunc = processFunc;
+    this.batchSize = batchSize;
+    this.delay = delay;
+  }
+  
+  async processAll(items) {
+    const results = [];
+    
+    for (let i = 0; i < items.length; i += this.batchSize) {
+      const batch = items.slice(i, i + this.batchSize);
+      const batchResults = await Promise.all(
+        batch.map(item => this.processFunc(item))
+      );
+      results.push(...batchResults);
+      
+      // Allow UI to update
+      if (i + this.batchSize < items.length) {
+        await new Promise(resolve => setTimeout(resolve, this.delay));
+      }
+    }
+    
+    return results;
+  }
+}</code></pre>
+    
+    <h3>7.7 Error Handling Patterns</h3>
+    
+    <h4>7.7.1 Graceful Degradation</h4>
+    <pre><code>function safeTest(testFunc, element) {
+  try {
+    return testFunc(element);
+  } catch (error) {
+    console.error('Test failed:', error);
+    return {
+      id: 'test-error',
+      title: 'Test could not be completed',
+      description: 'An error occurred while testing this element',
+      impact: 'unknown',
+      error: error.message
+    };
+  }
+}
+
+// Never let one failure stop all testing
+function runAllTests(elements) {
+  return elements.map(element => safeTest(testElement, element))
+    .filter(result => result !== null);
+}</code></pre>
+    
+    <h4>7.7.2 Error Context</h4>
+    <pre><code>class ContextualError extends Error {
+  constructor(message, context) {
+    super(message);
+    this.name = 'ContextualError';
+    this.context = context;
+    this.timestamp = Date.now();
+  }
+  
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      context: this.context,
+      timestamp: this.timestamp,
+      stack: this.stack
+    };
+  }
+}</code></pre>
+    
+    <h2 id="maps-touchpoint">7. Maps Touchpoint - A Deep Dive</h2>
+    
+    <h3>8.1 Overview</h3>
+    <p>The Maps touchpoint is our flagship implementation, demonstrating the power of the touchpoint approach. It addresses the complex accessibility challenges of geographic information systems, from simple embedded maps to sophisticated WebGL-powered applications.</p>
+    
+    <h3>8.2 Why Maps Need Special Attention</h3>
+    
+    <h4>The Challenge</h4>
+    <p>Maps present unique accessibility challenges because they:</p>
+    <ul>
+      <li>Convey spatial relationships that are inherently visual</li>
+      <li>Often lack text alternatives for geographic data</li>
+      <li>Use complex interactions (pan, zoom, click) that may not be keyboard accessible</li>
+      <li>Employ canvas or WebGL rendering that bypasses DOM accessibility</li>
+      <li>Contain dynamic content that changes based on zoom level and viewport</li>
+    </ul>
+    
+    <h4>User Impact</h4>
+    <p>When maps are inaccessible, users cannot:</p>
+    <ul>
+      <li>Find business locations or get directions</li>
+      <li>Understand geographic data in news or research</li>
+      <li>Use location-based services effectively</li>
+      <li>Participate in activities requiring spatial awareness</li>
+    </ul>
+    
+    <h3>8.3 Detection Strategies</h3>
+    
+    <h4>8.3.1 Iframe Detection</h4>
+    <pre><code>// Detect common map embeds
+const mapProviders = [
+  'maps.google.com',
+  'google.com/maps',
+  'openstreetmap.org',
+  'mapbox.com',
+  'bing.com/maps',
+  'here.com',
+  'maps.apple.com'
+];
+
+const iframes = document.querySelectorAll('iframe');
+iframes.forEach(iframe => {
+  if (mapProviders.some(provider => iframe.src.includes(provider))) {
+    // Map iframe detected
+  }
+});</code></pre>
+    
+    <h4>8.3.2 DOM Pattern Detection</h4>
+    <pre><code>// Detect map containers by common patterns
+const patterns = [
+  '[class*="map"]:not([class*="sitemap"])',
+  '[id*="map"]:not([id*="sitemap"])',
+  '[aria-label*="map" i]',
+  '[role="application"][aria-roledescription*="map" i]',
+  'div[data-map]',
+  '.leaflet-container',
+  '.mapboxgl-map',
+  '.gm-style'
+];</code></pre>
+    
+    <h4>8.3.3 Canvas and WebGL Detection</h4>
+    <pre><code>// Sophisticated canvas map detection
+function analyzeCanvas(canvas) {
+  const ctx = canvas.getContext('2d') || canvas.getContext('webgl');
+  
+  // Check for map-like patterns
+  const indicators = {
+    hasGeographicLabels: checkForTextRendering(ctx),
+    hasTilePattern: checkForTileLoading(canvas),
+    hasInteractivity: checkForEventListeners(canvas),
+    hasMapControls: checkForNearbyControls(canvas)
+  };
+  
+  return calculateMapConfidence(indicators) > 0.7;
+}</code></pre>
+    
+    <h4>8.3.4 WebGL Pattern Analysis</h4>
+    <pre><code>// Detect WebGL maps by shader patterns
+function analyzeWebGLMapPatterns(gl, canvas) {
+  const patterns = {
+    isLikelyMap: false,
+    mapType: 'unknown',
+    confidence: 0,
+    features: []
+  };
+  
+  // Check for map-specific extensions
+  const extensions = [
+    'OES_element_index_uint',  // Large meshes
+    'ANGLE_instanced_arrays',  // Repeated features
+    'OES_texture_float',       // Elevation data
+    'EXT_texture_filter_anisotropic' // Terrain rendering
+  ];
+  
+  // Analyze shader uniforms for map patterns
+  const mapUniforms = ['u_matrix', 'u_zoom', 'u_pitch', 'u_bearing'];
+  
+  return patterns;
+}</code></pre>
+    
+    <h3>8.4 Comprehensive Test Suite</h3>
+    
+    <h4>8.4.1 Basic Accessibility Tests</h4>
+    
+    <table>
+      <tr>
+        <th>Test ID</th>
+        <th>What It Checks</th>
+        <th>Why It Matters</th>
+      </tr>
+      <tr>
+        <td>map-no-text-alternative</td>
+        <td>Presence of text description</td>
+        <td>Screen reader users need location information</td>
+      </tr>
+      <tr>
+        <td>map-iframe-missing-title</td>
+        <td>Iframe has descriptive title</td>
+        <td>Identifies map purpose in page structure</td>
+      </tr>
+      <tr>
+        <td>map-no-keyboard-access</td>
+        <td>Keyboard navigation support</td>
+        <td>Motor-impaired users need keyboard control</td>
+      </tr>
+      <tr>
+        <td>map-controls-small-touch-target</td>
+        <td>Control size ≥ 44x44 pixels</td>
+        <td>Mobile and motor-impaired users need larger targets</td>
+      </tr>
+    </table>
+    
+    <h4>8.4.2 Advanced Canvas Tests</h4>
+    
+    <pre><code>// Canvas-specific accessibility violations
+const canvasViolations = {
+  'canvas-map-missing-accessibility': {
+    check: (canvas) => !canvas.getAttribute('role') || 
+                        !canvas.getAttribute('aria-label'),
+    impact: 'critical',
+    howToFix: 'Add role="img" and descriptive aria-label'
+  },
+  
+  'canvas-map-not-keyboard-accessible': {
+    check: (canvas) => {
+      const tabindex = canvas.getAttribute('tabindex');
+      return !tabindex || tabindex < 0;
+    },
+    impact: 'critical',
+    howToFix: 'Add tabindex="0" and keyboard event handlers'
+  },
+  
+  'canvas-map-no-text-alternative': {
+    check: (canvas) => !findTextAlternative(canvas),
+    impact: 'serious',
+    howToFix: 'Provide text description of map data nearby'
+  }
+};</code></pre>
+    
+    <h4>8.4.3 WebGL-Specific Tests</h4>
+    
+    <pre><code>// WebGL 3D map accessibility
+if (patterns.mapType === '3d-terrain') {
+  violations.push({
+    id: 'webgl-map-no-3d-instructions',
+    title: '3D map lacks navigation instructions',
+    description: '3D maps need instructions for camera control',
+    howToFix: \`Add instructions like:
+      - Use arrow keys to pan
+      - Use +/- to zoom
+      - Hold Shift + drag to rotate
+      - Press H for help\`
+  });
+}</code></pre>
+    
+    <h3>8.5 Intelligent Remediation Guidance</h3>
+    
+    <h4>8.5.1 Context-Aware Fixes</h4>
+    <p>The Maps touchpoint provides specific guidance based on the map implementation:</p>
+    
+    <pre><code>// Example: Google Maps iframe
+if (isGoogleMapsIframe(element)) {
+  return {
+    howToFix: \`
+1. Add title attribute: title="Google Map showing \${extractLocation(element)}"
+2. Consider adding text directions below the map
+3. Use Google's Embed API parameters for accessibility:
+   &amp;output=embed&amp;hl=en&amp;z=15
+4. Provide a "View larger map" link for full accessibility\`,
+    example: \`&lt;iframe 
+  src="https://maps.google.com/maps?q=..."
+  title="Map showing downtown office location"
+  width="600" height="450"&gt;
+&lt;/iframe&gt;
+&lt;p&gt;Our office is located at 123 Main St, downtown.&lt;/p&gt;\`
+  };
+}</code></pre>
+    
+    <h4>8.5.2 Progressive Enhancement Strategies</h4>
+    
+    <div class="note">
+      <h4>Good: Basic Accessibility</h4>
+      <pre><code>&lt;div role="img" aria-label="Map showing store locations"&gt;
+  &lt;canvas id="store-map"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+&lt;p&gt;We have 3 stores in the downtown area.&lt;/p&gt;</code></pre>
+    </div>
+    
+    <div class="note">
+      <h4>Better: Enhanced Information</h4>
+      <pre><code>&lt;div role="application" aria-label="Interactive store locator map"&gt;
+  &lt;canvas id="store-map" tabindex="0"&gt;&lt;/canvas&gt;
+  &lt;div class="sr-only" aria-live="polite" id="map-status"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;details&gt;
+  &lt;summary&gt;Text-based store locations&lt;/summary&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Downtown: 123 Main St (2 miles north)&lt;/li&gt;
+    &lt;li&gt;Westside: 456 Oak Ave (5 miles west)&lt;/li&gt;
+    &lt;li&gt;Eastside: 789 Elm Dr (3 miles east)&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/details&gt;</code></pre>
+    </div>
+    
+    <div class="note">
+      <h4>Best: Full Accessibility</h4>
+      <pre><code>&lt;div class="map-container"&gt;
+  &lt;div role="application" 
+       aria-label="Interactive store locator map"
+       aria-describedby="map-instructions"&gt;
+    &lt;canvas id="store-map" tabindex="0"&gt;&lt;/canvas&gt;
+    &lt;div id="map-controls" role="group" aria-label="Map controls"&gt;
+      &lt;button aria-label="Zoom in" id="zoom-in"&gt;+&lt;/button&gt;
+      &lt;button aria-label="Zoom out" id="zoom-out"&gt;-&lt;/button&gt;
+      &lt;button aria-label="Reset view" id="reset"&gt;⌂&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;div id="map-instructions" class="sr-only"&gt;
+    Use arrow keys to pan, plus/minus to zoom, 
+    Tab to cycle through locations, Enter to select.
+  &lt;/div&gt;
+  
+  &lt;div role="region" aria-label="Store locations list"&gt;
+    &lt;h3&gt;All Store Locations&lt;/h3&gt;
+    &lt;ul id="location-list"&gt;
+      &lt;!-- Dynamically populated with keyboard-accessible links --&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+    </div>
+    
+    <h3>8.6 Real-World Test Cases</h3>
+    
+    <h4>8.6.1 Test Fixture Coverage</h4>
+    <p>Our test suite includes examples of:</p>
+    <ul>
+      <li>Google Maps embeds (iframe and JavaScript API)</li>
+      <li>OpenStreetMap with Leaflet.js</li>
+      <li>Mapbox GL JS (WebGL-based)</li>
+      <li>Canvas-based custom maps</li>
+      <li>Static image maps with area elements</li>
+      <li>SVG-based interactive maps</li>
+      <li>3D terrain visualizations</li>
+      <li>Indoor floor plans</li>
+      <li>Real-time data overlays</li>
+    </ul>
+    
+    <h4>8.6.2 Edge Cases</h4>
+    <pre><code>// Handle maps that are initially hidden
+if (element.offsetParent === null) {
+  addWarning('Map is hidden and cannot be tested completely');
+  // Schedule retest when visible
+}
+
+// Handle dynamically loaded maps
+const observer = new MutationObserver(() => {
+  if (mapHasLoaded(element)) {
+    runMapTests(element);
+    observer.disconnect();
+  }
+});
+
+// Handle maps in Shadow DOM
+if (element.shadowRoot) {
+  testShadowDOMMap(element.shadowRoot);
+}</code></pre>
+    
+    <h3>8.7 Metrics and Scoring</h3>
+    
+    <h4>Impact Classification</h4>
+    <ul>
+      <li><strong>Critical:</strong> Map is completely inaccessible (no text alternative, no keyboard access)</li>
+      <li><strong>Serious:</strong> Major features inaccessible (controls not reachable, no instructions)</li>
+      <li><strong>Moderate:</strong> Usability issues (small touch targets, unclear labels)</li>
+      <li><strong>Minor:</strong> Enhancement opportunities (could add more landmarks)</li>
+    </ul>
+    
+    <h3>8.8 Future Enhancements</h3>
+    
+    <h4>Planned Features</h4>
+    <ul>
+      <li><strong>AI-Powered Description:</strong> Generate text alternatives from visual map content</li>
+      <li><strong>Route Testing:</strong> Verify accessible routing instructions</li>
+      <li><strong>Sonification:</strong> Audio representation of geographic data</li>
+      <li><strong>Haptic Feedback:</strong> Support for tactile map interfaces</li>
+      <li><strong>Voice Control:</strong> Integration with voice navigation</li>
+    </ul>
+    
+    <h4>Research Areas</h4>
+    <ul>
+      <li>Machine learning for automatic landmark detection</li>
+      <li>Standardized accessible map markup language</li>
+      <li>Cross-platform accessible map components</li>
+      <li>User preference adaptation</li>
+    </ul>
+    
+    <div class="warning">
+      <h4>Important Considerations</h4>
+      <p>While our tests are comprehensive, maps often require manual testing to ensure true accessibility. Consider:</p>
+      <ul>
+        <li>Testing with actual screen reader users</li>
+        <li>Verifying information equivalence, not just technical compliance</li>
+        <li>Ensuring mobile accessibility for touch interfaces</li>
+        <li>Providing multiple ways to access the same information</li>
+      </ul>
+    </div>
+    
+    <h2 id="creating-touchpoints">8. Creating New Touchpoints</h2>
+    
+    <h3>9.1 Overview</h3>
+    <p>Creating a new touchpoint involves implementing detection logic, accessibility analysis, and educational remediation guidance. This guide walks through the complete process using real examples from our implementation.</p>
+    
+    <h3>9.2 Touchpoint Structure</h3>
+    
+    <h4>9.2.1 File Structure</h4>
+    <pre><code>// /js/touchpoints/forms.js
+window.test_forms = async function() {
+  console.log("=============================================");
+  console.log("FORMS TOUCHPOINT TEST STARTED");
+  console.log("=============================================");
+  
+  try {
+    // Main analysis function
+    function analyzeFormAccessibility() {
+      const results = {
+        forms: [],        // All detected forms
+        violations: [],   // Accessibility issues
+        summary: {        // Aggregate statistics
+          totalForms: 0,
+          formsWithoutLabels: 0,
+          formsWithoutFieldsets: 0
+        }
+      };
+      
+      // Detection and analysis logic...
+      
+      return results;
+    }
+    
+    // Execute analysis
+    const results = analyzeFormAccessibility();
+    console.log("[Forms] Analysis complete:", results);
+    
+    return {
+      success: true,
+      touchpointName: "Forms",
+      results: results
+    };
+    
+  } catch (error) {
+    console.error("[Forms] Critical error:", error);
+    return {
+      success: false,
+      touchpointName: "Forms",
+      error: error.message,
+      results: null
+    };
+  }
+};</code></pre>
+    
+    <h4>9.2.2 Registration</h4>
+    <p>Add your touchpoint to the registry in <code>panel.js</code>:</p>
+    <pre><code>const touchpoints = [
+  { id: 'maps', name: 'Maps', enabled: true },
+  { id: 'forms', name: 'Forms', enabled: true }, // Your new touchpoint
+  { id: 'navigation', name: 'Navigation', enabled: false },
+  // ... other touchpoints
+];</code></pre>
+    
+    <h3>9.3 Detection Strategies</h3>
+    
+    <h4>9.3.1 Multi-Signal Detection</h4>
+    <p>Use multiple signals to increase accuracy and reduce false positives:</p>
+    <pre><code>function detectForms() {
+  // Strategy 1: Direct element selection
+  const semanticForms = Array.from(document.querySelectorAll('form'));
+  
+  // Strategy 2: ARIA role detection
+  const ariaForms = Array.from(document.querySelectorAll('[role="form"]'));
+  
+  // Strategy 3: Heuristic detection for implicit forms
+  const implicitForms = Array.from(document.querySelectorAll('div, section'))
+    .filter(container => {
+      // Must have form-like characteristics
+      const hasInputs = container.querySelector('input, select, textarea');
+      const hasSubmit = container.querySelector('[type="submit"], button');
+      const hasFormClasses = /form|contact|signup|login/i.test(container.className);
+      
+      // Need at least 2 signals for confidence
+      const signals = [hasInputs, hasSubmit, hasFormClasses].filter(Boolean);
+      return signals.length >= 2;
+    });
+  
+  // Combine and deduplicate
+  const allForms = [...new Set([...semanticForms, ...ariaForms, ...implicitForms])];
+  
+  return allForms;
+}</code></pre>
+    
+    <h4>9.3.2 Context Analysis</h4>
+    <p>Understand the structural context of detected elements:</p>
+    <pre><code>function analyzeFormContext(form) {
+  const context = {
+    hasHeading: false,
+    headingText: '',
+    hasLandmark: false,
+    landmarkType: '',
+    hasDescription: false
+  };
+  
+  // Find associated heading
+  const heading = form.querySelector('h1, h2, h3, h4, h5, h6') ||
+                 findPrecedingSibling(form, 'h1, h2, h3, h4, h5, h6');
+  
+  if (heading) {
+    context.hasHeading = true;
+    context.headingText = heading.textContent.trim();
+  }
+  
+  // Check landmark context
+  const landmark = form.closest('[role="main"], [role="form"], main, section');
+  if (landmark) {
+    context.hasLandmark = true;
+    context.landmarkType = landmark.getAttribute('role') || landmark.tagName.toLowerCase();
+  }
+  
+  // Check for description
+  const describedBy = form.getAttribute('aria-describedby');
+  if (describedBy) {
+    const description = document.getElementById(describedBy);
+    context.hasDescription = description !== null;
+  }
+  
+  return context;
+}</code></pre>
+    
+    <h3>9.4 Accessibility Analysis</h3>
+    
+    <h4>9.4.1 WCAG Violation Detection</h4>
+    <pre><code>function analyzeFormAccessibility(form) {
+  const violations = [];
+  
+  // Test 1: Form labeling
+  if (!form.getAttribute('aria-label') && !form.getAttribute('aria-labelledby')) {
+    const context = analyzeFormContext(form);
+    if (!context.hasHeading) {
+      violations.push({
+        id: 'form-missing-name',
+        impact: 'serious',
+        wcagCriteria: ['1.3.1', '4.1.2'],
+        title: 'Form lacks accessible name',
+        description: 'Forms must have an accessible name to identify their purpose',
+        element: form
+      });
+    }
+  }
+  
+  // Test 2: Input labeling
+  const inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    if (!hasAccessibleName(input)) {
+      violations.push({
+        id: 'input-missing-label',
+        impact: 'critical',
+        wcagCriteria: ['3.3.2', '4.1.2'],
+        title: 'Form input lacks label',
+        description: 'All form inputs must have associated labels',
+        element: input
+      });
+    }
+  });
+  
+  // Test 3: Error handling
+  const requiredInputs = form.querySelectorAll('[required], [aria-required="true"]');
+  if (requiredInputs.length > 0 && !form.querySelector('[role="alert"], .error-message')) {
+    violations.push({
+      id: 'form-no-error-handling',
+      impact: 'serious',
+      wcagCriteria: ['3.3.1', '3.3.3'],
+      title: 'Form lacks error identification mechanism',
+      description: 'Forms with required fields need clear error messaging',
+      element: form
+    });
+  }
+  
+  return violations;
+}</code></pre>
+    
+    <h4>9.4.2 Helper Functions</h4>
+    <pre><code>function hasAccessibleName(element) {
+  // Check for explicit label
+  if (element.labels && element.labels.length > 0) {
+    return true;
+  }
+  
+  // Check ARIA labeling
+  if (element.getAttribute('aria-label') || 
+      element.getAttribute('aria-labelledby')) {
+    return true;
+  }
+  
+  // Check for implicit label (wrapped)
+  const parent = element.parentElement;
+  if (parent && parent.tagName === 'LABEL') {
+    return true;
+  }
+  
+  // Check title attribute (last resort)
+  if (element.getAttribute('title')) {
+    return true;
+  }
+  
+  return false;
+}
+
+function findPrecedingSibling(element, selector) {
+  let sibling = element.previousElementSibling;
+  while (sibling) {
+    if (sibling.matches(selector)) {
+      return sibling;
+    }
+    sibling = sibling.previousElementSibling;
+  }
+  return null;
+}</code></pre>
+    
+    <h3>9.5 Remediation Guidance</h3>
+    
+    <h4>9.5.1 Context-Aware Fixes</h4>
+    <pre><code>function generateRemediation(violation) {
+  const remediations = {
+    'form-missing-name': {
+      howToFix: \`Add an accessible name to the form using one of these methods:
+1. Add aria-label: <form aria-label="Contact Us">
+2. Use aria-labelledby: <h2 id="form-title">Contact Us</h2><form aria-labelledby="form-title">
+3. Place a heading as the first child: <form><h2>Contact Us</h2>...</form>\`,
+      
+      whyItMatters: 'Screen reader users need to understand the purpose of a form before filling it out. Without a name, they must guess based on the fields alone.',
+      
+      whoIsAffected: ['Screen reader users', 'Voice control users'],
+      
+      howToTest: \`1. Turn on a screen reader
+2. Navigate to the form
+3. Verify the form\'s purpose is announced
+4. Use landmarks navigation to verify the form appears in the list\`
+    },
+    
+    'input-missing-label': {
+      howToFix: \`Associate a label with this input using one of these methods:
+1. Explicit label: <label for="email">Email</label><input id="email" type="email">
+2. Implicit label: <label>Email <input type="email"></label>
+3. ARIA label: <input type="email" aria-label="Email address">\`,
+      
+      whyItMatters: 'Users need to know what information to enter in each field. Without labels, they must guess based on placeholder text or position, which is unreliable.',
+      
+      whoIsAffected: ['Screen reader users', 'Users with cognitive disabilities', 'Voice control users'],
+      
+      howToTest: \`1. Click on the label text
+2. Verify focus moves to the input
+3. Use a screen reader to verify the label is announced\`
+    }
+  };
+  
+  return remediations[violation.id] || {
+    howToFix: 'Implement accessibility best practices for this element',
+    whyItMatters: 'Accessibility barriers prevent users from completing tasks',
+    whoIsAffected: ['Users with disabilities'],
+    howToTest: 'Test with assistive technologies'
+  };
+}</code></pre>
+    
+    <h3>9.6 Testing Your Touchpoint</h3>
+    
+    <h4>9.6.1 Unit Testing</h4>
+    <pre><code>// Create test fixtures
+const fixtures = {
+  validForm: \`
+    <form aria-label="Newsletter Signup">
+      <label for="email">Email Address</label>
+      <input id="email" type="email" required>
+      <button type="submit">Subscribe</button>
+    </form>
+  \`,
+  
+  invalidForm: \`
+    <form>
+      <input type="email" placeholder="Email">
+      <button>Submit</button>
+    </form>
+  \`
+};
+
+// Test detection
+function testDetection() {
+  document.body.innerHTML = fixtures.validForm + fixtures.invalidForm;
+  const forms = detectForms();
+  
+  console.assert(forms.length === 2, 'Should detect both forms');
+}
+
+// Test analysis
+function testAnalysis() {
+  document.body.innerHTML = fixtures.invalidForm;
+  const form = document.querySelector('form');
+  const violations = analyzeFormAccessibility(form);
+  
+  console.assert(violations.length >= 2, 'Should find multiple violations');
+  console.assert(violations.some(v => v.id === 'form-missing-name'), 'Should detect missing form name');
+  console.assert(violations.some(v => v.id === 'input-missing-label'), 'Should detect missing input label');
+}</code></pre>
+    
+    <h4>9.6.2 Integration Testing</h4>
+    <pre><code>// Test with real pages
+async function integrationTest() {
+  // Load test page
+  const testPages = [
+    'fixtures/forms/contact-form.html',
+    'fixtures/forms/login-form.html',
+    'fixtures/forms/complex-form.html'
+  ];
+  
+  for (const page of testPages) {
+    console.log(\`Testing \${page}...\`);
+    
+    // Navigate to page
+    window.location.href = page;
+    await waitForPageLoad();
+    
+    // Run touchpoint
+    const results = await window.test_forms();
+    
+    // Verify results
+    console.assert(results.success, \`Touchpoint should succeed on \${page}\`);
+    console.log(\`Found \${results.results.violations.length} violations\`);
+  }
+}</code></pre>
+    
+    <h3>9.7 Best Practices</h3>
+    
+    <div class="note">
+      <h4>1. Start Simple</h4>
+      <p>Begin with basic detection and gradually add complexity. It's better to have reliable detection of common patterns than unreliable detection of everything.</p>
+    </div>
+    
+    <div class="note">
+      <h4>2. Educate Through Code</h4>
+      <p>Include comments that explain WHY something is an issue, not just what the issue is. Your code should teach developers about accessibility.</p>
+    </div>
+    
+    <div class="note">
+      <h4>3. Provide Actionable Guidance</h4>
+      <p>Remediation advice should be specific to the context. Generic "add a label" advice is less helpful than showing exactly how to fix the specific issue.</p>
+    </div>
+    
+    <div class="note">
+      <h4>4. Handle Edge Cases Gracefully</h4>
+      <p>Your touchpoint will encounter broken HTML, dynamic content, and unusual implementations. Always code defensively.</p>
+    </div>
+    
+    <div class="warning">
+      <h4>Common Pitfalls to Avoid</h4>
+      <ul>
+        <li><strong>Over-detection:</strong> Casting too wide a net leads to false positives</li>
+        <li><strong>Under-detection:</strong> Missing common patterns reduces usefulness</li>
+        <li><strong>Vague guidance:</strong> Generic fixes don't help developers learn</li>
+        <li><strong>Performance issues:</strong> Inefficient DOM queries slow down testing</li>
+        <li><strong>Context loss:</strong> Async operations can lose element references</li>
+      </ul>
+    </div>
+    
+    <h2 id="technical-implementation">9. Technical Implementation</h2>
+    
+    <h3>10.1 Chrome Extension Architecture</h3>
+    <p>Carnforth leverages Chrome's extension APIs to provide deep integration with the browser's developer tools. This section details the technical implementation choices and patterns.</p>
+    
+    <h3>10.2 Extension Components</h3>
+    
+    <h4>10.2.1 Manifest Configuration</h4>
+    <pre><code>{
+  "manifest_version": 3,
+  "name": "Carnforth Web A11y",
+  "version": "1.0.0",
+  "description": "Accessibility testing focused on user journeys",
+  
+  "devtools_page": "devtools/devtools.html",
+  
+  "permissions": [
+    "debugger",
+    "tabs",
+    "storage"
+  ],
+  
+  "host_permissions": ["<all_urls>"],
+  
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["js/content-script.js"],
+    "run_at": "document_idle"
+  }],
+  
+  "background": {
+    "service_worker": "js/background.js"
+  }
+}</code></pre>
+    
+    <h4>10.2.2 DevTools Panel Creation</h4>
+    <pre><code>// devtools.js
+chrome.devtools.panels.create(
+  "Carnforth A11y",
+  "icons/icon48.png",
+  "panel/panel.html",
+  function(panel) {
+    // Panel created callback
+    panel.onShown.addListener(function(window) {
+      // Panel is visible
+    });
+  }
+);</code></pre>
+    
+    <h4>10.2.3 Content Script Injection</h4>
+    <pre><code>// Inject scripts into the inspected page
+function injectScript(tabId, file) {
+  return chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    files: [file],
+    world: 'MAIN' // Access to page's JavaScript context
+  });
+}
+
+// Inject touchpoint modules dynamically
+async function injectTouchpoints(tabId, touchpoints) {
+  for (const touchpoint of touchpoints) {
+    await injectScript(tabId, \`js/touchpoints/\${touchpoint}.js\`);
+  }
+}</code></pre>
+    
+    <h3>10.3 Communication Layer</h3>
+    
+    <h4>10.3.1 Message Protocol</h4>
+    <pre><code>// Standard message format
+interface Message {
+  id: string;          // Unique message ID
+  source: string;      // 'panel' | 'content' | 'background'
+  action: string;      // Action to perform
+  data?: any;          // Payload
+  timestamp: number;   // When sent
+}
+
+// Response format
+interface Response {
+  id: string;          // Matching request ID
+  success: boolean;    // Operation result
+  data?: any;          // Response payload
+  error?: string;      // Error message if failed
+}</code></pre>
+    
+    <h4>10.3.2 Panel to Content Communication</h4>
+    <pre><code>// Panel side
+function sendToContent(action, data) {
+  return new Promise((resolve, reject) => {
+    const messageId = generateId();
+    
+    // Send through inspected window
+    chrome.devtools.inspectedWindow.eval(
+      \`window.postMessage({
+        id: '\${messageId}',
+        source: 'carnforth-panel',
+        action: '\${action}',
+        data: \${JSON.stringify(data)}
+      }, '*')\`,
+      (result, error) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+  });
+}
+
+// Content side listener
+window.addEventListener('message', (event) => {
+  if (event.data.source !== 'carnforth-panel') return;
+  
+  handlePanelMessage(event.data);
+});</code></pre>
+    
+    <h4>10.3.3 Result Collection</h4>
+    <pre><code>// Aggregate results from multiple frames
+async function collectResults(tabId) {
+  const frames = await getAllFrames(tabId);
+  const results = [];
+  
+  for (const frame of frames) {
+    try {
+      const frameResults = await executeInFrame(frame, 'getTestResults');
+      results.push({
+        frameId: frame.frameId,
+        url: frame.url,
+        violations: frameResults
+      });
+    } catch (error) {
+      console.warn(\`Frame \${frame.frameId} test failed:\`, error);
+    }
+  }
+  
+  return results;
+}</code></pre>
+    
+    <h3>10.4 DOM Analysis Techniques</h3>
+    
+    <h4>10.4.1 Element Selection</h4>
+    <pre><code>// Efficient element selection with fallbacks
+function selectElements(selectors) {
+  const elements = new Set();
+  
+  for (const selector of selectors) {
+    try {
+      // Use native selector when possible
+      const matches = document.querySelectorAll(selector);
+      matches.forEach(el => elements.add(el));
+    } catch (e) {
+      // Fallback to custom selector engine
+      const customMatches = customSelector(selector);
+      customMatches.forEach(el => elements.add(el));
+    }
+  }
+  
+  return Array.from(elements);
+}</code></pre>
+    
+    <h4>10.4.2 Shadow DOM Traversal</h4>
+    <pre><code>// Recursive shadow DOM walker
+function* walkShadowDOM(root = document.body) {
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: () => NodeFilter.FILTER_ACCEPT
+    }
+  );
+  
+  let node;
+  while (node = walker.nextNode()) {
+    yield node;
+    
+    // Check for shadow root
+    if (node.shadowRoot) {
+      yield* walkShadowDOM(node.shadowRoot);
+    }
+    
+    // Check for slots
+    if (node.tagName === 'SLOT') {
+      const assigned = node.assignedElements();
+      for (const el of assigned) {
+        yield* walkShadowDOM(el);
+      }
+    }
+  }
+}</code></pre>
+    
+    <h4>10.4.3 Computed Style Analysis</h4>
+    <pre><code>// Get effective styles considering inheritance
+function getEffectiveStyles(element, properties) {
+  const computed = window.getComputedStyle(element);
+  const effective = {};
+  
+  for (const prop of properties) {
+    let value = computed[prop];
+    
+    // Handle special cases
+    if (prop === 'color' || prop === 'backgroundColor') {
+      value = normalizeColor(value);
+    } else if (prop === 'fontSize') {
+      value = convertToPixels(value, element);
+    }
+    
+    effective[prop] = value;
+  }
+  
+  return effective;
+}
+
+// Color normalization
+function normalizeColor(color) {
+  const div = document.createElement('div');
+  div.style.color = color;
+  document.body.appendChild(div);
+  const rgb = getComputedStyle(div).color;
+  document.body.removeChild(div);
+  return rgb;
+}</code></pre>
+    
+    <h3>10.5 Performance Optimization</h3>
+    
+    <h4>10.5.1 Virtual DOM Diffing</h4>
+    <pre><code>// Minimize DOM updates
+class VirtualRenderer {
+  constructor(container) {
+    this.container = container;
+    this.currentVDOM = null;
+  }
+  
+  render(newVDOM) {
+    if (!this.currentVDOM) {
+      // Initial render
+      this.container.innerHTML = '';
+      this.container.appendChild(createElement(newVDOM));
+    } else {
+      // Diff and patch
+      const patches = diff(this.currentVDOM, newVDOM);
+      patch(this.container.firstChild, patches);
+    }
+    
+    this.currentVDOM = newVDOM;
+  }
+}</code></pre>
+    
+    <h4>10.5.2 Worker Thread Processing</h4>
+    <pre><code>// Offload heavy computation to worker
+const analysisWorker = new Worker('js/analysis-worker.js');
+
+function analyzeInWorker(data) {
+  return new Promise((resolve, reject) => {
+    const id = generateId();
+    
+    const handler = (event) => {
+      if (event.data.id === id) {
+        analysisWorker.removeEventListener('message', handler);
+        if (event.data.error) {
+          reject(new Error(event.data.error));
+        } else {
+          resolve(event.data.result);
+        }
+      }
+    };
+    
+    analysisWorker.addEventListener('message', handler);
+    analysisWorker.postMessage({ id, data });
+  });
+}</code></pre>
+    
+    <h4>10.5.3 Request Debouncing</h4>
+    <pre><code>// Intelligent request batching
+class RequestBatcher {
+  constructor(executor, delay = 16) {
+    this.executor = executor;
+    this.delay = delay;
+    this.pending = new Map();
+    this.timer = null;
+  }
+  
+  add(key, data) {
+    this.pending.set(key, data);
+    this.scheduleFlush();
+  }
+  
+  scheduleFlush() {
+    if (this.timer) return;
+    
+    this.timer = setTimeout(() => {
+      this.flush();
+    }, this.delay);
+  }
+  
+  async flush() {
+    const batch = Array.from(this.pending.entries());
+    this.pending.clear();
+    this.timer = null;
+    
+    if (batch.length > 0) {
+      await this.executor(batch);
+    }
+  }
+}</code></pre>
+    
+    <h3>10.6 Storage and Persistence</h3>
+    
+    <h4>10.6.1 Settings Management</h4>
+    <pre><code>// Synchronized settings across extension
+class SettingsManager {
+  constructor() {
+    this.cache = null;
+    this.listeners = new Set();
+  }
+  
+  async get(key) {
+    if (!this.cache) {
+      this.cache = await chrome.storage.sync.get();
+    }
+    return key ? this.cache[key] : this.cache;
+  }
+  
+  async set(key, value) {
+    const update = { [key]: value };
+    await chrome.storage.sync.set(update);
+    
+    // Update cache
+    if (this.cache) {
+      this.cache[key] = value;
+    }
+    
+    // Notify listeners
+    this.notifyListeners(key, value);
+  }
+  
+  onChange(callback) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  }
+}</code></pre>
+    
+    <h4>10.6.2 Result Caching</h4>
+    <pre><code>// LRU cache for test results
+class ResultCache {
+  constructor(maxSize = 100) {
+    this.maxSize = maxSize;
+    this.cache = new Map();
+  }
+  
+  generateKey(url, touchpoints, config) {
+    return JSON.stringify({ url, touchpoints, config });
+  }
+  
+  get(url, touchpoints, config) {
+    const key = this.generateKey(url, touchpoints, config);
+    const entry = this.cache.get(key);
+    
+    if (entry) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, entry);
+      
+      // Check expiry
+      if (Date.now() - entry.timestamp < 300000) { // 5 minutes
+        return entry.data;
+      }
+    }
+    
+    return null;
+  }
+  
+  set(url, touchpoints, config, data) {
+    const key = this.generateKey(url, touchpoints, config);
+    
+    // Evict oldest if at capacity
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+    
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+}</code></pre>
+    
+    <h3>10.7 Security Considerations</h3>
+    
+    <h4>10.7.1 Content Security Policy</h4>
+    <pre><code>// Handle CSP restrictions
+function injectWithCSPBypass(code) {
+  const script = document.createElement('script');
+  script.textContent = code;
+  
+  // Use extension's CSP context
+  script.setAttribute('data-carnforth', 'true');
+  
+  // Clean up after execution
+  script.addEventListener('load', () => {
+    script.remove();
+  });
+  
+  (document.head || document.documentElement).appendChild(script);
+}</code></pre>
+    
+    <h4>10.7.2 Input Sanitization</h4>
+    <pre><code>// Prevent XSS in user-provided content
+function sanitizeHTML(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  
+  // Remove dangerous elements
+  const dangerous = template.content.querySelectorAll(
+    'script, iframe, object, embed, link[rel="import"]'
+  );
+  dangerous.forEach(el => el.remove());
+  
+  // Clean attributes
+  const allElements = template.content.querySelectorAll('*');
+  allElements.forEach(el => {
+    // Remove event handlers
+    for (const attr of el.attributes) {
+      if (attr.name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+    }
+    
+    // Clean href/src attributes
+    if (el.hasAttribute('href') || el.hasAttribute('src')) {
+      const url = el.getAttribute('href') || el.getAttribute('src');
+      if (url.startsWith('javascript:')) {
+        el.removeAttribute('href');
+        el.removeAttribute('src');
+      }
+    }
+  });
+  
+  return template.innerHTML;
+}</code></pre>
+    
+    <h3>10.8 Advanced Features</h3>
+    
+    <h4>10.8.1 Real-time Monitoring</h4>
+    <pre><code>// Monitor for accessibility regressions
+class AccessibilityMonitor {
+  constructor() {
+    this.baseline = null;
+    this.observer = null;
+  }
+  
+  start(touchpoints) {
+    // Establish baseline
+    this.baseline = this.captureState(touchpoints);
+    
+    // Start monitoring
+    this.observer = new MutationObserver(() => {
+      this.checkForRegressions(touchpoints);
+    });
+    
+    this.observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-*', 'role', 'alt', 'title']
+    });
+  }
+  
+  checkForRegressions(touchpoints) {
+    const current = this.captureState(touchpoints);
+    const regressions = this.compareStates(this.baseline, current);
+    
+    if (regressions.length > 0) {
+      this.notifyRegressions(regressions);
+    }
+  }
+}</code></pre>
+    
+    <h4>10.8.2 Machine Learning Integration</h4>
+    <pre><code>// Predictive issue detection
+class MLPredictor {
+  constructor(modelUrl) {
+    this.model = null;
+    this.loadModel(modelUrl);
+  }
+  
+  async loadModel(url) {
+    // Load TensorFlow.js model
+    this.model = await tf.loadLayersModel(url);
+  }
+  
+  async predictIssues(element) {
+    if (!this.model) return [];
+    
+    // Extract features
+    const features = this.extractFeatures(element);
+    
+    // Run prediction
+    const prediction = await this.model.predict(features).data();
+    
+    // Interpret results
+    return this.interpretPrediction(prediction);
+  }
+  
+  extractFeatures(element) {
+    // Convert element to feature tensor
+    return tf.tensor([
+      element.tagName === 'IMG' ? 1 : 0,
+      element.hasAttribute('alt') ? 1 : 0,
+      element.getAttribute('role') ? 1 : 0,
+      // ... more features
+    ]);
+  }
+}</code></pre>
+    
+    <div class="warning">
+      <h4>Implementation Notes</h4>
+      <ul>
+        <li>Always test in multiple Chrome versions</li>
+        <li>Handle extension updates gracefully</li>
+        <li>Minimize content script footprint</li>
+        <li>Respect page performance</li>
+        <li>Follow Chrome extension best practices</li>
+      </ul>
+    </div>
+    
+    <h2 id="testing-approach">10. Testing and Validation</h2>
+    
+    <h3>11.1 Testing Philosophy</h3>
+    <p>Our testing approach ensures both technical correctness and educational value. We test not only that our tool finds accessibility issues, but that it provides meaningful guidance for fixing them.</p>
+    
+    <h3>11.2 Test Infrastructure</h3>
+    
+    <h4>11.2.1 Test Fixtures</h4>
+    <p>We maintain a comprehensive library of HTML test fixtures that represent real-world patterns:</p>
+    <pre><code>// /fixtures/maps_test.html structure
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;title&gt;Maps Accessibility Test Fixtures&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- Section 1: Google Maps Embeds --&gt;
+  &lt;section id="google-maps"&gt;
+    &lt;h2&gt;Google Maps Test Cases&lt;/h2&gt;
+    
+    &lt;!-- Valid: Properly labeled iframe --&gt;
+    &lt;div class="test-case" data-expected="pass"&gt;
+      &lt;iframe src="https://maps.google.com/maps?q=..."
+              title="Map showing office location at 123 Main St"
+              width="600" height="400"&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- Invalid: Missing title --&gt;
+    &lt;div class="test-case" data-expected="fail" data-violations="1"&gt;
+      &lt;iframe src="https://maps.google.com/maps?q=..."
+              width="600" height="400"&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  
+  &lt;!-- More test sections... --&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    
+    <h4>11.2.2 Test Runner</h4>
+    <p>Our test runner validates both detection and remediation:</p>
+    <pre><code>class TouchpointTestRunner {
+  constructor(touchpointName) {
+    this.touchpointName = touchpointName;
+    this.results = {
+      passed: 0,
+      failed: 0,
+      errors: []
+    };
+  }
+  
+  async runTests(fixtureUrl) {
+    // Load fixture
+    await this.loadFixture(fixtureUrl);
+    
+    // Get all test cases
+    const testCases = document.querySelectorAll('.test-case');
+    
+    for (const testCase of testCases) {
+      await this.runTestCase(testCase);
+    }
+    
+    return this.results;
+  }
+  
+  async runTestCase(testCase) {
+    const expected = testCase.dataset.expected;
+    const expectedViolations = parseInt(testCase.dataset.violations || '0');
+    
+    try {
+      // Run touchpoint
+      const touchpointFunc = window[\`test_\${this.touchpointName}\`];
+      const results = await touchpointFunc();
+      
+      // Validate results
+      if (expected === 'pass' && results.results.violations.length === 0) {
+        this.results.passed++;
+      } else if (expected === 'fail' && results.results.violations.length === expectedViolations) {
+        this.results.passed++;
+      } else {
+        this.results.failed++;
+        this.results.errors.push({
+          testCase: testCase.id,
+          expected: expectedViolations,
+          actual: results.results.violations.length
+        });
+      }
+    } catch (error) {
+      this.results.failed++;
+      this.results.errors.push({
+        testCase: testCase.id,
+        error: error.message
+      });
+    }
+  }
+}</code></pre>
+    
+    <h3>11.3 Unit Testing</h3>
+    
+    <h4>11.3.1 Detection Functions</h4>
+    <pre><code>// Test individual detection functions
+describe('Map Detection', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+  
+  it('should detect Google Maps iframes', () => {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://maps.google.com/maps?q=test';
+    document.body.appendChild(iframe);
+    
+    const detector = new MapDetector();
+    const maps = detector.detectIframeMaps();
+    
+    expect(maps).toHaveLength(1);
+    expect(maps[0].provider).toBe('Google Maps');
+  });
+  
+  it('should not detect non-map iframes', () => {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://example.com/video';
+    document.body.appendChild(iframe);
+    
+    const detector = new MapDetector();
+    const maps = detector.detectIframeMaps();
+    
+    expect(maps).toHaveLength(0);
+  });
+  
+  it('should detect canvas-based maps', () => {
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-label', 'Interactive map');
+    canvas.width = 800;
+    canvas.height = 600;
+    document.body.appendChild(canvas);
+    
+    const detector = new MapDetector();
+    const maps = detector.detectCanvasMaps();
+    
+    expect(maps).toHaveLength(1);
+  });
+});</code></pre>
+    
+    <h4>11.3.2 Analysis Functions</h4>
+    <pre><code>describe('Accessibility Analysis', () => {
+  it('should detect missing accessible name', () => {
+    const element = document.createElement('div');
+    element.setAttribute('role', 'application');
+    
+    const analyzer = new AccessibilityAnalyzer();
+    const violations = analyzer.checkAccessibleName(element);
+    
+    expect(violations).toHaveLength(1);
+    expect(violations[0].id).toBe('missing-accessible-name');
+  });
+  
+  it('should pass with proper labeling', () => {
+    const element = document.createElement('div');
+    element.setAttribute('role', 'application');
+    element.setAttribute('aria-label', 'Store locator map');
+    
+    const analyzer = new AccessibilityAnalyzer();
+    const violations = analyzer.checkAccessibleName(element);
+    
+    expect(violations).toHaveLength(0);
+  });
+});</code></pre>
+    
+    <h3>11.4 Integration Testing</h3>
+    
+    <h4>11.4.1 Full Touchpoint Testing</h4>
+    <pre><code>// Test complete touchpoint execution
+async function testFullTouchpoint() {
+  const testCases = [
+    {
+      name: 'Simple Google Maps embed',
+      html: '<iframe src="https://maps.google.com/maps"></iframe>',
+      expectedViolations: ['map-iframe-missing-title']
+    },
+    {
+      name: 'Accessible canvas map',
+      html: \`
+        <div role="application" aria-label="Interactive store map">
+          <canvas tabindex="0"></canvas>
+        </div>
+      \`,
+      expectedViolations: []
+    },
+    {
+      name: 'Complex map with controls',
+      html: \`
+        <div class="map-container">
+          <div class="map" role="application">
+            <canvas></canvas>
+            <button class="zoom-in">+</button>
+            <button class="zoom-out">-</button>
+          </div>
+        </div>
+      \`,
+      expectedViolations: [
+        'map-missing-accessible-name',
+        'canvas-map-not-keyboard-accessible',
+        'map-controls-missing-labels'
+      ]
+    }
+  ];
+  
+  for (const testCase of testCases) {
+    console.log(\`Testing: \${testCase.name}\`);
+    
+    // Set up DOM
+    document.body.innerHTML = testCase.html;
+    
+    // Run touchpoint
+    const results = await window.test_maps();
+    
+    // Validate results
+    const violations = results.results.violations.map(v => v.id);
+    expect(violations).toEqual(testCase.expectedViolations);
+  }
+}</code></pre>
+    
+    <h4>11.4.2 Cross-Browser Testing</h4>
+    <pre><code>// Automated cross-browser test suite
+const browsers = ['chrome', 'firefox', 'safari', 'edge'];
+
+async function runCrossBrowserTests() {
+  for (const browser of browsers) {
+    console.log(\`Testing in \${browser}...\`);
+    
+    const driver = await getWebDriver(browser);
+    
+    try {
+      // Load extension
+      await driver.get('chrome-extension://[extension-id]/panel/panel.html');
+      
+      // Navigate to test page
+      await driver.executeScript('chrome.tabs.update({url: "fixtures/test-page.html"})');
+      
+      // Run tests
+      await driver.executeScript('document.getElementById("start-test").click()');
+      
+      // Wait for results
+      await driver.wait(until.elementLocated(By.className('results-complete')), 10000);
+      
+      // Verify results
+      const violations = await driver.findElements(By.className('violation'));
+      console.log(\`Found \${violations.length} violations in \${browser}\`);
+      
+    } finally {
+      await driver.quit();
+    }
+  }
+}</code></pre>
+    
+    <h3>11.5 Manual Testing</h3>
+    
+    <h4>11.5.1 Screen Reader Testing</h4>
+    <div class="note">
+      <h4>NVDA Testing Checklist</h4>
+      <ul>
+        <li>Navigate to map using browse mode (arrow keys)</li>
+        <li>Verify map purpose is announced</li>
+        <li>Switch to focus mode (Insert+Space)</li>
+        <li>Test all interactive controls</li>
+        <li>Verify status updates are announced</li>
+        <li>Check landmark navigation (D key)</li>
+      </ul>
+    </div>
+    
+    <div class="note">
+      <h4>JAWS Testing Checklist</h4>
+      <ul>
+        <li>Use virtual cursor to explore map region</li>
+        <li>Test forms mode activation</li>
+        <li>Verify button labels are read</li>
+        <li>Check heading navigation (H key)</li>
+        <li>Test with different verbosity settings</li>
+      </ul>
+    </div>
+    
+    <div class="note">
+      <h4>VoiceOver Testing Checklist</h4>
+      <ul>
+        <li>Navigate with VO+arrows</li>
+        <li>Test rotor navigation</li>
+        <li>Verify gestures work on touch devices</li>
+        <li>Check web rotor for landmarks</li>
+        <li>Test with Safari and Chrome</li>
+      </ul>
+    </div>
+    
+    <h4>11.5.2 Keyboard Testing</h4>
+    <pre><code>// Keyboard test scenarios
+const keyboardTests = [
+  {
+    name: 'Tab navigation',
+    steps: [
+      'Press Tab to reach map',
+      'Verify focus indicator is visible',
+      'Continue tabbing through all controls',
+      'Verify no keyboard traps'
+    ]
+  },
+  {
+    name: 'Arrow key navigation',
+    steps: [
+      'Focus on map',
+      'Use arrow keys to pan',
+      'Verify map updates',
+      'Check status announcements'
+    ]
+  },
+  {
+    name: 'Shortcut keys',
+    steps: [
+      'Press + to zoom in',
+      'Press - to zoom out',
+      'Press 0 to reset',
+      'Press ? for help'
+    ]
+  }
+];</code></pre>
+    
+    <h3>11.6 Performance Testing</h3>
+    
+    <h4>11.6.1 Benchmark Suite</h4>
+    <pre><code>class PerformanceBenchmark {
+  async runBenchmarks() {
+    const results = {};
+    
+    // Test 1: Large DOM performance
+    results.largeDom = await this.benchmarkLargeDOM();
+    
+    // Test 2: Dynamic content handling
+    results.dynamicContent = await this.benchmarkDynamicContent();
+    
+    // Test 3: Memory usage
+    results.memory = await this.benchmarkMemoryUsage();
+    
+    return results;
+  }
+  
+  async benchmarkLargeDOM() {
+    // Create 1000 map elements
+    for (let i = 0; i < 1000; i++) {
+      const div = document.createElement('div');
+      div.className = 'map-container';
+      div.innerHTML = '<div class="map"></div>';
+      document.body.appendChild(div);
+    }
+    
+    const startTime = performance.now();
+    await window.test_maps();
+    const endTime = performance.now();
+    
+    return {
+      elements: 1000,
+      time: endTime - startTime,
+      avgPerElement: (endTime - startTime) / 1000
+    };
+  }
+  
+  async benchmarkMemoryUsage() {
+    if (performance.memory) {
+      const before = performance.memory.usedJSHeapSize;
+      
+      // Run test 10 times
+      for (let i = 0; i < 10; i++) {
+        await window.test_maps();
+      }
+      
+      const after = performance.memory.usedJSHeapSize;
+      
+      return {
+        before: before,
+        after: after,
+        increase: after - before,
+        leakDetected: (after - before) > 1000000 // 1MB threshold
+      };
+    }
+    
+    return { error: 'Memory API not available' };
+  }
+}</code></pre>
+    
+    <h3>11.7 Validation Strategies</h3>
+    
+    <h4>11.7.1 False Positive Prevention</h4>
+    <pre><code>// Validate that we don't over-detect
+function validateNoFalsePositives() {
+  const testCases = [
+    {
+      html: '<div class="sitemap">Site Map</div>',
+      shouldDetect: false,
+      reason: 'sitemap is not a geographic map'
+    },
+    {
+      html: '<img src="bitmap.png" alt="Logo">',
+      shouldDetect: false,
+      reason: 'bitmap is not a map'
+    },
+    {
+      html: '<div class="roadmap">Product Roadmap</div>',
+      shouldDetect: false,
+      reason: 'roadmap in this context is not geographic'
+    }
+  ];
+  
+  testCases.forEach(testCase => {
+    document.body.innerHTML = testCase.html;
+    const results = detectMaps();
+    
+    if (results.length > 0 && !testCase.shouldDetect) {
+      console.error(\`False positive: \${testCase.reason}\`);
+    }
+  });
+}</code></pre>
+    
+    <h4>11.7.2 Remediation Validation</h4>
+    <pre><code>// Ensure remediation advice actually fixes the issue
+async function validateRemediation(violation) {
+  // Apply the suggested fix
+  const element = document.querySelector(violation.selector);
+  const fixedHTML = applyRemediation(element, violation.remediation);
+  
+  // Re-test with fixed HTML
+  document.body.innerHTML = fixedHTML;
+  const retest = await window.test_maps();
+  
+  // Verify the violation is resolved
+  const stillPresent = retest.results.violations.some(v => v.id === violation.id);
+  
+  if (stillPresent) {
+    throw new Error(\`Remediation for \${violation.id} did not fix the issue\`);
+  }
+}</code></pre>
+    
+    <h3>11.8 Continuous Integration</h3>
+    
+    <h4>11.8.1 GitHub Actions Workflow</h4>
+    <pre><code># .github/workflows/test.yml
+name: Accessibility Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run unit tests
+      run: npm test
+    
+    - name: Run integration tests
+      run: npm run test:integration
+    
+    - name: Run fixture tests
+      run: npm run test:fixtures
+    
+    - name: Generate coverage report
+      run: npm run coverage
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v2</code></pre>
+    
+    <div class="warning">
+      <h4>Testing Best Practices</h4>
+      <ul>
+        <li><strong>Test real patterns:</strong> Use HTML from actual websites</li>
+        <li><strong>Test edge cases:</strong> Broken HTML, dynamic content, unusual implementations</li>
+        <li><strong>Test with real AT:</strong> Automated tests can't replace human testing</li>
+        <li><strong>Test performance:</strong> Ensure the extension doesn't slow down pages</li>
+        <li><strong>Test cross-browser:</strong> Different browsers have different APIs and behaviors</li>
+      </ul>
+    </div>
+    
+    <h2 id="future-work">11. Future Work</h2>
+    
+    <h3>12.1 Planned Touchpoints</h3>
+    <p>We have identified 24 touchpoints that cover the most critical accessibility patterns on the web. Currently, only the Maps touchpoint is fully implemented.</p>
+    
+    <h4>10.1.1 High Priority Touchpoints</h4>
+    <table>
+      <tr>
+        <th>Touchpoint</th>
+        <th>Description</th>
+        <th>Key Tests</th>
+      </tr>
+      <tr>
+        <td>Color Contrast</td>
+        <td>Detect insufficient contrast ratios</td>
+        <td>Text contrast, link contrast, focus indicators</td>
+      </tr>
+      <tr>
+        <td>Heading Order</td>
+        <td>Check heading hierarchy and structure</td>
+        <td>Sequential order, missing levels, empty headings</td>
+      </tr>
+      <tr>
+        <td>Forms</td>
+        <td>Form accessibility and usability</td>
+        <td>Labels, error handling, required fields, fieldsets</td>
+      </tr>
+      <tr>
+        <td>Navigation</td>
+        <td>Site navigation patterns</td>
+        <td>Skip links, consistent navigation, breadcrumbs</td>
+      </tr>
+      <tr>
+        <td>Images</td>
+        <td>Non-text content accessibility</td>
+        <td>Alt text quality, decorative images, complex graphics</td>
+      </tr>
+    </table>
+    
+    <h4>10.1.2 Medium Priority Touchpoints</h4>
+    <ul>
+      <li><strong>Tables:</strong> Data table structure and headers</li>
+      <li><strong>Language:</strong> Language attributes and changes</li>
+      <li><strong>Keyboard Navigation:</strong> Tab order and keyboard traps</li>
+      <li><strong>ARIA Usage:</strong> Proper ARIA implementation</li>
+      <li><strong>Media Alternatives:</strong> Captions, transcripts, audio descriptions</li>
+      <li><strong>Link Purpose:</strong> Meaningful link text</li>
+      <li><strong>Page Structure:</strong> Landmarks and regions</li>
+    </ul>
+    
+    <h3>12.2 Advanced Map Detection</h3>
+    
+    <h4>10.2.1 Sophisticated Touch Target Analysis</h4>
+    <ol>
+      <li><strong>Custom Control Detection:</strong> Canvas-based controls, SVG controls, overlay controls</li>
+      <li><strong>Control Clustering Analysis:</strong> Detect controls too close together</li>
+      <li><strong>Gesture-Based Patterns:</strong> Swipe areas, pinch-to-zoom regions</li>
+      <li><strong>Mobile-Specific Patterns:</strong> Responsive control sizing</li>
+      <li><strong>Advanced Control Types:</strong> Slider controls, radial menus</li>
+      <li><strong>Proximity Analysis:</strong> Controls near edges, dynamic sizing</li>
+    </ol>
+    
+    <h4>10.2.2 Additional Map Types</h4>
+    <ul>
+      <li><strong>Indoor Mapping:</strong> Building interiors, floor plans, venue maps</li>
+      <li><strong>3D Building/Terrain:</strong> Three-dimensional visualizations</li>
+      <li><strong>Real-time Data Overlays:</strong> Traffic, weather, live tracking</li>
+      <li><strong>Geographic Heatmaps:</strong> Data visualization on maps</li>
+      <li><strong>Vector Tile Formats:</strong> Modern mapping technologies</li>
+    </ul>
+    
+    <h3>12.3 Technical Enhancements</h3>
+    
+    <h4>10.3.1 Performance Improvements</h4>
+    <pre><code>// Planned optimizations
+const performanceEnhancements = {
+  virtualScrolling: 'Handle thousands of violations efficiently',
+  webWorkers: 'Move analysis to background threads',
+  incrementalTesting: 'Test visible content first',
+  caching: 'Cache results for unchanged content',
+  lazyLoading: 'Load touchpoints on demand'
+};</code></pre>
+    
+    <h4>10.3.2 AI Integration</h4>
+    <div class="note">
+      <h4>Machine Learning Applications</h4>
+      <ul>
+        <li><strong>Alt Text Generation:</strong> Suggest meaningful alt text using image recognition</li>
+        <li><strong>Pattern Recognition:</strong> Identify common accessibility anti-patterns</li>
+        <li><strong>Predictive Analysis:</strong> Predict likely accessibility issues</li>
+        <li><strong>Smart Remediation:</strong> Context-aware fix suggestions</li>
+        <li><strong>Natural Language Processing:</strong> Analyze content clarity and readability</li>
+      </ul>
+    </div>
+    
+    <h4>10.3.3 Real-time Monitoring</h4>
+    <pre><code>// Continuous accessibility monitoring
+class AccessibilityMonitor {
+  features: {
+    mutationObserver: 'Track DOM changes',
+    regressionDetection: 'Alert on new issues',
+    performanceTracking: 'Monitor impact on page speed',
+    historyTracking: 'Show accessibility trends',
+    ciIntegration: 'Fail builds on regressions'
+  }
+}</code></pre>
+    
+    <h3>12.4 User Experience Enhancements</h3>
+    
+    <h4>10.4.1 Reporting Features</h4>
+    <ul>
+      <li><strong>PDF Export:</strong> Professional reports for stakeholders</li>
+      <li><strong>Issue Tracking Integration:</strong> Create tickets in Jira, GitHub</li>
+      <li><strong>Progress Tracking:</strong> Show improvement over time</li>
+      <li><strong>Custom Report Templates:</strong> Organizational branding</li>
+      <li><strong>Executive Dashboards:</strong> High-level metrics and trends</li>
+    </ul>
+    
+    <h4>10.4.2 Educational Features</h4>
+    <div class="note">
+      <h4>Interactive Learning</h4>
+      <p>Transform Carnforth into a teaching tool:</p>
+      <ul>
+        <li>Interactive tutorials for each touchpoint</li>
+        <li>Before/after examples of fixes</li>
+        <li>Video demonstrations of screen reader behavior</li>
+        <li>Gamification of accessibility improvements</li>
+        <li>Certification paths for developers</li>
+      </ul>
+    </div>
+    
+    <h4>10.4.3 Collaboration Features</h4>
+    <pre><code>// Team collaboration capabilities
+const collaborationFeatures = {
+  sharedReports: 'Team members can view and comment',
+  assignmentSystem: 'Assign violations to developers',
+  codeReview: 'Integrate with PR workflows',
+  knowledgeBase: 'Share remediation patterns',
+  teamMetrics: 'Track team accessibility performance'
+};</code></pre>
+    
+    <h3>12.5 Research Areas</h3>
+    
+    <h4>10.5.1 Accessibility Innovation</h4>
+    <ul>
+      <li><strong>Voice Interface Testing:</strong> Evaluate voice control accessibility</li>
+      <li><strong>AR/VR Accessibility:</strong> Emerging technology patterns</li>
+      <li><strong>Cognitive Accessibility:</strong> Beyond WCAG guidelines</li>
+      <li><strong>Cultural Accessibility:</strong> Internationalization considerations</li>
+      <li><strong>Situational Impairments:</strong> Context-aware testing</li>
+    </ul>
+    
+    <h4>10.5.2 Standards Development</h4>
+    <div class="warning">
+      <h4>Contributing to Standards</h4>
+      <p>We aim to contribute our learnings back to the accessibility community:</p>
+      <ul>
+        <li>Propose new WCAG success criteria based on touchpoint insights</li>
+        <li>Develop standardized testing methodologies</li>
+        <li>Create open-source touchpoint libraries</li>
+        <li>Publish research on real-world accessibility patterns</li>
+        <li>Collaborate with W3C working groups</li>
+      </ul>
+    </div>
+    
+    <h3>12.6 Community Building</h3>
+    
+    <h4>10.6.1 Open Source Initiative</h4>
+    <pre><code>// Community contribution model
+const openSourceGoals = {
+  touchpointMarketplace: 'Community-created touchpoints',
+  translationProgram: 'Localize for global use',
+  bugBounty: 'Reward accessibility issue reports',
+  sponsorProgram: 'Sustainable development funding',
+  advisoryBoard: 'Accessibility expert guidance'
+};</code></pre>
+    
+    <h4>10.6.2 Educational Partnerships</h4>
+    <ul>
+      <li>University curriculum integration</li>
+      <li>Bootcamp training modules</li>
+      <li>Corporate training programs</li>
+      <li>Accessibility certification courses</li>
+      <li>Student contribution programs</li>
+    </ul>
+    
+    <h3>12.7 Long-term Vision</h3>
+    
+    <div class="note">
+      <h4>The Future of Web Accessibility</h4>
+      <p>Carnforth represents just the beginning of a new approach to accessibility testing. Our vision for the future includes:</p>
+      
+      <ul>
+        <li><strong>Ubiquitous Accessibility:</strong> Every developer has accessibility tools built into their workflow</li>
+        <li><strong>Proactive Prevention:</strong> Issues are caught during design, not after development</li>
+        <li><strong>User-Driven Testing:</strong> Real users with disabilities guide our testing priorities</li>
+        <li><strong>Automated Remediation:</strong> AI assists in fixing issues, not just finding them</li>
+        <li><strong>Global Standards:</strong> Consistent accessibility expectations worldwide</li>
+      </ul>
+      
+      <p>Together, we can make the web accessible to everyone, regardless of ability. Every line of code we write, every test we create, and every issue we fix brings us closer to that goal.</p>
+    </div>
+    
+    <div class="footer">
+      <p><strong>Join us in making the web more accessible!</strong></p>
+      <p>Contribute at: <a href="https://github.com/carnforth/web-a11y">github.com/carnforth/web-a11y</a></p>
+      <p>Learn more at: <a href="https://carnforth.dev">carnforth.dev</a></p>
+    </div>
+    
+    <div class="footer">
+      <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      <p>Carnforth Web A11y - Chrome Extension for Accessibility Testing</p>
+    </div>
+  </div>
+</body>
+</html>`;
+    
+    // Create blob and download
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  
+  /**
    * Escape HTML entities to prevent XSS and rendering issues
    * @param {string} str - The string to escape
    * @returns {string} - The escaped string
@@ -4378,7 +7590,7 @@ document.addEventListener('DOMContentLoaded', function() {
       color: var(--text-color);
       background-color: var(--background-color);
       padding: 2rem;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
     }
     
@@ -6136,6 +9348,7 @@ document.addEventListener('DOMContentLoaded', function() {
   exportJsonButton.addEventListener('click', exportAsJson);
   exportExcelButton.addEventListener('click', exportAsExcel);
   exportHtmlButton.addEventListener('click', exportAsHtml);
+  exportDocumentationButton.addEventListener('click', exportDocumentation);
   
   // Preferences modal functionality
   function openPreferencesModal() {

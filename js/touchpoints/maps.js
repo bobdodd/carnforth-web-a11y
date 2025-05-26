@@ -742,6 +742,161 @@ window.test_maps = async function() {
         return false;
       }
 
+      // Advanced WebGL Map Pattern Analysis
+      // This function analyzes WebGL context to detect map-specific rendering patterns
+      function analyzeWebGLMapPatterns(gl, canvas) {
+        const patterns = {
+          isLikelyMap: false,
+          mapType: 'unknown',
+          confidence: 0,
+          features: []
+        };
+        
+        try {
+          // 1. Check texture count - maps use many textures for tiles
+          const maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+          const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
+          if (maxTextures >= 8) {
+            patterns.features.push('multiple-textures');
+            patterns.confidence += 20;
+          }
+          
+          // 2. Check for framebuffer usage (common in map rendering for layers)
+          const framebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+          if (framebuffer) {
+            patterns.features.push('framebuffer-rendering');
+            patterns.confidence += 15;
+          }
+          
+          // 3. Check viewport size - maps typically render full canvas
+          const viewport = gl.getParameter(gl.VIEWPORT);
+          if (viewport && viewport[2] >= canvas.width * 0.9 && viewport[3] >= canvas.height * 0.9) {
+            patterns.features.push('full-viewport');
+            patterns.confidence += 10;
+          }
+          
+          // 4. Check for specific WebGL extensions used by mapping libraries
+          const mapExtensions = [
+            'OES_element_index_uint',     // For large meshes (terrain)
+            'OES_texture_float',          // For elevation data
+            'WEBGL_compressed_texture_s3tc', // For compressed map tiles
+            'EXT_texture_filter_anisotropic', // For better tile rendering
+            'OES_standard_derivatives'    // For terrain shading
+          ];
+          
+          let extensionCount = 0;
+          mapExtensions.forEach(ext => {
+            if (gl.getExtension(ext)) {
+              extensionCount++;
+            }
+          });
+          
+          if (extensionCount >= 2) {
+            patterns.features.push('map-extensions');
+            patterns.confidence += 15;
+          }
+          
+          // 5. Check blend mode - maps often use specific blending
+          const blendEnabled = gl.getParameter(gl.BLEND);
+          const blendSrcRGB = gl.getParameter(gl.BLEND_SRC_RGB);
+          const blendDstRGB = gl.getParameter(gl.BLEND_DST_RGB);
+          
+          if (blendEnabled && blendSrcRGB === gl.SRC_ALPHA && blendDstRGB === gl.ONE_MINUS_SRC_ALPHA) {
+            patterns.features.push('alpha-blending');
+            patterns.confidence += 10;
+          }
+          
+          // 6. Check for depth testing (used in 3D maps)
+          const depthTest = gl.getParameter(gl.DEPTH_TEST);
+          if (depthTest) {
+            patterns.features.push('3d-rendering');
+            patterns.confidence += 15;
+            patterns.mapType = '3d-terrain';
+          }
+          
+          // 7. Check scissor test (used for tile clipping)
+          const scissorTest = gl.getParameter(gl.SCISSOR_TEST);
+          if (scissorTest) {
+            patterns.features.push('tile-clipping');
+            patterns.confidence += 10;
+          }
+          
+          // 8. Analyze shader complexity (if accessible)
+          const currentProgram = gl.getParameter(gl.CURRENT_PROGRAM);
+          if (currentProgram) {
+            const vertexShader = gl.getAttachedShaders(currentProgram).find(shader => 
+              gl.getShaderParameter(shader, gl.SHADER_TYPE) === gl.VERTEX_SHADER
+            );
+            
+            if (vertexShader) {
+              const shaderSource = gl.getShaderSource(vertexShader);
+              if (shaderSource) {
+                // Look for map-specific shader patterns
+                const mapShaderPatterns = [
+                  'u_matrix',        // Transformation matrix (Mapbox GL)
+                  'a_pos',           // Position attribute
+                  'u_zoom',          // Zoom level uniform
+                  'tile',            // Tile references
+                  'mercator',        // Map projection
+                  'u_camera',        // Camera position
+                  'elevation',       // Terrain maps
+                  'u_viewport'       // Viewport uniform
+                ];
+                
+                const matchedPatterns = mapShaderPatterns.filter(pattern => 
+                  shaderSource.toLowerCase().includes(pattern)
+                );
+                
+                if (matchedPatterns.length >= 2) {
+                  patterns.features.push('map-shaders');
+                  patterns.confidence += 20;
+                  
+                  // Try to identify specific map library
+                  if (shaderSource.includes('mapbox')) {
+                    patterns.mapType = 'mapbox-gl';
+                  } else if (shaderSource.includes('deck.gl')) {
+                    patterns.mapType = 'deck-gl';
+                  }
+                }
+              }
+            }
+          }
+          
+          // 9. Check uniform count - maps have many uniforms
+          if (currentProgram) {
+            const uniformCount = gl.getProgramParameter(currentProgram, gl.ACTIVE_UNIFORMS);
+            if (uniformCount > 10) {
+              patterns.features.push('complex-uniforms');
+              patterns.confidence += 10;
+            }
+          }
+          
+          // 10. Check for instanced rendering (used for markers/symbols)
+          const instancedArraysExt = gl.getExtension('ANGLE_instanced_arrays');
+          if (instancedArraysExt) {
+            patterns.features.push('instanced-rendering');
+            patterns.confidence += 10;
+          }
+          
+        } catch (e) {
+          console.log('[Maps] Error analyzing WebGL patterns:', e);
+        }
+        
+        // Determine if this is likely a map based on confidence
+        patterns.isLikelyMap = patterns.confidence >= 40;
+        
+        // Refine map type based on features
+        if (patterns.isLikelyMap) {
+          if (patterns.features.includes('3d-rendering') && patterns.features.includes('map-extensions')) {
+            patterns.mapType = patterns.mapType === 'unknown' ? '3d-terrain-map' : patterns.mapType;
+          } else if (patterns.features.includes('tile-clipping') && patterns.features.includes('alpha-blending')) {
+            patterns.mapType = patterns.mapType === 'unknown' ? '2d-tile-map' : patterns.mapType;
+          }
+        }
+        
+        return patterns;
+      }
+
       // Detection Strategy 2: Div-based Maps
       // Modern JavaScript map libraries often render into div containers
       // This requires more sophisticated detection than iframe maps
@@ -827,16 +982,18 @@ window.test_maps = async function() {
               canvasSize.width = Math.max(canvasSize.width, canvas.width);
               canvasSize.height = Math.max(canvasSize.height, canvas.height);
               
-              // Check for WebGL context
+              // Enhanced WebGL map detection
               const gl = canvas.getContext('webgl') || canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
               if (gl && canvas.width > 200 && canvas.height > 200) {
                 hasWebGL = true;
                 
-                // Check for map-specific WebGL patterns
-                // Maps typically have many textures (for tiles)
-                const textureCount = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-                if (textureCount > 8) { // Maps use multiple texture units
+                // Analyze WebGL context for map-specific patterns
+                const webglMapPatterns = analyzeWebGLMapPatterns(gl, canvas);
+                if (webglMapPatterns.isLikelyMap) {
                   hasTilePattern = true;
+                  
+                  // Store additional WebGL info for provider identification
+                  canvas.webglMapInfo = webglMapPatterns;
                 }
               }
               
@@ -1327,14 +1484,11 @@ window.test_maps = async function() {
               if (gl && canvas.width > 200 && canvas.height > 200) {
                 hasWebGL = true;
                 
-                // Try to identify specific WebGL map providers by shader patterns
-                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                if (debugInfo) {
-                  const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                  // Some map libraries have identifiable patterns
-                  if (renderer && renderer.includes('ANGLE')) {
-                    // Common in browser-based WebGL maps
-                  }
+                // Use advanced WebGL analysis
+                const webglPatterns = analyzeWebGLMapPatterns(gl, canvas);
+                if (webglPatterns.isLikelyMap && webglPatterns.mapType !== 'unknown') {
+                  // Store the detected map type for use below
+                  canvas.detectedMapType = webglPatterns.mapType;
                 }
               }
             } catch (e) {
@@ -1344,7 +1498,23 @@ window.test_maps = async function() {
           
           // Try to identify specific canvas-based map types
           if (hasWebGL) {
-            // Check for specific WebGL map library patterns
+            // First check if WebGL analysis detected a specific type
+            for (const canvas of canvases) {
+              if (canvas.detectedMapType) {
+                switch (canvas.detectedMapType) {
+                  case 'mapbox-gl':
+                    return 'Mapbox GL JS (WebGL)';
+                  case 'deck-gl':
+                    return 'Deck.gl (WebGL Data Viz)';
+                  case '3d-terrain-map':
+                    return 'WebGL 3D Terrain Map';
+                  case '2d-tile-map':
+                    return 'WebGL 2D Tile Map';
+                }
+              }
+            }
+            
+            // Fall back to class-based detection
             if (divClasses.includes('mapbox') || div.querySelector('.mapboxgl-canvas')) {
               return 'Mapbox GL JS';
             }
@@ -1737,6 +1907,20 @@ window.test_maps = async function() {
         // If text is too long, truncate it
         if (visibleText.length === 200) visibleText += '...';
         
+        // Check for WebGL-specific information
+        let webglInfo = null;
+        const canvases = div.querySelectorAll('canvas');
+        for (const canvas of canvases) {
+          if (canvas.webglMapInfo) {
+            webglInfo = {
+              type: canvas.webglMapInfo.mapType,
+              features: canvas.webglMapInfo.features,
+              confidence: canvas.webglMapInfo.confidence
+            };
+            break;
+          }
+        }
+        
         const mapInfo = {
           provider: provider,
           type: 'div',
@@ -1753,7 +1937,9 @@ window.test_maps = async function() {
           // New landmark and heading info
           landmarkContext: landmarkInfo,
           headingContext: headingInfo,
-          hasGenericName: nameIsGeneric
+          hasGenericName: nameIsGeneric,
+          // WebGL-specific info if available
+          webglInfo: webglInfo
         };
         
         results.maps.push(mapInfo);
@@ -1937,6 +2123,29 @@ window.test_maps = async function() {
               region: regionInfo.region,
               landmark: regionInfo.landmark
             });
+          }
+          
+          // WebGL-specific accessibility checks
+          if (webglInfo && webglInfo.features.includes('3d-rendering')) {
+            // Check if 3D navigation instructions are provided
+            const hasNavigationInstructions = div.querySelector('[aria-describedby], .instructions, .help-text, [class*="help"], [class*="instructions"]') !== null ||
+                                            canvases[0]?.hasAttribute('aria-describedby');
+            
+            if (!hasNavigationInstructions && isInteractive) {
+              results.violations.push({
+                type: 'webgl-map-no-3d-instructions',
+                provider: provider,
+                element: 'div',
+                selector: cssSelector,
+                xpath: getFullXPath(div),
+                html: divHtml,
+                isInteractive: isInteractive,
+                webglFeatures: webglInfo.features,
+                impact: 'medium',
+                region: regionInfo.region,
+                landmark: regionInfo.landmark
+              });
+            }
           }
         }
       });
@@ -3509,6 +3718,72 @@ function handleMapKeyboard(event) {
       </tbody>
     </table>
   </div>
+</div>`
+            }
+          });
+        }
+        
+        else if (violation.type === 'webgl-map-no-3d-instructions') {
+          issues.push({
+            type: 'warning',
+            title: `${violation.provider} 3D map lacks navigation instructions`,
+            description: `This WebGL-powered 3D map does not provide instructions for 3D navigation. Users need to know how to rotate, tilt, and navigate in 3D space, especially keyboard and screen reader users.`,
+            selector: violation.selector,
+            xpath: violation.xpath,
+            html: violation.html,
+            impact: {
+              who: 'Keyboard users, screen reader users, and users unfamiliar with 3D navigation',
+              level: 'medium',
+              why: '3D maps use complex navigation patterns (rotate, tilt, pan, zoom) that are not intuitive. Without instructions, users may not discover all functionality or may become disoriented.'
+            },
+            wcag: {
+              principle: 'Understandable',
+              guideline: '3.3 Input Assistance',
+              successCriterion: '3.3.2 Labels or Instructions',
+              level: 'A',
+              version: '2.0'
+            },
+            remediation: [
+              'Add aria-describedby pointing to navigation instructions',
+              'Provide a help button or overlay with 3D navigation guide',
+              'Include keyboard shortcuts for all 3D navigation features',
+              'Consider adding a "Reset view" button for orientation recovery',
+              'Provide alternative 2D view option for users who cannot use 3D'
+            ],
+            codeExample: {
+              before: `<div class="map-3d-container">
+  <canvas 
+    width="800" 
+    height="600"
+    role="application"
+    aria-label="3D terrain map">
+  </canvas>
+</div>`,
+              after: `<div class="map-3d-container">
+  <canvas 
+    width="800" 
+    height="600"
+    role="application"
+    aria-label="3D terrain map of mountain region"
+    aria-describedby="map-3d-help">
+  </canvas>
+  
+  <button onclick="showHelp()" aria-label="3D navigation help">
+    <span aria-hidden="true">?</span> Help
+  </button>
+  
+  <div id="map-3d-help" class="sr-only">
+    <h3>3D Map Navigation</h3>
+    <ul>
+      <li>Mouse: Click and drag to rotate, scroll to zoom</li>
+      <li>Keyboard: Arrow keys to pan, +/- to zoom, Shift+arrows to rotate</li>
+      <li>Touch: Pinch to zoom, two-finger drag to rotate</li>
+      <li>Press R to reset view, H for this help</li>
+    </ul>
+  </div>
+  
+  <button onclick="resetView()">Reset View</button>
+  <button onclick="toggle2D()">Switch to 2D</button>
 </div>`
             }
           });

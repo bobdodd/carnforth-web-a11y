@@ -870,12 +870,232 @@
             </div>
         </section>
 
+        <!-- WEBGL-SPECIFIC MAPS -->
+        <section class="section" aria-labelledby="webgl-maps-heading">
+            <h2 id="webgl-maps-heading">9. WebGL-Enhanced Map Detection</h2>
+            
+            <div class="grid">
+                <!-- WebGL 3D Map with Instructions -->
+                <div class="map-container">
+                    <h3>WebGL 3D Map - With Navigation Instructions</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Has 3D navigation help</div>
+                    <div id="webgl-3d-with-help" class="cesium-viewer">
+                        <canvas 
+                            id="webgl-3d-canvas-help"
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="3D terrain map of Grand Canyon"
+                            aria-describedby="3d-help-text"
+                            tabindex="0"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <div id="3d-help-text" class="instructions">
+                            Use mouse to rotate, scroll to zoom. Keyboard: arrows to pan, +/- to zoom.
+                        </div>
+                        <script>
+                            // Simulate WebGL 3D context with depth testing
+                            const canvas3dHelp = document.getElementById('webgl-3d-canvas-help');
+                            if (canvas3dHelp) {
+                                try {
+                                    const gl = canvas3dHelp.getContext('webgl');
+                                    if (gl) {
+                                        gl.enable(gl.DEPTH_TEST);
+                                        gl.clearColor(0.5, 0.7, 1.0, 1.0);
+                                        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: 3D map with proper instructions</div>
+                </div>
+
+                <!-- WebGL 3D Map without Instructions -->
+                <div class="map-container">
+                    <h3>WebGL 3D Map - Missing Navigation Instructions</h3>
+                    <div class="test-info"><span class="warn">WARNING</span>: No 3D navigation help</div>
+                    <div id="webgl-3d-no-help" class="mapbox-gl-map">
+                        <canvas 
+                            id="webgl-3d-canvas-no-help"
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="3D terrain map"
+                            tabindex="0"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // Simulate WebGL 3D context
+                            const canvas3dNoHelp = document.getElementById('webgl-3d-canvas-no-help');
+                            if (canvas3dNoHelp) {
+                                try {
+                                    const gl = canvas3dNoHelp.getContext('webgl');
+                                    if (gl) {
+                                        gl.enable(gl.DEPTH_TEST);
+                                        // Store WebGL info for detection
+                                        canvas3dNoHelp.webglMapInfo = {
+                                            mapType: '3d-terrain-map',
+                                            features: ['3d-rendering', 'depth-testing'],
+                                            confidence: 80
+                                        };
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: webgl-map-no-3d-instructions violation</div>
+                </div>
+
+                <!-- WebGL with Map Extensions -->
+                <div class="map-container">
+                    <h3>WebGL Map - Multiple Extensions</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Detected via extensions</div>
+                    <div id="webgl-extensions-map" class="deck-gl-container">
+                        <canvas 
+                            id="webgl-extensions-canvas"
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="Data visualization map with WebGL"
+                            tabindex="0"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // Test WebGL extension detection
+                            const canvasExt = document.getElementById('webgl-extensions-canvas');
+                            if (canvasExt) {
+                                try {
+                                    const gl = canvasExt.getContext('webgl');
+                                    if (gl) {
+                                        // Try to enable map-related extensions
+                                        gl.getExtension('OES_element_index_uint');
+                                        gl.getExtension('OES_texture_float');
+                                        gl.getExtension('ANGLE_instanced_arrays');
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: WebGL extension-based detection</div>
+                </div>
+
+                <!-- WebGL with Shader Patterns -->
+                <div class="map-container">
+                    <h3>WebGL Map - Shader Detection</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: Detected via shader patterns</div>
+                    <div id="webgl-shader-map" class="mapbox-gl-map">
+                        <canvas 
+                            id="webgl-shader-canvas"
+                            width="800" 
+                            height="400"
+                            role="application"
+                            aria-label="Vector tile map with custom shaders"
+                            tabindex="0"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // Simulate shader-based map
+                            const canvasShader = document.getElementById('webgl-shader-canvas');
+                            if (canvasShader) {
+                                try {
+                                    const gl = canvasShader.getContext('webgl');
+                                    if (gl) {
+                                        // Create vertex shader with map patterns
+                                        const vertexShaderSource = `
+                                            attribute vec2 a_pos;
+                                            uniform mat4 u_matrix;
+                                            uniform float u_zoom;
+                                            void main() {
+                                                gl_Position = u_matrix * vec4(a_pos, 0.0, 1.0);
+                                            }
+                                        `;
+                                        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                                        gl.shaderSource(vertexShader, vertexShaderSource);
+                                        gl.compileShader(vertexShader);
+                                        
+                                        const program = gl.createProgram();
+                                        gl.attachShader(program, vertexShader);
+                                        gl.useProgram(program);
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: Shader pattern detection (u_matrix, u_zoom)</div>
+                </div>
+
+                <!-- WebGL 2D Tile Map -->
+                <div class="map-container">
+                    <h3>WebGL 2D Tile Map</h3>
+                    <div class="test-info"><span class="pass">PASS</span>: 2D tile rendering detected</div>
+                    <div id="webgl-2d-tile-map" class="maplibre-gl-map">
+                        <canvas 
+                            id="webgl-2d-tile-canvas"
+                            width="800" 
+                            height="400"
+                            role="img"
+                            aria-label="2D street map with WebGL acceleration"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // Simulate 2D tile map with WebGL
+                            const canvas2dTile = document.getElementById('webgl-2d-tile-canvas');
+                            if (canvas2dTile) {
+                                try {
+                                    const gl = canvas2dTile.getContext('webgl');
+                                    if (gl) {
+                                        // Enable scissor test (tile clipping)
+                                        gl.enable(gl.SCISSOR_TEST);
+                                        // Enable blending
+                                        gl.enable(gl.BLEND);
+                                        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: 2D tile map detection (scissor test, alpha blending)</div>
+                </div>
+
+                <!-- False Positive - WebGL Non-Map -->
+                <div class="map-container">
+                    <h3>False Positive - WebGL Data Viz</h3>
+                    <div class="test-info">Should have low confidence as map</div>
+                    <div id="webgl-dataviz" class="chart-container">
+                        <canvas 
+                            id="webgl-chart-canvas"
+                            width="800" 
+                            height="400"
+                            role="img"
+                            aria-label="3D bar chart visualization"
+                            style="width: 100%; height: 400px;">
+                        </canvas>
+                        <script>
+                            // WebGL context without map patterns
+                            const canvasChart = document.getElementById('webgl-chart-canvas');
+                            if (canvasChart) {
+                                try {
+                                    const gl = canvasChart.getContext('webgl');
+                                    if (gl) {
+                                        gl.clearColor(0.95, 0.95, 0.95, 1.0);
+                                        gl.clear(gl.COLOR_BUFFER_BIT);
+                                    }
+                                } catch(e) {}
+                            }
+                        </script>
+                    </div>
+                    <div class="test-ref">Tests: WebGL without map patterns (low confidence)</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Coverage Summary -->
         <section aria-labelledby="coverage-heading">
             <h2 id="coverage-heading">Coverage Summary</h2>
             <ul>
                 <li>✓ All 30+ map providers (including new: Cesium, Deck.gl, MapLibre GL, Tangram, Maps4HTML)</li>
-                <li>✓ All violation types (11 types including 3 new canvas-specific)</li>
+                <li>✓ All violation types (12 types including 4 canvas/WebGL-specific)</li>
                 <li>✓ All detection methods (iframe, div, img, svg, canvas)</li>
                 <li>✓ Interactive vs non-interactive</li>
                 <li>✓ Landmark and heading context</li>
@@ -892,6 +1112,11 @@
                 <li>✓ Canvas touch interaction detection (NEW)</li>
                 <li>✓ Multi-canvas tile rendering (NEW)</li>
                 <li>✓ Canvas accessibility violations (NEW)</li>
+                <li>✓ Advanced WebGL pattern analysis (NEW)</li>
+                <li>✓ WebGL extension detection (NEW)</li>
+                <li>✓ WebGL shader analysis (NEW)</li>
+                <li>✓ WebGL 3D map detection (NEW)</li>
+                <li>✓ WebGL navigation instruction checks (NEW)</li>
                 <li>✓ Custom map pattern detection (Phase 2)</li>
                 <li>✓ ARIA landmark detection for maps (Phase 2)</li>
                 <li>✓ Tile structure detection (Phase 2)</li>
